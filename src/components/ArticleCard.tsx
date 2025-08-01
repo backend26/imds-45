@@ -2,11 +2,11 @@ import React, { useState, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components/Icon";
-import { Clock, MessageCircle, Heart, Bookmark, Share2 } from "lucide-react";
+import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
+import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
-import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
+import { gsap } from "gsap";
 
 interface ArticleCardProps {
   title: string;
@@ -22,20 +22,19 @@ interface ArticleCardProps {
   className?: string;
 }
 
-export const ArticleCard = ({
+export const ArticleCard: React.FC<ArticleCardProps> = ({
   title,
   excerpt,
   imageUrl,
-  readTime,
   category,
-  author,
   publishedAt,
-  likes = 0,
-  comments = 0,
+  author,
+  readTime,
+  likes,
+  comments,
   featured = false,
   className
-}: ArticleCardProps) => {
-  const { animateCardHover, animateCardLeave, animateIconClick } = useGSAPAnimations();
+}) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
@@ -48,7 +47,7 @@ export const ArticleCard = ({
     e.stopPropagation();
     setIsLiked(!isLiked);
     setIsLikeAnimating(true);
-
+    
     // GSAP animation for like button
     const button = e.currentTarget;
     gsap.timeline()
@@ -67,7 +66,7 @@ export const ArticleCard = ({
         duration: 0.1,
         ease: 'power2.out'
       });
-
+    
     setTimeout(() => setIsLikeAnimating(false), 600);
   };
 
@@ -80,7 +79,7 @@ export const ArticleCard = ({
     e.stopPropagation();
     setIsSaved(!isSaved);
     setIsSaveAnimating(true);
-
+    
     // GSAP animation for bookmark button
     const button = e.currentTarget;
     gsap.timeline()
@@ -99,7 +98,7 @@ export const ArticleCard = ({
         duration: 0.1,
         ease: 'power2.out'
       });
-
+    
     setTimeout(() => setIsSaveAnimating(false), 400);
   };
 
@@ -165,7 +164,7 @@ export const ArticleCard = ({
 
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-
+          
           {/* Category badge - highest z-index */}
           <Badge 
             className="absolute top-4 left-4 bg-primary text-primary-foreground animate-scale-in z-30"
@@ -182,7 +181,7 @@ export const ArticleCard = ({
               >
                 In Evidenza
               </Badge>
-
+              
               {/* Interaction buttons for featured articles */}
               <div className="absolute bottom-4 right-4 z-20 flex items-center space-x-2">
                 <Button
@@ -205,7 +204,7 @@ export const ArticleCard = ({
                      )} 
                    />
                 </Button>
-
+                
                 <Button
                   variant="ghost"
                   size="sm"
@@ -215,7 +214,7 @@ export const ArticleCard = ({
                 >
                                      <Icon name="comment" className="h-4 w-4 text-white" />
                 </Button>
-
+                
                 <Button
                   variant="ghost"
                   size="sm"
@@ -250,7 +249,7 @@ export const ArticleCard = ({
                 >
                   {title}
                 </h3>
-
+                
                 <p className="text-white/95 text-base md:text-lg mb-4 line-clamp-3 leading-relaxed">
                   {excerpt}
                 </p>
@@ -286,7 +285,7 @@ export const ArticleCard = ({
           <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
             {excerpt}
           </p>
-
+          
           {/* Author and metadata */}
           <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-4">
             <div className="flex items-center space-x-1">
@@ -323,7 +322,7 @@ export const ArticleCard = ({
               )} />
               <span className="text-xs font-medium">{likes}</span>
             </Button>
-
+            
             <Button
               variant="ghost"
               size="sm"
@@ -346,7 +345,7 @@ export const ArticleCard = ({
             >
               <Icon name="share" className="h-4 w-4" />
             </Button>
-
+            
             <Button
               variant="ghost"
               size="sm"

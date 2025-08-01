@@ -1,0 +1,29 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="textGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.8" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="32" height="32" fill="#3e3e3e" rx="4"/>
+  
+  <!-- Basketball Player Icon -->
+  <g transform="translate(4, 6)">
+    <!-- Player body -->
+    <ellipse cx="6" cy="12" rx="3" ry="4" fill="white"/>
+    <!-- Head -->
+    <circle cx="6" cy="6" r="2" fill="white"/>
+    <!-- Arms -->
+    <path d="M 3 10 Q 2 8 3 6" stroke="white" stroke-width="1" fill="none"/>
+    <path d="M 9 10 Q 10 8 9 6" stroke="white" stroke-width="1" fill="none"/>
+    <!-- Basketball -->
+    <circle cx="10" cy="8" r="2" fill="white" stroke="#ff3036" stroke-width="0.5"/>
+    <path d="M 8 8 L 12 8" stroke="#ff3036" stroke-width="0.5" fill="none"/>
+    <path d="M 10 6 L 10 10" stroke="#ff3036" stroke-width="0.5" fill="none"/>
+  </g>
+  
+  <!-- Red accent bar -->
+  <rect x="4" y="26" width="24" height="2" fill="#ff3036" rx="1"/>
+</svg> 

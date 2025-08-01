@@ -1,4 +1,4 @@
-import { useState, useEffect, Suspense, lazy } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { ArticleCard } from "@/components/ArticleCard";
@@ -12,9 +12,6 @@ import { TrendingUp, Filter } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { mockArticles } from "@/data/articles";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
-
-// Lazy load componenti pesanti
-// Removed dynamic import to avoid conflicts
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
@@ -56,7 +53,7 @@ const Index = () => {
   return (
     <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-
+      
       {/* Hero Section */}
       <div className="hero-section">
         <HeroSection />
@@ -133,7 +130,7 @@ const Index = () => {
           )}
         </section>
           </main>
-
+          
           {/* Sidebar */}
           <div className="sidebar">
             <Sidebar />
