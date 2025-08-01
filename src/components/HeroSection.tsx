@@ -7,6 +7,8 @@ import { Enhanced3DFootball } from "./Enhanced3DFootball";
 
 import { heroArticles } from "@/data/articles";
 import { getImageUrl } from "@/config/images";
+import { ErrorBoundary } from "react-error-boundary";
+import { Suspense } from "react";
 
 export const HeroSection = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -46,15 +48,33 @@ export const HeroSection = () => {
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out scale-105 group-hover:scale-110"
         style={{ backgroundImage: `url(${getImageUrl(currentArticle.imageUrl)})` }}
       />
-      
+
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
-      
+
       {/* 3D Element - Enhanced Football */}
       <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-48 h-48 opacity-90 hidden lg:block">
-        <Enhanced3DFootball size={1.5} />
+        <ErrorBoundary fallback={
+            <div className="h-64 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+              <div className="text-white text-center">
+                <div className="text-6xl mb-4">⚽</div>
+                <p className="text-lg font-semibold">Malati dello Sport</p>
+              </div>
+            </div>
+          }>
+            <Suspense fallback={
+              <div className="h-64 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <div className="text-white text-center">
+                  <div className="animate-spin text-4xl mb-4">⚽</div>
+                  <p>Caricamento...</p>
+                </div>
+              </div>
+            }>
+              <Enhanced3DFootball size={1.5} />
+            </Suspense>
+          </ErrorBoundary>
       </div>
-      
+
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
         <div className="max-w-2xl animate-fade-in">
@@ -67,7 +87,7 @@ export const HeroSection = () => {
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 leading-tight">
             {currentArticle.title}
           </h1>
-          
+
           <p className="text-xl text-white/80 mb-8 leading-relaxed">
             {currentArticle.excerpt}
           </p>
@@ -112,7 +132,7 @@ export const HeroSection = () => {
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
-            
+
             <Button
               variant="ghost"
               size="sm"

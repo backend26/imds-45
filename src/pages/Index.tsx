@@ -14,7 +14,7 @@ import { mockArticles } from "@/data/articles";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 
 // Lazy load componenti pesanti
-const Enhanced3DFootball = lazy(() => import("@/components/Enhanced3DFootball"));
+// Removed dynamic import to avoid conflicts
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);

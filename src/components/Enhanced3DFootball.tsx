@@ -13,6 +13,7 @@ export const Enhanced3DFootball = ({ size = 1 }: Enhanced3DFootballProps) => {
   useEffect(() => {
     if (!mountRef.current) return;
 
+    try {
     // Scene setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000);
@@ -86,6 +87,21 @@ export const Enhanced3DFootball = ({ size = 1 }: Enhanced3DFootballProps) => {
       material.dispose();
       renderer.dispose();
     };
+
+    } catch (error) {
+      console.error('Error initializing 3D football:', error);
+      // Fallback to simple animation
+      if (mountRef.current) {
+        mountRef.current.innerHTML = `
+          <div class="h-64 bg-gradient-to-br from-red-500 to-orange-600 rounded-lg flex items-center justify-center">
+            <div class="text-white text-center">
+              <div class="text-6xl mb-4 animate-bounce">⚽</div>
+              <p class="text-lg font-semibold">Malati dello Sport</p>
+            </div>
+          </div>
+        `;
+      }
+    }
   }, [size]);
 
   const createFootballPattern = () => {
