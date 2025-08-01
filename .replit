@@ -4,3 +4,15 @@ entrypoint = "README.md"
 [nix]
 channel = "stable-24_11"
 packages = ["cowsay"]
+
+[workflows]
+runButton = "Development Server"
+
+[[workflows.workflow]]
+name = "Development Server"
+author = 45855026
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"

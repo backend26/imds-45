@@ -1,260 +1,145 @@
-import { useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-// Register ScrollTrigger plugin
-gsap.registerPlugin(ScrollTrigger);
 
 export const useGSAPAnimations = () => {
   const pageRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced page loading animation with staggered grid
-  const animatePageLoad = () => {
-    const tl = gsap.timeline();
-    
-    // Hero section fade-in with scale
-    tl.from('.hero-section', {
-      opacity: 0,
-      y: 50,
-      scale: 0.95,
-      duration: 1.2,
-      ease: 'power3.out'
-    });
+  useEffect(() => {
+    if (!pageRef.current) return;
 
-    // Staggered card animation
-    tl.from('.article-card', {
-      opacity: 0,
-      y: 60,
-      scale: 0.9,
-      duration: 0.8,
-      stagger: {
-        amount: 0.6,
-        from: "start"
-      },
-      ease: 'back.out(1.7)'
-    }, '-=0.8');
+    // Entrance Stagger Animation
+    const cards = pageRef.current.querySelectorAll('.article-card');
+    gsap.set(cards, { opacity: 0, y: 100, rotateX: -15 });
 
-    // Sidebar animations
-    tl.from('.sidebar-module', {
-      opacity: 0,
-      x: 30,
-      duration: 0.6,
-      stagger: 0.15,
-      ease: 'power2.out'
-    }, '-=0.4');
-
-    return tl;
-  };
-
-  // Enhanced card hover animation with physics
-  const animateCardHover = (element: HTMLElement, isHovering: boolean) => {
-    if (isHovering) {
-      gsap.to(element, {
-        y: -12,
-        scale: 1.03,
-        duration: 0.4,
-        ease: 'power3.out',
-        boxShadow: '0 25px 50px rgba(255, 48, 54, 0.25), 0 10px 30px rgba(0, 0, 0, 0.3)',
-        rotationY: 2,
-        transformPerspective: 1000
-      });
-    } else {
-      gsap.to(element, {
-        y: 0,
-        scale: 1,
-        duration: 0.4,
-        ease: 'power3.out',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-        rotationY: 0
-      });
-    }
-  };
-
-  // Advanced icon click animation with burst effect
-  const animateIconClick = (element: HTMLElement) => {
-    const tl = gsap.timeline();
-    
-    // Main icon animation
-    tl.to(element, {
-      scale: 0.7,
-      duration: 0.15,
-      ease: 'power2.in'
-    })
-    .to(element, {
-      scale: 1.3,
-      duration: 0.25,
-      ease: 'back.out(2.5)'
-    })
-    .to(element, {
-      scale: 1,
-      duration: 0.15,
-      ease: 'power2.out'
-    });
-
-    // Create burst particles
-    const createBurst = () => {
-      const particles = [];
-      for (let i = 0; i < 6; i++) {
-        const particle = document.createElement('div');
-        particle.className = 'burst-particle';
-        particle.style.cssText = `
-          position: absolute;
-          width: 4px;
-          height: 4px;
-          background: hsl(var(--primary));
-          border-radius: 50%;
-          pointer-events: none;
-          z-index: 1000;
-        `;
-        element.appendChild(particle);
-        particles.push(particle);
-      }
-
-      particles.forEach((particle, index) => {
-        const angle = (index / particles.length) * Math.PI * 2;
-        const distance = 20;
-        const x = Math.cos(angle) * distance;
-        const y = Math.sin(angle) * distance;
-
-        gsap.to(particle, {
-          x,
-          y,
-          opacity: 0,
-          duration: 0.6,
-          ease: 'power2.out',
-          onComplete: () => particle.remove()
-        });
-      });
-    };
-
-    createBurst();
-    return tl;
-  };
-
-  // Smooth page transitions
-  const animatePageTransition = (direction: 'in' | 'out') => {
-    if (direction === 'out') {
-      return gsap.to(pageRef.current, {
-        opacity: 0,
-        y: -30,
-        scale: 0.95,
-        duration: 0.4,
-        ease: 'power2.in'
-      });
-    } else {
-      return gsap.fromTo(pageRef.current, 
-        { opacity: 0, y: 30, scale: 0.95 },
-        { 
-          opacity: 1, 
-          y: 0, 
-          scale: 1,
-          duration: 0.6, 
-          ease: 'power3.out' 
-        }
-      );
-    }
-  };
-
-  // Animated statistics counter
-  const animateCounter = (element: HTMLElement, endValue: number, suffix = '') => {
-    const obj = { value: 0 };
-    
-    gsap.to(obj, {
-      value: endValue,
-      duration: 2,
-      ease: 'power2.out',
-      onUpdate: () => {
-        element.textContent = Math.round(obj.value) + suffix;
-      }
-    });
-  };
-
-  // Scroll-triggered animations for article pages
-  const initScrollAnimations = () => {
-    // Animate elements as they enter viewport
-    gsap.utils.toArray('.scroll-animate').forEach((element: any) => {
-      gsap.fromTo(element, 
-        { 
-          opacity: 0, 
-          y: 50 
-        },
-        {
-          opacity: 1,
-          y: 0,
-          duration: 0.8,
-          ease: 'power2.out',
-          scrollTrigger: {
-            trigger: element,
-            start: 'top 80%',
-            end: 'bottom 20%',
-            toggleActions: 'play none none reverse'
-          }
-        }
-      );
-    });
-
-    // Parallax effect for images
-    gsap.utils.toArray('.parallax-image').forEach((element: any) => {
-      gsap.to(element, {
-        yPercent: -30,
-        ease: 'none',
-        scrollTrigger: {
-          trigger: element,
-          start: 'top bottom',
-          end: 'bottom top',
-          scrub: true
-        }
-      });
-    });
-  };
-
-  // Grid filter animation
-  const animateGridFilter = (elements: NodeListOf<Element>) => {
-    const tl = gsap.timeline();
-    
-    // Fade out current items
-    tl.to(elements, {
-      opacity: 0,
-      y: 20,
-      scale: 0.95,
-      duration: 0.3,
-      stagger: 0.05,
-      ease: 'power2.in'
-    });
-
-    // Fade in new items
-    tl.to(elements, {
+    gsap.to(cards, {
       opacity: 1,
       y: 0,
-      scale: 1,
-      duration: 0.5,
-      stagger: 0.08,
-      ease: 'back.out(1.7)'
+      rotateX: 0,
+      duration: 0.8,
+      stagger: 0.1,
+      ease: "back.out(1.7)",
+      delay: 0.2
     });
 
-    return tl;
+    // Physics-based Hover for Hero Elements
+    const heroElements = pageRef.current.querySelectorAll('.hero-element');
+    heroElements.forEach(element => {
+      element.addEventListener('mouseenter', () => {
+        gsap.to(element, {
+          scale: 1.05,
+          rotateY: 5,
+          rotateX: 5,
+          duration: 0.6,
+          ease: "elastic.out(1, 0.5)"
+        });
+      });
+
+      element.addEventListener('mouseleave', () => {
+        gsap.to(element, {
+          scale: 1,
+          rotateY: 0,
+          rotateX: 0,
+          duration: 0.4,
+          ease: "power2.out"
+        });
+      });
+    });
+
+  }, []);
+
+  const animateCardHover = (element: HTMLElement) => {
+    gsap.to(element, {
+      y: -10,
+      scale: 1.02,
+      rotateY: 2,
+      duration: 0.3,
+      ease: "power2.out",
+      transformPerspective: 1000
+    });
   };
 
-  useEffect(() => {
-    // Initialize animations on mount
-    const timer = setTimeout(() => {
-      animatePageLoad();
-      initScrollAnimations();
-    }, 100);
+  const animateCardLeave = (element: HTMLElement) => {
+    gsap.to(element, {
+      y: 0,
+      scale: 1,
+      rotateY: 0,
+      duration: 0.3,
+      ease: "power2.out"
+    });
+  };
 
-    return () => {
-      clearTimeout(timer);
-      ScrollTrigger.getAll().forEach(trigger => trigger.kill());
-    };
-  }, []);
+  const animateIconClick = (element: HTMLElement) => {
+    // Particle Burst Effect
+    const tl = gsap.timeline();
+
+    tl.to(element, {
+      scale: 1.3,
+      duration: 0.1,
+      ease: "power2.out"
+    })
+    .to(element, {
+      scale: 1,
+      duration: 0.3,
+      ease: "elastic.out(1, 0.3)"
+    });
+
+    // Create particle burst
+    createParticleBurst(element);
+  };
+
+  const createParticleBurst = (element: HTMLElement) => {
+    const rect = element.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+
+    for (let i = 0; i < 8; i++) {
+      const particle = document.createElement('div');
+      particle.style.cssText = `
+        position: fixed;
+        width: 4px;
+        height: 4px;
+        background: hsl(355, 100%, 60%);
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 1000;
+        left: ${centerX}px;
+        top: ${centerY}px;
+      `;
+
+      document.body.appendChild(particle);
+
+      const angle = (i / 8) * Math.PI * 2;
+      const distance = 50 + Math.random() * 30;
+
+      gsap.to(particle, {
+        x: Math.cos(angle) * distance,
+        y: Math.sin(angle) * distance,
+        opacity: 0,
+        scale: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        onComplete: () => particle.remove()
+      });
+    }
+  };
+
+  const animateCounter = (element: HTMLElement, targetValue: number, suffix: string = '') => {
+    const obj = { value: 0 };
+    gsap.to(obj, {
+      value: targetValue,
+      duration: 2,
+      ease: "power2.out",
+      onUpdate: () => {
+        element.textContent = `+${obj.value.toFixed(1)}${suffix}`;
+      }
+    });
+  };
 
   return {
     pageRef,
     animateCardHover,
+    animateCardLeave,
     animateIconClick,
-    animatePageTransition,
-    animateCounter,
-    animateGridFilter,
-    initScrollAnimations
+    animateCounter
   };
 };

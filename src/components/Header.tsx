@@ -21,9 +21,22 @@ interface HeaderProps {
 export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Prima Pagina");
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 glass-effect header-glow border-b border-primary/20 dark:border-primary/20 light:header-glass-light">
+    <header className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+      scrolled 
+        ? 'backdrop-blur-xl bg-white/80 dark:bg-gray-900/80 border-b border-white/20 shadow-2xl' 
+        : 'backdrop-blur-md bg-white/60 dark:bg-gray-900/60 border-b border-white/10'
+    }`}>
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
