@@ -4,10 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Enhanced3DFootball } from "./Enhanced3DFootball";
+import { ErrorBoundary } from "./ErrorBoundary";
 
 import { heroArticles } from "@/data/articles";
 import { getImageUrl } from "@/config/images";
-import { ErrorBoundary } from "react-error-boundary";
 import { Suspense } from "react";
 
 export const HeroSection = () => {
