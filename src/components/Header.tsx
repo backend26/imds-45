@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { User, Moon, Sun, Search, Menu, X, Bell } from "lucide-react";
@@ -21,10 +21,33 @@ interface HeaderProps {
 export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Prima Pagina");
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 glass-effect header-glow border-b border-primary/20 dark:border-primary/20 light:header-glass-light">
-      <div className="container mx-auto px-4">
+    <header className={cn(
+      "sticky top-0 z-50 transition-all duration-500 border-b border-transparent",
+      isScrolled 
+        ? "backdrop-blur-xl bg-background/80 dark:bg-background/80 border-primary/10 shadow-lg shadow-primary/5" 
+        : "bg-transparent"
+    )}>
+      <div className={cn(
+        "absolute inset-0 transition-all duration-500",
+        isScrolled && "bg-gradient-to-r from-background/90 via-background/95 to-background/90 backdrop-blur-xl"
+      )} />
+      <div className={cn(
+        "absolute inset-x-0 bottom-0 h-px transition-all duration-500",
+        isScrolled && "bg-gradient-to-r from-transparent via-primary/30 to-transparent"
+      )} />
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
@@ -59,9 +82,10 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105"
+              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2"
             >
               <Search className="h-4 w-4" />
+              <span className="hidden sm:inline text-sm text-muted-foreground">Cerca...</span>
             </Button>
             
             <Button 

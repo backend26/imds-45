@@ -71,16 +71,11 @@ const Index = () => {
                 <Icon name="fire" className="h-6 w-6 text-primary" />
                 <h2 className="text-2xl font-bold">Trending Now</h2>
               </div>
-              <Badge variant="secondary" className="animate-pulse">
+              <Badge className="bg-gradient-primary text-white animate-scale-in">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                +24% oggi
+                <span id="trending-counter">+2.4</span>% oggi
               </Badge>
             </div>
-
-            <Badge className="bg-gradient-primary text-white animate-scale-in">
-              <TrendingUp className="h-3 w-3 mr-1" />
-              <span id="trending-counter">+2.4</span>% oggi
-            </Badge>
           </div>
 
           {/* Advanced Sorting Controls */}

@@ -8,103 +8,124 @@ gsap.registerPlugin(ScrollTrigger);
 export const useGSAPAnimations = () => {
   const pageRef = useRef<HTMLDivElement>(null);
 
-  // Enhanced page loading animation with staggered grid
+  // Enhanced page loading animation with advanced staggered grid
   const animatePageLoad = () => {
     const tl = gsap.timeline();
     
-    // Hero section fade-in with scale
+    // Hero section entrance with dramatic effect
     tl.from('.hero-section', {
       opacity: 0,
-      y: 50,
-      scale: 0.95,
-      duration: 1.2,
-      ease: 'power3.out'
+      y: 100,
+      scale: 0.9,
+      duration: 1.5,
+      ease: 'power4.out'
     });
 
-    // Staggered card animation
+    // Advanced staggered card animation with wave effect
     tl.from('.article-card', {
       opacity: 0,
-      y: 60,
-      scale: 0.9,
-      duration: 0.8,
+      y: 80,
+      scale: 0.8,
+      rotationY: 15,
+      duration: 1,
       stagger: {
-        amount: 0.6,
-        from: "start"
+        amount: 1.2,
+        from: "start",
+        ease: "power2.inOut"
       },
-      ease: 'back.out(1.7)'
-    }, '-=0.8');
+      ease: 'back.out(2)'
+    }, '-=1');
 
-    // Sidebar animations
-    tl.from('.sidebar-module', {
+    // Sidebar modules with enhanced physics
+    tl.from('.sidebar > *', {
       opacity: 0,
-      x: 30,
-      duration: 0.6,
-      stagger: 0.15,
-      ease: 'power2.out'
-    }, '-=0.4');
+      x: 50,
+      rotationY: 10,
+      duration: 0.8,
+      stagger: 0.2,
+      ease: 'back.out(1.5)'
+    }, '-=0.6');
 
     return tl;
   };
 
-  // Enhanced card hover animation with physics
+  // Physics-based card hover with magnetic effect
   const animateCardHover = (element: HTMLElement, isHovering: boolean) => {
     if (isHovering) {
       gsap.to(element, {
-        y: -12,
-        scale: 1.03,
-        duration: 0.4,
-        ease: 'power3.out',
-        boxShadow: '0 25px 50px rgba(255, 48, 54, 0.25), 0 10px 30px rgba(0, 0, 0, 0.3)',
-        rotationY: 2,
-        transformPerspective: 1000
+        y: -15,
+        scale: 1.05,
+        rotationX: 5,
+        rotationY: 3,
+        duration: 0.5,
+        ease: 'power4.out',
+        boxShadow: '0 30px 60px rgba(255, 48, 54, 0.3), 0 15px 40px rgba(0, 0, 0, 0.2)',
+        transformPerspective: 1200,
+        transformOrigin: 'center center'
+      });
+      
+      // Add subtle wobble effect
+      gsap.to(element, {
+        rotationZ: 1,
+        duration: 0.1,
+        ease: 'power2.inOut',
+        yoyo: true,
+        repeat: 1
       });
     } else {
       gsap.to(element, {
         y: 0,
         scale: 1,
-        duration: 0.4,
-        ease: 'power3.out',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)',
-        rotationY: 0
+        rotationX: 0,
+        rotationY: 0,
+        rotationZ: 0,
+        duration: 0.6,
+        ease: 'elastic.out(1, 0.6)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
       });
     }
   };
 
-  // Advanced icon click animation with burst effect
+  // Advanced icon click with explosive particle burst
   const animateIconClick = (element: HTMLElement) => {
     const tl = gsap.timeline();
     
-    // Main icon animation
+    // Enhanced main icon animation with elastic effect
     tl.to(element, {
-      scale: 0.7,
-      duration: 0.15,
-      ease: 'power2.in'
+      scale: 0.5,
+      rotation: -10,
+      duration: 0.1,
+      ease: 'power3.in'
     })
     .to(element, {
-      scale: 1.3,
-      duration: 0.25,
-      ease: 'back.out(2.5)'
+      scale: 1.4,
+      rotation: 5,
+      duration: 0.3,
+      ease: 'back.out(3)'
     })
     .to(element, {
       scale: 1,
-      duration: 0.15,
-      ease: 'power2.out'
+      rotation: 0,
+      duration: 0.2,
+      ease: 'elastic.out(1, 0.3)'
     });
 
-    // Create burst particles
-    const createBurst = () => {
+    // Create enhanced burst with different particle types
+    const createAdvancedBurst = () => {
       const particles = [];
-      for (let i = 0; i < 6; i++) {
+      for (let i = 0; i < 12; i++) {
         const particle = document.createElement('div');
+        const size = Math.random() * 6 + 2;
         particle.className = 'burst-particle';
         particle.style.cssText = `
           position: absolute;
-          width: 4px;
-          height: 4px;
-          background: hsl(var(--primary));
+          width: ${size}px;
+          height: ${size}px;
+          background: ${i % 3 === 0 ? 'hsl(var(--primary))' : i % 3 === 1 ? '#00ff88' : '#ffaa00'};
           border-radius: 50%;
           pointer-events: none;
           z-index: 1000;
+          box-shadow: 0 0 ${size * 2}px currentColor;
         `;
         element.appendChild(particle);
         particles.push(particle);
@@ -112,22 +133,24 @@ export const useGSAPAnimations = () => {
 
       particles.forEach((particle, index) => {
         const angle = (index / particles.length) * Math.PI * 2;
-        const distance = 20;
+        const distance = Math.random() * 40 + 20;
         const x = Math.cos(angle) * distance;
         const y = Math.sin(angle) * distance;
 
         gsap.to(particle, {
           x,
           y,
+          scale: 0,
           opacity: 0,
-          duration: 0.6,
-          ease: 'power2.out',
+          rotation: Math.random() * 360,
+          duration: 0.8,
+          ease: 'power3.out',
           onComplete: () => particle.remove()
         });
       });
     };
 
-    createBurst();
+    createAdvancedBurst();
     return tl;
   };
 
