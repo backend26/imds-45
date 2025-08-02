@@ -93,7 +93,7 @@ const Sidebar = () => {
           {trendingTopics.map((item, index) => (
             <div key={index} className="flex justify-between items-center group cursor-pointer p-2 rounded-full bg-secondary/20 hover:bg-secondary/40 transition-all duration-300">
               <div className="flex items-center space-x-2">
-                <div className={cn("w-2 h-2 rounded-full animate-pulse", item.color)} />
+                <div className={`w-2 h-2 rounded-full animate-pulse ${item.color}`} />
                 <span className="text-sm font-medium group-hover:text-primary transition-colors">{item.topic}</span>
               </div>
               <Badge variant="secondary" className="text-xs bg-primary/10 text-primary border-primary/20">{item.count}</Badge>
