@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Enhanced3DFootball } from "./Enhanced3DFootball";
-import { Interactive3DScene } from "./Interactive3DScene";
 
 import { heroArticles } from "@/data/articles";
 import { getImageUrl } from "@/config/images";
@@ -51,9 +50,9 @@ export const HeroSection = () => {
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
       
-      {/* 3D Element - Interactive Football */}
-      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-48 h-48 opacity-90 hidden lg:block">
-        <Interactive3DScene type="football" size={1.2} />
+      {/* 3D Element - Enhanced Football */}
+      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-48 h-48 opacity-90 hidden lg:block pointer-events-none">
+        <Enhanced3DFootball size={1.5} />
       </div>
       
       {/* Content */}
