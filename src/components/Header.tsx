@@ -25,7 +25,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 50);
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -33,25 +33,30 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   }, []);
 
   return (
-    <header className={cn(
-      "sticky top-0 z-50 transition-all duration-500 border-b border-transparent",
-      isScrolled 
-        ? "backdrop-blur-xl bg-background/80 dark:bg-background/80 border-primary/10 shadow-lg shadow-primary/5" 
-        : "bg-transparent"
-    )}>
-      <div className={cn(
-        "absolute inset-0 transition-all duration-500",
-        isScrolled && "bg-gradient-to-r from-background/90 via-background/95 to-background/90 backdrop-blur-xl"
-      )} />
-      <div className={cn(
-        "absolute inset-x-0 bottom-0 h-px transition-all duration-500",
-        isScrolled && "bg-gradient-to-r from-transparent via-primary/30 to-transparent"
-      )} />
+    <header 
+      className={cn(
+        "sticky top-0 z-[1000] transition-all duration-400 ease-out",
+        isScrolled 
+          ? "bg-[rgba(62,62,62,0.7)] border-b border-white/10" 
+          : "bg-transparent"
+      )}
+      style={isScrolled ? {
+        backdropFilter: "blur(15px)",
+        WebkitBackdropFilter: "blur(15px)"
+      } : undefined}
+    >
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <img src="/assets/images/logo-malati-dello-sport.png" alt="I Malati dello Sport" className="h-10 w-auto" />
+            <img 
+              src="/assets/images/logo-malati-dello-sport.png" 
+              alt="I Malati dello Sport" 
+              className={cn(
+                "h-10 w-auto transition-all duration-300",
+                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              )}
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -61,12 +66,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 key={sport.name}
                 variant={activeSection === sport.name ? "default" : "ghost"}
                 size="sm"
-                className={cn(
-                  "nav-item-hover transition-all duration-300 relative overflow-hidden group",
-                  activeSection === sport.name 
-                    ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
-                    : "hover:bg-secondary/50 hover:text-primary hover:scale-105"
-                )}
+                 className={cn(
+                   "nav-item-hover transition-all duration-300 relative overflow-hidden group",
+                   activeSection === sport.name 
+                     ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
+                     : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
+                   !isScrolled && "text-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
+                 )}
                 onClick={() => setActiveSection(sport.name)}
               >
                 <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">{sport.name}</span>
@@ -82,17 +88,23 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2"
+              className={cn(
+                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
+                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              )}
             >
               <Search className="h-4 w-4" />
-              <span className="hidden sm:inline text-sm text-muted-foreground">Cerca...</span>
+              <span className="hidden sm:inline text-sm">Cerca...</span>
             </Button>
             
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={toggleTheme}
-              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105"
+              className={cn(
+                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
+                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              )}
             >
               {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
@@ -100,7 +112,10 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 relative"
+              className={cn(
+                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 relative",
+                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              )}
             >
               <Bell className="h-4 w-4" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
@@ -109,7 +124,10 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105"
+              className={cn(
+                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
+                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+              )}
             >
               <User className="h-4 w-4" />
             </Button>

@@ -82,7 +82,7 @@ const Sidebar = () => {
   return (
     <aside className="w-72 space-y-6">
       {/* Trending Topics */}
-      <Card className="glass-effect hover-lift">
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
             <TrendingUp className="h-4 w-4 mr-2 text-primary" />
@@ -103,7 +103,7 @@ const Sidebar = () => {
       </Card>
 
       {/* Popular Authors - Redesigned */}
-      <Card className="glass-effect hover-lift">
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
             <Users className="h-4 w-4 mr-2 text-primary" />
@@ -136,41 +136,57 @@ const Sidebar = () => {
         </CardContent>
       </Card>
 
-      {/* Upcoming Events - New Module */}
-      <Card className="glass-effect hover-lift">
+      {/* Upcoming Events - Redesigned Vertical List */}
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
             <Calendar className="h-4 w-4 mr-2 text-primary" />
             Prossimi Eventi
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-0">
-          <div className="flex space-x-3 overflow-x-auto pb-2 scrollbar-hide">
-            {upcomingEvents.map((event, index) => (
-              <div 
-                key={event.id} 
-                className="flex-shrink-0 w-48 group cursor-pointer animate-slide-in-right"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <div className="p-3 rounded-xl bg-gradient-to-br from-primary/5 to-secondary/10 border border-primary/10 group-hover:border-primary/30 transition-all duration-300 group-hover:scale-105 group-hover:shadow-lg">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-6 h-6 bg-primary/20 rounded-full flex items-center justify-center group-hover:bg-primary/40 transition-colors">
-                      <Icon name="fire" className="h-3 w-3 text-primary" />
-                    </div>
-                    <Badge variant="outline" className="text-xs">{event.date}</Badge>
-                  </div>
-                  <h4 className="text-xs font-medium group-hover:text-primary transition-colors line-clamp-2 leading-tight">
+        <CardContent className="space-y-3">
+          {upcomingEvents.map((event, index) => {
+            const getSportIcon = (sport: string) => {
+              switch (sport) {
+                case 'calcio': return '⚽';
+                case 'tennis': return '🎾';
+                case 'f1': return '🏎️';
+                case 'basket': return '🏀';
+                default: return '🏆';
+              }
+            };
+
+            const getSportName = (sport: string) => {
+              switch (sport) {
+                case 'calcio': return 'Serie A';
+                case 'tennis': return 'ATP Tour';
+                case 'f1': return 'Formula 1';
+                case 'basket': return 'NBA';
+                default: return 'Sport';
+              }
+            };
+
+            return (
+              <div key={event.id} className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all duration-200 group cursor-pointer">
+                <div className="text-2xl">{getSportIcon(event.sport)}</div>
+                <div className="flex-1 min-w-0">
+                  <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-1">
                     {event.event}
                   </h4>
+                  <p className="text-xs text-muted-foreground">({getSportName(event.sport)})</p>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs font-medium">{event.date.split(' ')[0]}</div>
+                  <div className="text-xs text-muted-foreground">20:45</div>
                 </div>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </CardContent>
       </Card>
 
       {/* Social Feed Widget - Redesigned */}
-      <Card className="glass-effect hover-lift">
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
             <ExternalLink className="h-4 w-4 mr-2 text-primary" />
@@ -202,7 +218,7 @@ const Sidebar = () => {
       </Card>
 
       {/* My Saved Articles */}
-      <Card className="glass-effect hover-lift">
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
             <Bookmark className="h-4 w-4 mr-2 text-primary" />
@@ -232,7 +248,7 @@ const Sidebar = () => {
       </Card>
 
       {/* Newsletter Signup */}
-      <Card className="glass-effect hover-lift">
+      <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold">Resta Aggiornato</CardTitle>
         </CardHeader>

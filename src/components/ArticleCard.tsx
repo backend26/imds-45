@@ -106,7 +106,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     <article 
       ref={cardRef}
       className={cn(
-        "group cursor-pointer overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm",
+        "article-card group cursor-pointer overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm",
         featured && "w-full",
         className
       )}

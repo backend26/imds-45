@@ -50,10 +50,6 @@ export const HeroSection = () => {
       {/* Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-transparent" />
       
-      {/* 3D Element - Enhanced Football */}
-      <div className="absolute right-8 top-1/2 transform -translate-y-1/2 w-48 h-48 opacity-90 hidden lg:block pointer-events-none">
-        <Enhanced3DFootball size={1.5} />
-      </div>
       
       {/* Content */}
       <div className="relative z-10 container mx-auto px-4 h-full flex items-center">
