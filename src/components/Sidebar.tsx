@@ -136,7 +136,7 @@ const Sidebar = () => {
         </CardContent>
       </Card>
 
-      {/* Upcoming Events - Redesigned Vertical List */}
+      {/* Upcoming Events - Redesigned with Date Blocks */}
       <Card className="sidebar-card glass-effect hover-lift">
         <CardHeader className="pb-4">
           <CardTitle className="text-lg font-semibold flex items-center">
@@ -144,7 +144,7 @@ const Sidebar = () => {
             Prossimi Eventi
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2">
           {upcomingEvents.map((event, index) => {
             const getSportIcon = (sport: string) => {
               switch (sport) {
@@ -166,18 +166,38 @@ const Sidebar = () => {
               }
             };
 
+            const getDateParts = (dateStr: string) => {
+              const date = new Date(2024, 2, parseInt(dateStr.split(' ')[0])); // Mock date for demo
+              return {
+                dayName: ['DOM', 'LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB'][date.getDay()],
+                dayNum: dateStr.split(' ')[0]
+              };
+            };
+
+            const dateParts = getDateParts(event.date);
+
             return (
-              <div key={event.id} className="flex items-center space-x-3 p-3 rounded-lg bg-secondary/20 hover:bg-secondary/40 transition-all duration-200 group cursor-pointer">
-                <div className="text-2xl">{getSportIcon(event.sport)}</div>
+              <div key={event.id} className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 hover:bg-primary/10 hover:shadow-lg hover:shadow-primary/20 transition-all duration-300 group cursor-pointer border border-transparent hover:border-primary/30">
+                {/* Date Block */}
+                <div className="flex-shrink-0 w-12 h-12 bg-secondary/50 rounded-lg flex flex-col items-center justify-center text-xs font-bold border border-border/20">
+                  <span className="text-primary text-[10px] leading-none">{dateParts.dayName}</span>
+                  <span className="text-sm leading-none mt-0.5">{dateParts.dayNum}</span>
+                </div>
+
+                {/* Sport Icon */}
+                <div className="text-lg">{getSportIcon(event.sport)}</div>
+
+                {/* Event Details */}
                 <div className="flex-1 min-w-0">
-                  <h4 className="text-sm font-medium group-hover:text-primary transition-colors line-clamp-1">
+                  <h4 className="text-sm font-semibold group-hover:text-primary transition-colors line-clamp-1 leading-tight">
                     {event.event}
                   </h4>
-                  <p className="text-xs text-muted-foreground">({getSportName(event.sport)})</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">({getSportName(event.sport)})</p>
                 </div>
-                <div className="text-right">
-                  <div className="text-xs font-medium">{event.date.split(' ')[0]}</div>
-                  <div className="text-xs text-muted-foreground">20:45</div>
+
+                {/* Time */}
+                <div className="flex-shrink-0 text-right">
+                  <div className="text-sm font-bold text-primary">20:45</div>
                 </div>
               </div>
             );

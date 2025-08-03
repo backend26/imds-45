@@ -104,18 +104,18 @@ export const HeroSection = () => {
               variant="ghost"
               size="sm"
               onClick={goToPrevious}
-              className="h-10 w-10 p-0 bg-black/20 text-white hover:bg-black/40 backdrop-blur-sm rounded-full"
+              className="h-12 w-12 p-0 bg-white/90 dark:bg-[#3e3e3e] text-[#3e3e3e] dark:text-white hover:bg-white dark:hover:bg-[#2a2a2a] rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeft className="h-6 w-6" />
             </Button>
             
             <Button
               variant="ghost"
               size="sm"
               onClick={goToNext}
-              className="h-10 w-10 p-0 bg-black/20 text-white hover:bg-black/40 backdrop-blur-sm rounded-full"
+              className="h-12 w-12 p-0 bg-white/90 dark:bg-[#3e3e3e] text-[#3e3e3e] dark:text-white hover:bg-white dark:hover:bg-[#2a2a2a] rounded-full shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-110"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6" />
             </Button>
           </div>
         </div>

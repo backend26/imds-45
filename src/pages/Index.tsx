@@ -6,20 +6,24 @@ import { HorizontalArticleCard } from "@/components/HorizontalArticleCard";
 import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import { SortingControls } from "@/components/SortingControls";
+import { SportFilters } from "@/components/SportFilters";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Filter } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { mockArticles } from "@/data/articles";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
+import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("Tutti");
+  const [selectedSport, setSelectedSport] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const [period, setPeriod] = useState("all");
   const [visibleArticles, setVisibleArticles] = useState(6);
   const { pageRef, animateCardHover, animateIconClick, animateCounter } = useGSAPAnimations();
+  useLiquidAnimation();
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
@@ -77,6 +81,11 @@ const Index = () => {
               </Badge>
             </div>
           </div>
+
+          <SportFilters
+            selectedSport={selectedSport}
+            onSportChange={setSelectedSport}
+          />
 
           {/* Advanced Sorting Controls */}
           <SortingControls 

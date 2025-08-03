@@ -37,12 +37,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
       className={cn(
         "sticky top-0 z-[1000] transition-all duration-400 ease-out",
         isScrolled 
-          ? "bg-[rgba(62,62,62,0.7)] border-b border-white/10" 
+          ? "bg-[rgba(62,62,62,0.7)] border-b border-white/10 scrolled" 
           : "bg-transparent"
       )}
       style={isScrolled ? {
         backdropFilter: "blur(15px)",
-        WebkitBackdropFilter: "blur(15px)"
+        WebkitBackdropFilter: "blur(15px)",
+        filter: "url('#liquid-filter')"
       } : undefined}
     >
       <div className="container mx-auto px-4 relative z-10">
@@ -66,13 +67,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 key={sport.name}
                 variant={activeSection === sport.name ? "default" : "ghost"}
                 size="sm"
-                 className={cn(
-                   "nav-item-hover transition-all duration-300 relative overflow-hidden group",
-                   activeSection === sport.name 
-                     ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
-                     : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
-                   !isScrolled && "text-shadow-[0_1px_3px_rgba(0,0,0,0.6)]"
-                 )}
+                className={cn(
+                  "nav-item-hover transition-all duration-300 relative overflow-hidden group",
+                  activeSection === sport.name 
+                    ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
+                    : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
+                  !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                )}
                 onClick={() => setActiveSection(sport.name)}
               >
                 <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">{sport.name}</span>
@@ -90,7 +91,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               size="sm" 
               className={cn(
                 "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
-                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               )}
             >
               <Search className="h-4 w-4" />
@@ -103,7 +104,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               onClick={toggleTheme}
               className={cn(
                 "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
-                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               )}
             >
               {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
@@ -114,7 +115,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               size="sm" 
               className={cn(
                 "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 relative",
-                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               )}
             >
               <Bell className="h-4 w-4" />
@@ -126,7 +127,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               size="sm" 
               className={cn(
                 "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
-                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
               )}
             >
               <User className="h-4 w-4" />
