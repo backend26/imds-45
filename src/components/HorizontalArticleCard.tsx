@@ -70,7 +70,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
       <CardContent className="p-0">
         <div className="flex h-full">
           {/* Image Section - 30% width */}
-          <div className="relative w-1/3 min-w-[120px]">
+          <div className="relative w-1/3 min-w-[120px] h-[140px]">
             <div 
               className="h-full bg-cover bg-center relative overflow-hidden"
               style={{ 
