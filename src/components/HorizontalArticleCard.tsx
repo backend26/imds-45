@@ -71,38 +71,37 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
         <div className="flex h-full">
           {/* Image Section - 30% width */}
           <div className="relative w-1/3 min-w-[120px]">
-<div className="relative h-full overflow-hidden">
-  {/* Background image layer */}
-  <div
-    className="absolute inset-0 bg-cover bg-center transition-opacity duration-500"
-    style={{
-      backgroundImage: isInView ? `url(${getImageUrl(imageUrl)})` : 'none',
-      opacity: isLoaded ? 1 : 0,
-    }}
-  />
+            <div 
+              className="h-full bg-cover bg-center relative overflow-hidden"
+              style={{ 
+                backgroundImage: isInView ? `url(${getImageUrl(imageUrl)})` : 'none',
+                backgroundColor: isLoaded ? 'transparent' : 'hsl(var(--muted))'
+              }}
+              role="img"
+              aria-label={`Immagine per l'articolo: ${title}`}
+            >
+              {/* Loading skeleton */}
+              {!isLoaded && (
+                <div className="absolute inset-0 loading-skeleton" />
+              )}
 
-  {/* Fallback muted background */}
-  {!isLoaded && (
-    <div className="absolute inset-0 bg-muted animate-pulse opacity-10" />
-  )}
+              {/* Hidden image for lazy loading */}
+              <img
+                ref={imgRef}
+                src={isInView ? getImageUrl(imageUrl) : ''}
+                alt={`Immagine per l'articolo: ${title}`}
+                className="hidden"
+                loading="lazy"
+              />
 
-  {/* Image trigger for lazy loading */}
-  <img
-    ref={imgRef}
-    src={isInView ? getImageUrl(imageUrl) : ''}
-    alt={`Immagine per l'articolo: ${title}`}
-    className="absolute w-0 h-0 opacity-0"
-    loading="lazy"
-  />
-
-  {/* Category badge */}
-  <Badge 
-    className="absolute top-2 left-2 bg-primary text-primary-foreground animate-scale-in z-10 text-xs"
-  >
-    {category}
-  </Badge>
-</div>
-
+              {/* Category badge */}
+              <Badge 
+                className="absolute top-2 left-2 bg-primary text-primary-foreground animate-scale-in z-10 text-xs"
+              >
+                {category}
+              </Badge>
+            </div>
+          </div>
 
           {/* Content Section - 70% width */}
           <div className="flex-1 p-4 flex flex-col justify-between">
