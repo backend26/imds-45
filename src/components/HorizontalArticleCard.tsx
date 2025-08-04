@@ -37,10 +37,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
 
-  // const { imgRef, isLoaded, isInView } = useLazyImage();
-
-  // Prova con:
-  const isInView = true;
+  const { imgRef, isLoaded, isInView } = useLazyImage();
 
   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
