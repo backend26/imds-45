@@ -43,8 +43,8 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
       className={cn(
         "sticky top-0 z-[1000] transition-colors duration-500 ease-in-out backdrop-blur-[16px]",
         isScrolled 
-          ? "bg-white/80 dark:bg-zinc-900/75 border-b border-border backdrop-blur-[16px]" 
-          : "bg-white/30 dark:bg-zinc-800/20"
+          ? "bg-white/80 dark:bg-zinc-700/50 border-b border-border backdrop-blur-[16px]" 
+          : "bg-white/30 dark:bg-zinc-700/20"
       )}
       style={isScrolled ? {
         backdropFilter: "blur(16px) saturate(150%)",
