@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { AuthModal } from "@/components/AuthModal";
 import { toast } from "@/hooks/use-toast";
 
 const sports = [
@@ -26,6 +27,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [activeSection, setActiveSection] = useState("Prima Pagina");
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -133,56 +135,59 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             </Button>
 
             {user ? (
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className={cn(
-                    "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
-                    "bg-background/50 border border-border/30 backdrop-blur-sm",
-                    "shadow-lg hover:shadow-xl",
-                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                  )}
-                >
-                  <User className="h-4 w-4 icon-shadow" />
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={async () => {
-                    const { error } = await signOut();
-                    if (!error) {
-                      toast({
-                        title: "Logout effettuato",
-                        description: "Arrivederci!",
-                      });
-                    }
-                  }}
-                  className={cn(
-                    "hover:bg-destructive/60 hover:text-destructive-foreground transition-all duration-200 hover:scale-105",
-                    "bg-background/50 border border-border/30 backdrop-blur-sm",
-                    "shadow-lg hover:shadow-xl",
-                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                  )}
-                >
-                  <LogOut className="h-4 w-4 icon-shadow" />
-                </Button>
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                      "bg-background/50 border border-border/30 backdrop-blur-sm",
+                      "shadow-lg hover:shadow-xl",
+                      !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    )}
+                  >
+                    <User className="h-4 w-4 icon-shadow" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-sm border-border/50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/account" className="flex items-center gap-2 cursor-pointer">
+                      <User className="h-4 w-4" />
+                      Il Mio Account
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={async () => {
+                      const { error } = await signOut();
+                      if (!error) {
+                        toast({
+                          title: "Logout effettuato",
+                          description: "Arrivederci!",
+                        });
+                      }
+                    }}
+                    className="text-destructive focus:text-destructive-foreground focus:bg-destructive/90 cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : (
-              <AuthModal>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className={cn(
-                    "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
-                    "bg-background/50 border border-border/30 backdrop-blur-sm",
-                    "shadow-lg hover:shadow-xl",
-                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-                  )}
-                >
-                  <User className="h-4 w-4 icon-shadow" />
-                </Button>
-              </AuthModal>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/login")}
+                className={cn(
+                  "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                  "bg-background/50 border border-border/30 backdrop-blur-sm",
+                  "shadow-lg hover:shadow-xl",
+                  !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                )}
+              >
+                <User className="h-4 w-4 icon-shadow" />
+              </Button>
             )}
 
             {/* Mobile Menu Button */}
