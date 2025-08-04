@@ -1,8 +1,11 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, Moon, Sun, Search, Menu, X, Bell } from "lucide-react";
+import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/hooks/use-auth";
+import { AuthModal } from "@/components/AuthModal";
+import { toast } from "@/hooks/use-toast";
 
 const sports = [
   { name: "Prima Pagina", href: "/" },
@@ -22,6 +25,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Prima Pagina");
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,13 +41,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
       className={cn(
         "sticky top-0 z-[1000] transition-all duration-400 ease-out",
         isScrolled 
-          ? "bg-[rgba(62,62,62,0.7)] border-b border-white/10 scrolled" 
+          ? "bg-[rgba(62,62,62,0.92)] border-b border-white/20 scrolled backdrop-blur-[16px]" 
           : "bg-transparent"
       )}
       style={isScrolled ? {
-        backdropFilter: "blur(15px)",
-        WebkitBackdropFilter: "blur(15px)",
-        filter: "url('#liquid-filter')"
+        backdropFilter: "blur(16px) saturate(150%)",
+        WebkitBackdropFilter: "blur(16px) saturate(150%)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(255, 48, 54, 0.1)"
       } : undefined}
     >
       <div className="container mx-auto px-4 relative z-10">
@@ -90,12 +94,14 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               variant="ghost" 
               size="sm" 
               className={cn(
-                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
-                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
-              <Search className="h-4 w-4" />
-              <span className="hidden sm:inline text-sm">Cerca...</span>
+              <Search className="h-4 w-4 icon-shadow" />
+              <span className="hidden sm:inline text-sm font-medium">Cerca...</span>
             </Button>
             
             <Button 
@@ -103,35 +109,81 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               size="sm" 
               onClick={toggleTheme}
               className={cn(
-                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
-                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {darkMode ? <Sun className="h-4 w-4 icon-shadow" /> : <Moon className="h-4 w-4 icon-shadow" />}
             </Button>
 
             <Button 
               variant="ghost" 
               size="sm" 
               className={cn(
-                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105 relative",
-                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
-              <Bell className="h-4 w-4" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse" />
+              <Bell className="h-4 w-4 icon-shadow" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-lg" />
             </Button>
 
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={cn(
-                "hover:bg-secondary/50 hover:text-primary transition-all duration-200 hover:scale-105",
-                !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-              )}
-            >
-              <User className="h-4 w-4" />
-            </Button>
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                    "bg-background/50 border border-border/30 backdrop-blur-sm",
+                    "shadow-lg hover:shadow-xl",
+                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                  )}
+                >
+                  <User className="h-4 w-4 icon-shadow" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={async () => {
+                    const { error } = await signOut();
+                    if (!error) {
+                      toast({
+                        title: "Logout effettuato",
+                        description: "Arrivederci!",
+                      });
+                    }
+                  }}
+                  className={cn(
+                    "hover:bg-destructive/60 hover:text-destructive-foreground transition-all duration-200 hover:scale-105",
+                    "bg-background/50 border border-border/30 backdrop-blur-sm",
+                    "shadow-lg hover:shadow-xl",
+                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                  )}
+                >
+                  <LogOut className="h-4 w-4 icon-shadow" />
+                </Button>
+              </div>
+            ) : (
+              <AuthModal>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className={cn(
+                    "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                    "bg-background/50 border border-border/30 backdrop-blur-sm",
+                    "shadow-lg hover:shadow-xl",
+                    !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                  )}
+                >
+                  <User className="h-4 w-4 icon-shadow" />
+                </Button>
+              </AuthModal>
+            )}
 
             {/* Mobile Menu Button */}
             <Button

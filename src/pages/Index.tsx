@@ -16,7 +16,7 @@ import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 
 const Index = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(true); // Dark mode as default
   const [selectedCategory, setSelectedCategory] = useState("Tutti");
   const [selectedSport, setSelectedSport] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
@@ -29,6 +29,11 @@ const Index = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark");
   };
+
+  // Set dark mode as default on component mount
+  useEffect(() => {
+    document.documentElement.classList.add("dark");
+  }, []);
 
   const categories = [
     { name: "Tutti", count: mockArticles.length },
