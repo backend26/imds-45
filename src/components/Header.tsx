@@ -1,22 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
-  User,
-  Moon,
-  Sun,
-  Search,
-  Menu,
-  X,
-  Bell,
-  LogOut,
-} from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
@@ -46,30 +32,31 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  useEffect(() => {
-    document.body.style.overflow = isMenuOpen ? "hidden" : "";
-  }, [isMenuOpen]);
-
   return (
-    <header
+    <header 
       className={cn(
-        "sticky top-0 z-[1000] w-full transition-all duration-300 ease-out",
-        "backdrop-blur-[20px] backdrop-saturate-[160%]",
-        "glass-effect",
-        isScrolled ? "shadow-md border-b border-border/40" : "shadow-none border-transparent"
+        "sticky top-0 z-[1000] transition-all duration-400 ease-out border-b",
+        isScrolled 
+          ? "bg-[hsl(var(--glass-bg))] backdrop-blur-[16px] backdrop-saturate-150 border-white/20" 
+          : "bg-transparent border-transparent"
       )}
+      style={isScrolled ? {
+        boxShadow: "0 8px 32px hsl(var(--glass-shadow))",
+        borderBottom: "1px solid hsl(var(--glass-border))",
+      } : undefined}
     >
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <img
-              src="/assets/images/logo-header.png"
-              alt="I Malati dello Sport"
+            <img 
+              src="/assets/images/logo-header.png" 
+              alt="I Malati dello Sport" 
               className={cn(
                 "h-10 w-auto transition-all duration-300",
                 !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
@@ -86,17 +73,16 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 size="sm"
                 className={cn(
                   "nav-item-hover transition-all duration-300 relative overflow-hidden group",
-                  activeSection === sport.name
-                    ? "bg-gradient-primary text-white shadow-md"
-                    : "hover:bg-secondary/50 hover:text-primary hover:scale-105"
+                  activeSection === sport.name 
+                    ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
+                    : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
+                  !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
                 )}
                 onClick={() => setActiveSection(sport.name)}
               >
-                <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">
-                  {sport.name}
-                </span>
+                <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">{sport.name}</span>
                 {activeSection === sport.name && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-primary/5 animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 animate-pulse" />
                 )}
               </Button>
             ))}
@@ -104,18 +90,44 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-2">
-            <Button variant="ghost" size="sm" className="glass-effect hover:scale-105">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+              )}
+            >
               <Search className="h-4 w-4 icon-shadow" />
-              <span className="hidden sm:inline text-sm font-medium ml-2">
-                Cerca...
-              </span>
+              <span className="hidden sm:inline text-sm font-medium">Cerca...</span>
             </Button>
-
-            <Button variant="ghost" size="sm" onClick={toggleTheme} className="glass-effect hover:scale-105">
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={toggleTheme}
+              className={cn(
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+              )}
+            >
               {darkMode ? <Sun className="h-4 w-4 icon-shadow" /> : <Moon className="h-4 w-4 icon-shadow" />}
             </Button>
 
-            <Button variant="ghost" size="sm" className="glass-effect relative hover:scale-105">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+              )}
+            >
               <Bell className="h-4 w-4 icon-shadow" />
               <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-lg" />
             </Button>
@@ -123,13 +135,22 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             {user ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="glass-effect hover:scale-105">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                      "bg-background/50 border border-border/30 backdrop-blur-sm",
+                      "shadow-lg hover:shadow-xl",
+                      !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    )}
+                  >
                     <User className="h-4 w-4 icon-shadow" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  align="end"
-                  className="w-48 bg-background/95 backdrop-blur-sm border-border/50"
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-48 bg-background/95 backdrop-blur-sm border border-border/50"
                 >
                   <DropdownMenuItem asChild>
                     <Link to="/account" className="flex items-center gap-2 cursor-pointer">
@@ -137,7 +158,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                       Il Mio Account
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem
+                  <DropdownMenuItem 
                     onClick={async () => {
                       const { error } = await signOut();
                       if (!error) {
@@ -155,7 +176,17 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" size="sm" onClick={() => navigate("/login")} className="glass-effect hover:scale-105">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/login")}
+                className={cn(
+                  "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                  "bg-background/50 border border-border/30 backdrop-blur-sm",
+                  "shadow-lg hover:shadow-xl",
+                  !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                )}
+              >
                 <User className="h-4 w-4 icon-shadow" />
               </Button>
             )}
@@ -164,29 +195,37 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200"
+              className="md:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200 ml-1"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* Mobile Navigation */}
-      {isMenuOpen && (
-        <div className="fixed inset-0 z-[999] bg-background/80 backdrop-blur-xl animate-fade-in">
-          <div className="absolute top-16 w-full border-t border-border/40 py-4 animate-slide-up shadow-lg">
-            <nav className="flex flex-col space-y-2 px-4">
+        {/* Mobile Navigation */}
+        {isMenuOpen && (
+          <div 
+            className="md:hidden py-4 animate-slide-down"
+            style={{
+              background: 'hsl(var(--glass-bg))',
+              backdropFilter: 'blur(16px) saturate(150%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(150%)',
+              borderTop: '1px solid hsl(var(--glass-border))',
+              marginTop: '0.5rem',
+              borderRadius: '0 0 0.75rem 0.75rem',
+            }}
+          >
+            <nav className="flex flex-col space-y-2 px-2">
               {sports.map((sport) => (
                 <Button
                   key={sport.name}
                   variant={activeSection === sport.name ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "justify-start transition-all duration-300",
-                    activeSection === sport.name
-                      ? "bg-gradient-primary text-white shadow"
+                    "justify-start transition-all duration-300 py-4",
+                    activeSection === sport.name 
+                      ? "bg-gradient-primary text-white shadow-lg" 
                       : "hover:bg-secondary/50 hover:text-primary"
                   )}
                   onClick={() => {
@@ -194,13 +233,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  {sport.name}
+                  <span className="font-medium">{sport.name}</span>
                 </Button>
               ))}
             </nav>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </header>
   );
 };
