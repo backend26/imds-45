@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -30,7 +31,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
+      setIsScrolled(window.scrollY > 50);
     };
     
     window.addEventListener('scroll', handleScroll);
@@ -40,18 +41,18 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   return (
     <header 
       className={cn(
-        "sticky top-0 w-full z-[9999] transition-all duration-500 ease-out", // Aumentato z-index
+        "sticky top-0 z-[1000] transition-all duration-400 ease-out",
         isScrolled 
-          ? "liquid-glass-header" 
+          ? "bg-[rgba(62,62,62,0.92)] border-b border-white/20 scrolled backdrop-blur-[16px]" 
           : "bg-transparent"
       )}
-      style={{
-        // Forza il rendering sopra tutti gli altri elementi
-        transform: 'translate3d(0,0,0)',
-        willChange: 'transform'
-      }}
+      style={isScrolled ? {
+        backdropFilter: "blur(16px) saturate(150%)",
+        WebkitBackdropFilter: "blur(16px) saturate(150%)",
+        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(255, 48, 54, 0.1)"
+      } : undefined}
     >
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
@@ -90,12 +91,14 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           </nav>
 
           {/* Right Actions */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <Button 
               variant="ghost" 
               size="sm" 
               className={cn(
-                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2 liquid-glass-button",
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
                 !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
@@ -108,7 +111,9 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               size="sm" 
               onClick={toggleTheme}
               className={cn(
-                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 liquid-glass-button",
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
                 !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
@@ -119,7 +124,9 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               variant="ghost" 
               size="sm" 
               className={cn(
-                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative liquid-glass-button",
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
                 !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
@@ -134,17 +141,16 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                     variant="ghost" 
                     size="sm" 
                     className={cn(
-                      "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 liquid-glass-button",
+                      "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                      "bg-background/50 border border-border/30 backdrop-blur-sm",
+                      "shadow-lg hover:shadow-xl",
                       !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                     )}
                   >
                     <User className="h-4 w-4 icon-shadow" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent 
-                  align="end" 
-                  className="w-48 liquid-glass-dropdown border border-white/20"
-                >
+                <DropdownMenuContent align="end" className="w-48 bg-background/95 backdrop-blur-sm border-border/50">
                   <DropdownMenuItem asChild>
                     <Link to="/account" className="flex items-center gap-2 cursor-pointer">
                       <User className="h-4 w-4" />
@@ -174,7 +180,9 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 size="sm" 
                 onClick={() => navigate("/login")}
                 className={cn(
-                  "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 liquid-glass-button",
+                  "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                  "bg-background/50 border border-border/30 backdrop-blur-sm",
+                  "shadow-lg hover:shadow-xl",
                   !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
                 )}
               >
@@ -186,28 +194,25 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200 ml-1 liquid-glass-button"
+              className="md:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
-              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           </div>
         </div>
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div 
-            className="md:hidden py-4 animate-slide-down liquid-glass-menu rounded-b-xl mt-1"
-            style={{ zIndex: 9998 }} // Z-index leggermente inferiore
-          >
-            <nav className="flex flex-col space-y-2 px-2">
+          <div className="md:hidden border-t border-border/50 py-4 animate-slide-up">
+            <nav className="flex flex-col space-y-2">
               {sports.map((sport) => (
                 <Button
                   key={sport.name}
                   variant={activeSection === sport.name ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "justify-start transition-all duration-300 py-4 liquid-glass-button",
+                    "justify-start transition-all duration-300",
                     activeSection === sport.name 
                       ? "bg-gradient-primary text-white shadow-lg" 
                       : "hover:bg-secondary/50 hover:text-primary"
@@ -217,7 +222,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                     setIsMenuOpen(false);
                   }}
                 >
-                  <span className="font-medium">{sport.name}</span>
+                  {sport.name}
                 </Button>
               ))}
             </nav>
