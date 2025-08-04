@@ -41,16 +41,24 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   return (
     <header 
       className={cn(
-        "sticky top-0 z-[1000] transition-colors duration-500 ease-in-out backdrop-blur-[16px]",
+        "sticky top-0 z-[1000] transition-colors duration-400 ease-in-out backdrop-blur-[16px]",
         isScrolled 
           ? "bg-white/80 dark:bg-zinc-700/50 border-b border-border backdrop-blur-[16px]" 
           : "bg-white/30 dark:bg-zinc-700/20"
       )}
       style={isScrolled ? {
-        backdropFilter: "blur(16px) saturate(150%)",
-        WebkitBackdropFilter: "blur(16px) saturate(150%)",
-        boxShadow: "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(255, 48, 54, 0.1)"
-      } : undefined}
+          backgroundColor: darkMode
+            ? "rgba(40, 40, 40, 0.4)" 
+            : "rgba(255, 255, 255, 0.4)", 
+          backdropFilter: "blur(16px) saturate(150%)",
+          WebkitBackdropFilter: "blur(16px) saturate(150%)",
+          boxShadow: darkMode
+            ? "0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(255, 48, 54, 0.1)"
+            : "0 8px 32px rgba(255, 255, 255, 0.2), 0 2px 8px rgba(0, 0, 0, 0.05)",
+          borderColor: "rgba(255, 255, 255, 0.2)",
+        }
+      : undefined
+  }
     >
       <div className="container mx-auto px-4 relative z-10">
         <div className="flex items-center justify-between h-16">
