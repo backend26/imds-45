@@ -57,7 +57,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           {/* Logo */}
           <div className="flex items-center space-x-3">
             <img 
-              src="/assets/images/logo-malati-dello-sport.png" 
+              src="/assets/images/logo-header.png" 
               alt="I Malati dello Sport" 
               className={cn(
                 "h-10 w-auto transition-all duration-300",
