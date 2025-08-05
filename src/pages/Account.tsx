@@ -10,7 +10,27 @@ import { PreferencesDashboard } from "@/components/account/PreferencesDashboard"
 import { User, Settings, Bell, Activity } from "lucide-react";
 
 export default function Account() {
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark');
+    }
+    return true;
+  });
   const { user, loading } = useAuth();
+
+  const toggleTheme = () => {
+    setDarkMode(!darkMode);
+    document.documentElement.classList.toggle("dark");
+  };
+
+  useEffect(() => {
+    // Ensure dark mode is applied on mount
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   if (loading) {
     return (
@@ -29,16 +49,16 @@ export default function Account() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header darkMode={true} toggleTheme={() => {}} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
-          {/* Hero Section */}
-          <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold bg-gradient-primary bg-clip-text text-transparent mb-2">
+          {/* Page Title - Clean and Integrated */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-foreground mb-2">
               Il Mio Account
             </h1>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-muted-foreground">
               Gestisci il tuo profilo, la sicurezza e le preferenze
             </p>
           </div>

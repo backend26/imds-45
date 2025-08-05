@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -28,6 +28,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -64,37 +65,42 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center space-x-3">
-            <img 
-              src="/assets/images/logo-header.png" 
-              alt="I Malati dello Sport" 
-              className={cn(
-                "h-10 w-auto transition-all duration-300",
-                !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
-              )}
-            />
+            <Link to="/" className="flex items-center space-x-3">
+              <img 
+                src="/assets/images/logo-header.png" 
+                alt="I Malati dello Sport" 
+                className={cn(
+                  "h-10 w-auto transition-all duration-300 cursor-pointer hover:scale-105",
+                  !isScrolled && "drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+                )}
+              />
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-2">
             {sports.map((sport) => (
-              <Button
+              <Link
                 key={sport.name}
-                variant={activeSection === sport.name ? "default" : "ghost"}
-                size="sm"
-                className={cn(
-                  "nav-item-hover transition-all duration-300 relative overflow-hidden group",
-                  activeSection === sport.name 
-                    ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
-                    : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
-                  !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
-                )}
-                onClick={() => setActiveSection(sport.name)}
+                to={sport.href}
               >
-                <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">{sport.name}</span>
-                {activeSection === sport.name && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 animate-pulse" />
-                )}
-              </Button>
+                <Button
+                  variant={location.pathname === sport.href ? "default" : "ghost"}
+                  size="sm"
+                  className={cn(
+                    "nav-item-hover transition-all duration-300 relative overflow-hidden group",
+                    location.pathname === sport.href 
+                      ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
+                      : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
+                    !isScrolled && "drop-shadow-[0_4px_6px_rgba(0,0,0,0.1)] dark:drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+                  )}
+                >
+                  <span className="relative z-10 group-hover:translate-x-0.5 transition-transform duration-200">{sport.name}</span>
+                  {location.pathname === sport.href && (
+                    <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/10 animate-pulse" />
+                  )}
+                </Button>
+              </Link>
             ))}
           </nav>
 
@@ -215,23 +221,24 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           <div className="md:hidden border-t border-border/50 py-4 animate-slide-up">
             <nav className="flex flex-col space-y-2">
               {sports.map((sport) => (
-                <Button
+                <Link
                   key={sport.name}
-                  variant={activeSection === sport.name ? "default" : "ghost"}
-                  size="sm"
-                  className={cn(
-                    "justify-start transition-all duration-300",
-                    activeSection === sport.name 
-                      ? "bg-gradient-primary text-white shadow-lg" 
-                      : "hover:bg-secondary/50 hover:text-primary"
-                  )}
-                  onClick={() => {
-                    setActiveSection(sport.name);
-                    setIsMenuOpen(false);
-                  }}
+                  to={sport.href}
+                  onClick={() => setIsMenuOpen(false)}
                 >
-                  {sport.name}
-                </Button>
+                  <Button
+                    variant={location.pathname === sport.href ? "default" : "ghost"}
+                    size="sm"
+                    className={cn(
+                      "justify-start transition-all duration-300 w-full",
+                      location.pathname === sport.href 
+                        ? "bg-gradient-primary text-white shadow-lg" 
+                        : "hover:bg-secondary/50 hover:text-primary"
+                    )}
+                  >
+                    {sport.name}
+                  </Button>
+                </Link>
               ))}
             </nav>
           </div>
