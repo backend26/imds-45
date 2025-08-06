@@ -1,167 +1,191 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { X, Cookie, FileText, Shield } from "lucide-react";
-
-import { cn } from "@/lib/utils";
-
-interface CookieConsent {
-  necessary: boolean;
-  analytics: boolean;
-  marketing: boolean;
-  accepted: boolean;
-  timestamp: number;
-}
+import { useState, useEffect } from 'react';
+import { Button } from './button';
+import { X, Cookie, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from './dialog';
+import { Switch } from './switch';
+import { Label } from './label';
+import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
 
 export const CookieConsentBanner = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
+  const { user } = useAuth();
+  const [showBanner, setShowBanner] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [preferences, setPreferences] = useState({
+    necessary: true,
+    analytics: false,
+    marketing: false,
+    functional: true
+  });
 
   useEffect(() => {
-    const consent = localStorage.getItem('cookie-consent');
+    const consent = localStorage.getItem('cookieConsent');
     if (!consent) {
-      setIsVisible(true);
+      setShowBanner(true);
     }
   }, []);
 
-  const handleAcceptAll = () => {
-    const consent: CookieConsent = {
+  const handleAcceptAll = async () => {
+    const allPreferences = {
       necessary: true,
       analytics: true,
       marketing: true,
-      accepted: true,
-      timestamp: Date.now()
+      functional: true
     };
-    localStorage.setItem('cookie-consent', JSON.stringify(consent));
-    setIsVisible(false);
+    await saveConsent(allPreferences);
   };
 
-  const handleAcceptNecessary = () => {
-    const consent: CookieConsent = {
+  const handleAcceptSelected = async () => {
+    await saveConsent(preferences);
+  };
+
+  const handleRejectAll = async () => {
+    const minimalPreferences = {
       necessary: true,
       analytics: false,
       marketing: false,
-      accepted: true,
-      timestamp: Date.now()
+      functional: false
     };
-    localStorage.setItem('cookie-consent', JSON.stringify(consent));
-    setIsVisible(false);
+    await saveConsent(minimalPreferences);
   };
 
-  const handleReject = () => {
-    const consent: CookieConsent = {
-      necessary: true,
-      analytics: false,
-      marketing: false,
-      accepted: false,
-      timestamp: Date.now()
-    };
-    localStorage.setItem('cookie-consent', JSON.stringify(consent));
-    setIsVisible(false);
+  const saveConsent = async (prefs: typeof preferences) => {
+    localStorage.setItem('cookieConsent', JSON.stringify(prefs));
+    localStorage.setItem('cookieConsentDate', new Date().toISOString());
+    
+    if (user) {
+      try {
+        // Save to database when connected
+        console.log('Cookie consent saved:', prefs);
+      } catch (error) {
+        console.error('Error saving cookie consent:', error);
+      }
+    }
+    
+    setShowBanner(false);
+    setShowSettings(false);
   };
 
-  if (!isVisible) return null;
+  if (!showBanner) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] max-w-md">
-      <Card className="bg-background/95 backdrop-blur-sm border-border/80 shadow-2xl">
-        <CardContent className="p-6">
-          <div className="flex items-start gap-3 mb-4">
-            <Cookie className="h-6 w-6 text-primary mt-1 flex-shrink-0" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-foreground mb-2">
-                Utilizziamo i cookie
-              </h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Usiamo cookie per migliorare la tua esperienza. 
-                Continuando accetti la nostra{" "}
-                <a 
-                  href="/privacy-policy" 
-                  className="text-primary hover:underline font-medium"
+    <>
+      <div className="fixed bottom-4 right-4 max-w-sm bg-card border border-border rounded-lg shadow-lg p-4 z-50">
+        <div className="flex items-start gap-3">
+          <Cookie className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <h3 className="font-semibold text-sm mb-2">Cookie e Privacy</h3>
+            <p className="text-xs text-muted-foreground mb-3">
+              Utilizziamo cookie per migliorare la tua esperienza. Alcuni sono necessari per il funzionamento del sito.
+            </p>
+            <div className="flex flex-col gap-2">
+              <div className="flex gap-2">
+                <Button size="sm" onClick={handleAcceptAll} className="flex-1">
+                  Accetta tutti
+                </Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  onClick={() => setShowSettings(true)}
+                  className="px-2"
                 >
-                  Privacy Policy
-                </a>{" "}
-                e i{" "}
-                <a 
-                  href="/terms-and-conditions" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  Termini e Condizioni
-                </a>
-                .
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsVisible(false)}
-              className="h-8 w-8 p-0 hover:bg-secondary/80"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {showDetails && (
-            <div className="mb-4 p-3 bg-muted/50 rounded-lg">
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between items-center">
-                  <span>Cookie necessari</span>
-                  <span className="text-green-600 font-medium">Sempre attivi</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Cookie analitici</span>
-                  <span className="text-muted-foreground">Opzionali</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span>Cookie marketing</span>
-                  <span className="text-muted-foreground">Opzionali</span>
-                </div>
+                  <Settings className="h-3 w-3" />
+                </Button>
               </div>
-            </div>
-          )}
-
-          <div className="flex flex-col gap-2">
-            <div className="flex gap-2">
-              <Button
-                onClick={handleAcceptAll}
-                size="sm"
-                className="flex-1 bg-primary hover:bg-primary/90"
-              >
-                Accetta tutti
-              </Button>
-              <Button
-                onClick={handleAcceptNecessary}
-                variant="outline"
-                size="sm"
-                className="flex-1"
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                onClick={handleRejectAll}
+                className="text-xs"
               >
                 Solo necessari
               </Button>
             </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 flex-shrink-0"
+            onClick={() => setShowBanner(false)}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        </div>
+      </div>
+
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Impostazioni Cookie</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="font-medium">Cookie Necessari</Label>
+                <p className="text-xs text-muted-foreground">
+                  Indispensabili per il funzionamento del sito
+                </p>
+              </div>
+              <Switch checked={true} disabled />
+            </div>
             
-            <div className="flex gap-2">
-              <Button
-                onClick={() => setShowDetails(!showDetails)}
-                variant="ghost"
-                size="sm"
-                className="flex-1 text-xs"
-              >
-                {showDetails ? "Nascondi" : "Dettagli"}
-              </Button>
-              <a href="/cookie-policy">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex-1 text-xs"
-                >
-                  <FileText className="h-3 w-3 mr-1" />
-                  Politica Cookie
-                </Button>
-              </a>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="font-medium">Cookie Funzionali</Label>
+                <p className="text-xs text-muted-foreground">
+                  Migliorano l'esperienza utente
+                </p>
+              </div>
+              <Switch 
+                checked={preferences.functional}
+                onCheckedChange={(checked) => 
+                  setPreferences(prev => ({ ...prev, functional: checked }))
+                }
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="font-medium">Cookie Analitici</Label>
+                <p className="text-xs text-muted-foreground">
+                  Aiutano a capire come viene utilizzato il sito
+                </p>
+              </div>
+              <Switch 
+                checked={preferences.analytics}
+                onCheckedChange={(checked) => 
+                  setPreferences(prev => ({ ...prev, analytics: checked }))
+                }
+              />
+            </div>
+            
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <Label className="font-medium">Cookie Marketing</Label>
+                <p className="text-xs text-muted-foreground">
+                  Personalizzano pubblicità e contenuti
+                </p>
+              </div>
+              <Switch 
+                checked={preferences.marketing}
+                onCheckedChange={(checked) => 
+                  setPreferences(prev => ({ ...prev, marketing: checked }))
+                }
+              />
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+          
+          <div className="flex gap-2 pt-4">
+            <Button onClick={handleAcceptSelected} className="flex-1">
+              Salva preferenze
+            </Button>
+            <Button variant="outline" onClick={() => setShowSettings(false)}>
+              Annulla
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };

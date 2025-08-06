@@ -1,404 +1,315 @@
-import { useState, useEffect, useRef } from "react";
-import { Search, X, Filter, Calendar, User, Tag } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger, DropdownMenuItem } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
-import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
-import { SafeLink } from "@/lib/router-utils";
-
-interface SearchResult {
-  id: string;
-  type: 'post' | 'user' | 'category';
-  title: string;
-  excerpt?: string;
-  author?: {
-    username: string;
-    profile_picture_url?: string;
-  };
-  category?: {
-    name: string;
-    slug: string;
-  };
-  tags?: string[];
-  created_at: string;
-  featured_image_url?: string;
-}
+import { useState, useEffect } from 'react';
+import { Search, X, Clock, TrendingUp, Filter } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { mockArticles } from '@/data/articles';
 
 interface SearchFilters {
-  type: 'all' | 'posts' | 'users' | 'categories';
   category: string;
-  dateRange: 'all' | 'week' | 'month' | 'year';
-  author: string;
+  dateRange: string;
+  tags: string[];
+  sortBy: string;
 }
 
-export const SearchSystem = () => {
+const mockRecentSearches = [
+  'Juventus Champions League',
+  'Inter Milano derby',
+  'Sinner US Open',
+  'Formula 1 Monza',
+  'Lakers Warriors'
+];
+
+const mockTrendingSearches = [
+  'Calciomercato',
+  'Serie A classifica',
+  'Champions League',
+  'Formula 1',
+  'NBA playoff'
+];
+
+const availableCategories = [
+  { value: 'calcio', label: 'Calcio' },
+  { value: 'tennis', label: 'Tennis' },
+  { value: 'f1', label: 'Formula 1' },
+  { value: 'nfl', label: 'NFL' },
+  { value: 'basket', label: 'Basket' }
+];
+
+const availableTags = [
+  'Champions League', 'Serie A', 'Premier League', 'La Liga',
+  'ATP', 'WTA', 'US Open', 'Wimbledon',
+  'Formula 1', 'MotoGP', 'NBA', 'NFL'
+];
+
+interface SearchSystemProps {
+  onSearch?: (query: string, filters: SearchFilters) => void;
+}
+
+export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<SearchResult[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({
-    type: 'all',
     category: '',
-    dateRange: 'all',
-    author: ''
+    dateRange: '',
+    tags: [],
+    sortBy: 'relevance'
   });
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [recentSearches, setRecentSearches] = useState(mockRecentSearches);
+  const [searchResults, setSearchResults] = useState<(typeof mockArticles[0] & { id: number; tags: string[] })[]>([]);
+  const [showFilters, setShowFilters] = useState(false);
 
-  useEffect(() => {
-    // Load recent searches from localStorage
-    const saved = localStorage.getItem('recent-searches');
-    if (saved) {
-      setRecentSearches(JSON.parse(saved));
-    }
-  }, []);
+  const handleSearch = (searchQuery: string = query) => {
+    if (!searchQuery.trim()) return;
 
-  useEffect(() => {
-    if (query.trim().length > 2) {
-      const timeoutId = setTimeout(() => {
-        performSearch();
-      }, 300);
-      return () => clearTimeout(timeoutId);
-    } else {
-      setResults([]);
-    }
-  }, [query, filters]);
+    // Add to recent searches
+    setRecentSearches(prev => {
+      const filtered = prev.filter(item => item !== searchQuery);
+      return [searchQuery, ...filtered].slice(0, 5);
+    });
 
-  const performSearch = async () => {
-    if (!query.trim()) return;
+    // Perform search (mock implementation)
+    const results = mockArticles.map((article, index) => ({ ...article, id: index + 1, tags: [] })).filter(article => 
+      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      article.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
 
-    setLoading(true);
-    try {
-      // Mock search results since we don't have the database connected
-      const mockResults: SearchResult[] = [
-        {
-          id: '1',
-          type: 'post' as const,
-          title: 'Juventus conquista la Champions League: analisi tattica',
-          excerpt: 'Un\'analisi approfondita della vittoria bianconera in finale...',
-          author: {
-            username: 'MarcoRossi',
-            profile_picture_url: undefined
-          },
-          category: {
-            name: 'Calcio',
-            slug: 'calcio'
-          },
-          tags: ['juventus', 'champions', 'tattica'],
-          created_at: new Date().toISOString(),
-          featured_image_url: '/assets/images/juventus-mercato.jpg'
-        },
-        {
-          id: '2',
-          type: 'post' as const,
-          title: 'Sinner trionfa agli US Open: il tennis italiano al top',
-          excerpt: 'Jannik Sinner conquista il suo primo US Open...',
-          author: {
-            username: 'AnnaBianchi',
-            profile_picture_url: undefined
-          },
-          category: {
-            name: 'Tennis',
-            slug: 'tennis'
-          },
-          tags: ['sinner', 'usopen', 'tennis'],
-          created_at: new Date().toISOString(),
-          featured_image_url: '/assets/images/hero-sinner-usopen.jpg'
-        },
-        {
-          id: '3',
-          type: 'user' as const,
-          title: 'MarcoRossi',
-          excerpt: 'Giornalista sportivo specializzato in calcio',
-          author: {
-            username: 'MarcoRossi',
-            profile_picture_url: undefined
-          },
-          created_at: new Date().toISOString()
-        }
-      ].filter(result => {
-        // Apply filters
-        if (filters.type !== 'all' && result.type !== filters.type.slice(0, -1)) {
-          return false;
-        }
-        
-        // Apply search query
-        const searchTerm = query.toLowerCase();
-        return (
-          result.title.toLowerCase().includes(searchTerm) ||
-          result.excerpt?.toLowerCase().includes(searchTerm) ||
-          result.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
-        );
-      });
-
-      setResults(mockResults);
-    } catch (error) {
-      console.error('Search error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const addToRecentSearches = (searchQuery: string) => {
-    const updated = [searchQuery, ...recentSearches.filter(s => s !== searchQuery)].slice(0, 5);
-    setRecentSearches(updated);
-    localStorage.setItem('recent-searches', JSON.stringify(updated));
+    setSearchResults(results);
+    onSearch?.(searchQuery, filters);
   };
 
   const clearRecentSearches = () => {
     setRecentSearches([]);
-    localStorage.removeItem('recent-searches');
   };
 
-  const handleSearch = (searchQuery: string) => {
-    setQuery(searchQuery);
-    addToRecentSearches(searchQuery);
+  const handleFilterChange = (key: keyof SearchFilters, value: any) => {
+    setFilters(prev => ({
+      ...prev,
+      [key]: value
+    }));
   };
 
-  const openSearchDialog = () => {
-    setIsOpen(true);
-    setTimeout(() => inputRef.current?.focus(), 100);
+  const handleTagToggle = (tag: string) => {
+    setFilters(prev => ({
+      ...prev,
+      tags: prev.tags.includes(tag) 
+        ? prev.tags.filter(t => t !== tag)
+        : [...prev.tags, tag]
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({
+      category: '',
+      dateRange: '',
+      tags: [],
+      sortBy: 'relevance'
+    });
   };
 
   return (
     <>
       <Button
         variant="ghost"
-        size="sm"
-        onClick={openSearchDialog}
-        className="hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2 bg-background/50 border border-border/30 backdrop-blur-sm shadow-lg hover:shadow-xl"
+        size="icon"
+        onClick={() => setIsOpen(true)}
+        className="relative"
       >
-        <Search className="h-4 w-4" />
-        <span className="hidden sm:inline text-sm font-medium">Cerca...</span>
+        <Search className="h-5 w-5" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] p-0">
-          <DialogHeader className="p-6 pb-4">
-            <DialogTitle className="flex items-center gap-2">
-              <Search className="h-5 w-5" />
-              Cerca contenuti
-            </DialogTitle>
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle>Cerca</DialogTitle>
           </DialogHeader>
 
-          <div className="px-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                ref={inputRef}
-                placeholder="Cerca articoli, utenti, categorie..."
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                className="pl-10 pr-10"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && query.trim()) {
-                    handleSearch(query);
-                  }
-                }}
-              />
-              {query && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setQuery("")}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0"
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
+          <div className="p-6 pt-4">
+            <div className="flex gap-2 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Cerca articoli, autori, tag..."
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  className="pl-10"
+                />
+              </div>
+              <Button onClick={() => handleSearch()}>
+                Cerca
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="h-4 w-4" />
+              </Button>
             </div>
 
-            {/* Search Filters */}
-            <div className="flex items-center gap-2 mt-4">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8">
-                    <Filter className="h-3 w-3 mr-1" />
-                    Filtri
+            {showFilters && (
+              <div className="bg-muted/30 rounded-lg p-4 mb-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Filtri di ricerca</h3>
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    Pulisci filtri
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setFilters(prev => ({ ...prev, type: 'all' }))}>
-                    Tutti i contenuti
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilters(prev => ({ ...prev, type: 'posts' }))}>
-                    Solo articoli
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilters(prev => ({ ...prev, type: 'users' }))}>
-                    Solo utenti
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setFilters(prev => ({ ...prev, type: 'categories' }))}>
-                    Solo categorie
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                </div>
 
-              {filters.type !== 'all' && (
-                <Badge variant="secondary" className="h-8">
-                  {filters.type === 'posts' ? 'Articoli' : 
-                   filters.type === 'users' ? 'Utenti' : 'Categorie'}
-                </Badge>
-              )}
-            </div>
-          </div>
-
-          <Separator className="mx-6" />
-
-          <ScrollArea className="flex-1 max-h-96">
-            <div className="px-6 pb-6">
-              {/* Recent Searches */}
-              {!query && recentSearches.length > 0 && (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-medium text-muted-foreground">Ricerche recenti</h3>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearRecentSearches}
-                      className="text-xs h-6"
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Categoria</Label>
+                    <Select 
+                      value={filters.category} 
+                      onValueChange={(value) => handleFilterChange('category', value)}
                     >
-                      Cancella
-                    </Button>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Tutte le categorie" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Tutte le categorie</SelectItem>
+                        {availableCategories.map(cat => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-2">
-                    {recentSearches.map((search, index) => (
-                      <Button
-                        key={index}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleSearch(search)}
-                        className="w-full justify-start h-8 text-sm"
+
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Ordina per</Label>
+                    <Select 
+                      value={filters.sortBy} 
+                      onValueChange={(value) => handleFilterChange('sortBy', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="relevance">Rilevanza</SelectItem>
+                        <SelectItem value="date">Data</SelectItem>
+                        <SelectItem value="popularity">Popolarità</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-sm font-medium mb-2 block">Tag</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags.map(tag => (
+                      <Badge
+                        key={tag}
+                        variant={filters.tags.includes(tag) ? "default" : "outline"}
+                        className="cursor-pointer"
+                        onClick={() => handleTagToggle(tag)}
                       >
-                        <Search className="h-3 w-3 mr-2" />
-                        {search}
-                      </Button>
+                        {tag}
+                      </Badge>
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
 
-              {/* Search Results */}
-              {query && (
-                <div>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium">
-                      Risultati per "{query}"
-                    </h3>
-                    {results.length > 0 && (
-                      <Badge variant="outline">
-                        {results.length} risultat{results.length === 1 ? 'o' : 'i'}
-                      </Badge>
-                    )}
-                  </div>
-
-                  {loading ? (
-                    <div className="space-y-3">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="animate-pulse">
-                          <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
-                          <div className="h-3 bg-muted rounded w-1/2"></div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : results.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Search className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                      <p className="text-sm text-muted-foreground">
-                        Nessun risultato trovato per "{query}"
+            <ScrollArea className="h-96">
+              {query && searchResults.length > 0 ? (
+                <div className="space-y-4">
+                  <h3 className="font-medium text-sm text-muted-foreground">
+                    Risultati per "{query}" ({searchResults.length})
+                  </h3>
+                  {searchResults.map((article) => (
+                    <div key={article.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer">
+                      <h4 className="font-medium mb-1">{article.title}</h4>
+                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                        {article.excerpt}
                       </p>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">
+                          {article.category}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {article.readTime}
+                        </span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {results.map((result) => (
-                        <Card
-                          key={result.id}
-                          className="hover:bg-muted/50 transition-colors cursor-pointer"
-                          onClick={() => setIsOpen(false)}
+                  ))}
+                </div>
+              ) : query ? (
+                <div className="text-center py-8">
+                  <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-muted-foreground">Nessun risultato trovato per "{query}"</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {recentSearches.length > 0 && (
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-medium text-sm flex items-center gap-2">
+                          <Clock className="h-4 w-4" />
+                          Ricerche recenti
+                        </h3>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={clearRecentSearches}
+                          className="text-xs"
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-start gap-3">
-                              {result.type === 'user' ? (
-                                <Avatar className="h-10 w-10">
-                                  <AvatarImage src={result.author?.profile_picture_url} />
-                                  <AvatarFallback>
-                                    {result.author?.username?.charAt(0) || 'U'}
-                                  </AvatarFallback>
-                                </Avatar>
-                              ) : result.featured_image_url ? (
-                                <img
-                                  src={result.featured_image_url}
-                                  alt={result.title}
-                                  className="h-10 w-16 object-cover rounded"
-                                />
-                              ) : (
-                                <div className="h-10 w-16 bg-muted rounded flex items-center justify-center">
-                                  {result.type === 'post' ? (
-                                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                                  ) : (
-                                    <Tag className="h-4 w-4 text-muted-foreground" />
-                                  )}
-                                </div>
-                              )}
-
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <h4 className="font-medium text-sm truncate">
-                                    {result.title}
-                                  </h4>
-                                  <Badge variant="outline" className="text-xs">
-                                    {result.type === 'post' ? 'Articolo' :
-                                     result.type === 'user' ? 'Utente' : 'Categoria'}
-                                  </Badge>
-                                </div>
-
-                                {result.excerpt && (
-                                  <p className="text-xs text-muted-foreground line-clamp-2 mb-2">
-                                    {result.excerpt}
-                                  </p>
-                                )}
-
-                                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                                  {result.author && result.type === 'post' && (
-                                    <span className="flex items-center gap-1">
-                                      <User className="h-3 w-3" />
-                                      {result.author.username}
-                                    </span>
-                                  )}
-                                  {result.category && (
-                                    <span className="flex items-center gap-1">
-                                      <Tag className="h-3 w-3" />
-                                      {result.category.name}
-                                    </span>
-                                  )}
-                                </div>
-
-                                {result.tags && result.tags.length > 0 && (
-                                  <div className="flex flex-wrap gap-1 mt-2">
-                                    {result.tags.slice(0, 3).map((tag) => (
-                                      <Badge key={tag} variant="secondary" className="text-xs">
-                                        {tag}
-                                      </Badge>
-                                    ))}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
+                          Cancella
+                        </Button>
+                      </div>
+                      <div className="space-y-2">
+                        {recentSearches.map((search, index) => (
+                          <button
+                            key={index}
+                            onClick={() => {
+                              setQuery(search);
+                              handleSearch(search);
+                            }}
+                            className="w-full text-left p-2 rounded hover:bg-muted/50 text-sm"
+                          >
+                            {search}
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   )}
+
+                  <Separator />
+
+                  <div>
+                    <h3 className="font-medium text-sm flex items-center gap-2 mb-3">
+                      <TrendingUp className="h-4 w-4" />
+                      Ricerche popolari
+                    </h3>
+                    <div className="space-y-2">
+                      {mockTrendingSearches.map((search, index) => (
+                        <button
+                          key={index}
+                          onClick={() => {
+                            setQuery(search);
+                            handleSearch(search);
+                          }}
+                          className="w-full text-left p-2 rounded hover:bg-muted/50 text-sm"
+                        >
+                          {search}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
-            </div>
-          </ScrollArea>
+            </ScrollArea>
+          </div>
         </DialogContent>
       </Dialog>
     </>

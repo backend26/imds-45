@@ -1,6 +1,5 @@
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
-import { SafeLink } from "@/lib/router-utils";
 
 const Footer = () => {
   const quickLinks = [
@@ -40,12 +39,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <SafeLink 
-                    to={link.href} 
+                  <a 
+                    href={link.href} 
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.name}
-                  </SafeLink>
+                  </a>
                 </li>
               ))}
             </ul>

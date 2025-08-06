@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Filter } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { mockArticles } from "@/data/articles";
+import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
+import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 
 const Index = () => {
   const [darkMode, setDarkMode] = useState(true); // Dark mode as default
@@ -20,6 +22,8 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("recent");
   const [period, setPeriod] = useState("all");
   const [visibleArticles, setVisibleArticles] = useState(6);
+  const { pageRef, animateCardHover, animateIconClick, animateCounter } = useGSAPAnimations();
+  useLiquidAnimation();
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
@@ -44,12 +48,19 @@ const Index = () => {
     ? mockArticles 
     : mockArticles.filter(article => article.category === selectedCategory);
 
+  // Animate trending counter on load
+  useEffect(() => {
+    const counterElement = document.getElementById('trending-counter');
+    if (counterElement && animateCounter) {
+      animateCounter(counterElement, 24, '%');
+    }
+  }, [animateCounter]);
 
   const featuredArticle = mockArticles.find(article => article.featured) || mockArticles[0];
   const regularArticles = mockArticles.filter(article => !article.featured);
 
   return (
-    <div className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
+    <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       
       {/* Hero Section */}

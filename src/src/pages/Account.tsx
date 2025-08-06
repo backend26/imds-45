@@ -6,8 +6,6 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProfileSection } from "@/components/account/ProfileSection";
 import { SecurityDashboard } from "@/components/account/SecurityDashboard";
-import { DataManagement } from "@/components/account/DataManagement";
-import { AdvancedSecurity } from "@/components/account/AdvancedSecurity";
 // import { AdvancedSecurity } from "@/components/account/AdvancedSecurity";
 import { PreferencesDashboard } from "@/components/account/PreferencesDashboard";
 // import { DataManagement } from "@/components/account/DataManagement";
@@ -76,35 +74,61 @@ export default function Account() {
 
             {/* Main Content */}
             <div className="lg:col-span-3">
-        <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="profile">Profilo</TabsTrigger>
-            <TabsTrigger value="preferences">Preferenze</TabsTrigger>
-            <TabsTrigger value="security">Sicurezza</TabsTrigger>
-            <TabsTrigger value="advanced-security">Sicurezza Avanzata</TabsTrigger>
-            <TabsTrigger value="data">Dati</TabsTrigger>
-          </TabsList>
+              <Tabs defaultValue="security" className="space-y-6">
+                <TabsList className="grid w-full grid-cols-5 bg-card/50 backdrop-blur-sm border border-border/50">
+                  <TabsTrigger value="security" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Sicurezza
+                  </TabsTrigger>
+                  <TabsTrigger value="advanced" className="flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    Avanzate
+                  </TabsTrigger>
+                  <TabsTrigger value="preferences" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Preferenze
+                  </TabsTrigger>
+                  <TabsTrigger value="data" className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    I Miei Dati
+                  </TabsTrigger>
+                  <TabsTrigger value="activity" className="flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Attività
+                  </TabsTrigger>
+                </TabsList>
 
-          <TabsContent value="profile" className="space-y-6">
-            <ProfileSection />
-          </TabsContent>
+                <TabsContent value="security" className="space-y-6">
+                  <SecurityDashboard />
+                </TabsContent>
 
-          <TabsContent value="preferences" className="space-y-6">
-            <PreferencesDashboard />
-          </TabsContent>
+                <TabsContent value="advanced" className="space-y-6">
+                  <div className="p-6 text-center text-muted-foreground">
+                    Funzionalità di sicurezza avanzata disponibili dopo la configurazione del database.
+                  </div>
+                </TabsContent>
 
-          <TabsContent value="security" className="space-y-6">
-            <SecurityDashboard />
-          </TabsContent>
+                <TabsContent value="preferences" className="space-y-6">
+                  <PreferencesDashboard />
+                </TabsContent>
 
-          <TabsContent value="advanced-security" className="space-y-6">
-            <AdvancedSecurity />
-          </TabsContent>
+                <TabsContent value="data" className="space-y-6">
+                  <div className="p-6 text-center text-muted-foreground">
+                    Gestione dati disponibile dopo la configurazione del database.
+                  </div>
+                </TabsContent>
 
-          <TabsContent value="data" className="space-y-6">
-            <DataManagement />
-          </TabsContent>
-        </Tabs>
+                <TabsContent value="activity" className="space-y-6">
+                  {/* Activity Dashboard placeholder */}
+                  <div className="text-center py-12">
+                    <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Dashboard Attività</h3>
+                    <p className="text-muted-foreground">
+                      Questa sezione sarà implementata nelle prossime versioni
+                    </p>
+                  </div>
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>

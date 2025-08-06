@@ -3,12 +3,10 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Moon, Sun, Menu, X, LogOut } from "lucide-react";
+import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
-import { NotificationSystem } from "@/components/notifications/NotificationSystem";
-import { SearchSystem } from "@/components/search/SearchSystem";
 
 const sports = [
   { name: "Prima Pagina", href: "/" },
@@ -108,7 +106,19 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
           {/* Right Actions */}
           <div className="flex items-center space-x-3">
-            <SearchSystem />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+              )}
+            >
+              <Search className="h-4 w-4 icon-shadow" />
+              <span className="hidden sm:inline text-sm font-medium">Cerca...</span>
+            </Button>
             
             <Button 
               variant="ghost" 
@@ -124,7 +134,19 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               {darkMode ? <Sun className="h-4 w-4 icon-shadow" /> : <Moon className="h-4 w-4 icon-shadow" />}
             </Button>
 
-            <NotificationSystem />
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className={cn(
+                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative",
+                "bg-background/50 border border-border/30 backdrop-blur-sm",
+                "shadow-lg hover:shadow-xl",
+                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+              )}
+            >
+              <Bell className="h-4 w-4 icon-shadow" />
+              <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-lg" />
+            </Button>
 
             {user ? (
               <DropdownMenu>

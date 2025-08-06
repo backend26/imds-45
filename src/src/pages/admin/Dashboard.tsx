@@ -1,504 +1,581 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/use-auth';
+import { Header } from '@/components/Header';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
   FileText, 
-  TrendingUp, 
-  AlertTriangle, 
-  Shield, 
-  Search,
+  BarChart3, 
+  Flag, 
+  Search, 
   Filter,
-  MoreHorizontal,
   Eye,
   Edit,
   Trash2,
-  Ban,
-  Check,
-  X
-} from "lucide-react";
-import { Header } from "@/components/Header";
-import { useAuth } from "@/hooks/use-auth";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+  CheckCircle,
+  XCircle,
+  TrendingUp,
+  TrendingDown,
+  Calendar,
+  MessageCircle,
+  Heart,
+  Bookmark
+} from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
+import { it } from 'date-fns/locale';
 
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  role: 'registered_user' | 'editor' | 'administrator';
-  created_at: string;
-  last_login: string;
-  login_count: number;
-  status: 'active' | 'suspended' | 'banned';
-}
+// Mock data
+const mockUsers = [
+  {
+    id: '1',
+    username: 'MarcoSport',
+    email: 'marco@example.com',
+    role: 'editor',
+    created_at: '2024-01-15T10:00:00Z',
+    last_login: '2024-01-20T15:30:00Z',
+    login_count: 45,
+    posts_count: 12,
+    status: 'active'
+  },
+  {
+    id: '2',
+    username: 'TifosaInter',
+    email: 'inter@example.com',
+    role: 'registered_user',
+    created_at: '2024-01-10T08:00:00Z',
+    last_login: '2024-01-20T12:00:00Z',
+    login_count: 23,
+    posts_count: 0,
+    status: 'active'
+  }
+];
 
-interface Post {
-  id: string;
-  title: string;
-  author: string;
-  category: string;
-  status: 'draft' | 'published' | 'archived';
-  created_at: string;
-  views: number;
-  likes: number;
-  comments: number;
-}
+const mockPosts = [
+  {
+    id: '1',
+    title: 'Juventus conquista la Champions League',
+    author: 'MarcoSport',
+    status: 'published',
+    created_at: '2024-01-19T14:00:00Z',
+    views: 1250,
+    likes: 89,
+    comments: 34,
+    category: 'Calcio'
+  },
+  {
+    id: '2',
+    title: 'Derby della Madonnina: Inter vs Milan',
+    author: 'SportEditor',
+    status: 'draft',
+    created_at: '2024-01-18T16:00:00Z',
+    views: 0,
+    likes: 0,
+    comments: 0,
+    category: 'Calcio'
+  }
+];
 
-interface Report {
-  id: string;
-  post_title: string;
-  reporter: string;
-  reason: string;
-  status: 'pending' | 'reviewed' | 'resolved' | 'dismissed';
-  created_at: string;
-  description: string;
-}
+const mockReports = [
+  {
+    id: '1',
+    post_title: 'Juventus conquista la Champions League',
+    reporter: 'UserABC',
+    reason: 'inaccuracy',
+    description: 'Informazioni non verificate',
+    status: 'pending',
+    created_at: '2024-01-20T10:00:00Z'
+  },
+  {
+    id: '2',
+    post_title: 'Sinner vince gli US Open',
+    reporter: 'TennisLover',
+    reason: 'typo',
+    description: 'Errori grammaticali nel testo',
+    status: 'reviewed',
+    created_at: '2024-01-19T15:00:00Z'
+  }
+];
 
-const AdminDashboard = () => {
-  const [users, setUsers] = useState<User[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalPosts: 0,
-    pendingReports: 0,
-    monthlyGrowth: 0
-  });
-  const [darkMode, setDarkMode] = useState(false);
-  const { user } = useAuth();
+const mockStats = {
+  totalUsers: 1234,
+  totalPosts: 456,
+  totalComments: 2341,
+  totalLikes: 8901,
+  monthlyGrowth: {
+    users: 12.5,
+    posts: 8.3,
+    engagement: 15.2
+  },
+  topCategories: [
+    { name: 'Calcio', count: 180 },
+    { name: 'Tennis', count: 95 },
+    { name: 'Formula 1', count: 78 },
+    { name: 'Basket', count: 65 },
+    { name: 'NFL', count: 38 }
+  ]
+};
+
+export default function AdminDashboard() {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState('overview');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [selectedPost, setSelectedPost] = useState<any>(null);
 
   useEffect(() => {
-    // Check if user is admin
-    if (!user || user.user_metadata?.role !== 'administrator') {
-      toast({
-        title: "Accesso negato",
-        description: "Non hai i permessi per accedere a questa sezione",
-        variant: "destructive",
-      });
-      return;
+    if (!loading && (!user || user.user_metadata?.role !== 'administrator')) {
+      navigate('/');
     }
+  }, [user, loading, navigate]);
 
-    loadDashboardData();
-  }, [user]);
-
-  const loadDashboardData = async () => {
-    // Mock data since we don't have the database connected
-    const mockUsers: User[] = [
-      {
-        id: '1',
-        username: 'MarcoRossi',
-        email: 'marco.rossi@email.com',
-        role: 'editor',
-        created_at: '2024-01-15',
-        last_login: '2024-01-20',
-        login_count: 25,
-        status: 'active'
-      },
-      {
-        id: '2',
-        username: 'AnnaBianchi',
-        email: 'anna.bianchi@email.com',
-        role: 'registered_user',
-        created_at: '2024-01-10',
-        last_login: '2024-01-19',
-        login_count: 42,
-        status: 'active'
-      }
-    ];
-
-    const mockPosts: Post[] = [
-      {
-        id: '1',
-        title: 'Juventus conquista la Champions League',
-        author: 'MarcoRossi',
-        category: 'Calcio',
-        status: 'published',
-        created_at: '2024-01-18',
-        views: 1520,
-        likes: 89,
-        comments: 23
-      },
-      {
-        id: '2',
-        title: 'Sinner trionfa agli US Open',
-        author: 'AnnaBianchi',
-        category: 'Tennis',
-        status: 'published',
-        created_at: '2024-01-17',
-        views: 980,
-        likes: 156,
-        comments: 34
-      }
-    ];
-
-    const mockReports: Report[] = [
-      {
-        id: '1',
-        post_title: 'Analisi tattica Inter-Milan',
-        reporter: 'LucaVerdi',
-        reason: 'inaccuracy',
-        status: 'pending',
-        created_at: '2024-01-19',
-        description: 'Informazioni non corrette sul modulo tattico'
-      }
-    ];
-
-    setUsers(mockUsers);
-    setPosts(mockPosts);
-    setReports(mockReports);
-    setStats({
-      totalUsers: mockUsers.length,
-      totalPosts: mockPosts.length,
-      pendingReports: mockReports.filter(r => r.status === 'pending').length,
-      monthlyGrowth: 15.2
-    });
+  const handleUserAction = (userId: string, action: string) => {
+    console.log(`User ${userId} - ${action}`);
+    // Implement user actions (ban, promote, etc.)
   };
 
-  const handleUserAction = async (userId: string, action: 'suspend' | 'ban' | 'activate') => {
-    // Mock implementation
-    setUsers(prev => 
-      prev.map(user => 
-        user.id === userId 
-          ? { ...user, status: action === 'activate' ? 'active' : action === 'suspend' ? 'suspended' : 'banned' }
-          : user
-      )
+  const handlePostAction = (postId: string, action: string) => {
+    console.log(`Post ${postId} - ${action}`);
+    // Implement post actions (publish, unpublish, delete)
+  };
+
+  const handleReportAction = (reportId: string, action: string) => {
+    console.log(`Report ${reportId} - ${action}`);
+    // Implement report actions (approve, dismiss)
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Header darkMode={false} toggleTheme={() => {}} />
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      </div>
     );
-    
-    toast({
-      title: "Azione completata",
-      description: `Utente ${action === 'activate' ? 'attivato' : action === 'suspend' ? 'sospeso' : 'bannato'} con successo`,
-    });
-  };
-
-  const handleReportAction = async (reportId: string, action: 'approve' | 'dismiss') => {
-    setReports(prev => 
-      prev.map(report => 
-        report.id === reportId 
-          ? { ...report, status: action === 'approve' ? 'resolved' : 'dismissed' }
-          : report
-      )
-    );
-    
-    toast({
-      title: "Segnalazione gestita",
-      description: `Segnalazione ${action === 'approve' ? 'approvata' : 'respinta'} con successo`,
-    });
-  };
+  }
 
   if (!user || user.user_metadata?.role !== 'administrator') {
-    return <div>Accesso negato</div>;
+    return null;
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20">
-      <Header darkMode={darkMode} toggleTheme={() => setDarkMode(!darkMode)} />
+    <div className="min-h-screen bg-background">
+      <Header darkMode={false} toggleTheme={() => {}} />
       
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Dashboard Amministratore</h1>
-          <p className="text-muted-foreground">Gestisci utenti, contenuti e segnalazioni</p>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard Amministratore</h1>
+          <p className="text-muted-foreground mt-2">Gestisci utenti, contenuti e monitora le statistiche</p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalUsers}</div>
-              <p className="text-xs text-muted-foreground">
-                +{stats.monthlyGrowth}% dal mese scorso
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Articoli Pubblicati</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.totalPosts}</div>
-              <p className="text-xs text-muted-foreground">
-                +12.5% dal mese scorso
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Segnalazioni Pending</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.pendingReports}</div>
-              <p className="text-xs text-muted-foreground">
-                Richiedono revisione
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Crescita Mensile</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">+{stats.monthlyGrowth}%</div>
-              <p className="text-xs text-muted-foreground">
-                Nuovi utenti registrati
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="overview">Panoramica</TabsTrigger>
             <TabsTrigger value="users">Utenti</TabsTrigger>
             <TabsTrigger value="posts">Contenuti</TabsTrigger>
             <TabsTrigger value="reports">Segnalazioni</TabsTrigger>
           </TabsList>
 
-          {/* Users Tab */}
-          <TabsContent value="users">
+          <TabsContent value="overview" className="space-y-6">
+            {/* Stats Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Utenti Totali</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{mockStats.totalUsers}</div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-600 flex items-center">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +{mockStats.monthlyGrowth.users}%
+                    </span>
+                    rispetto al mese scorso
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Articoli Totali</CardTitle>
+                  <FileText className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{mockStats.totalPosts}</div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-600 flex items-center">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +{mockStats.monthlyGrowth.posts}%
+                    </span>
+                    rispetto al mese scorso
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Commenti</CardTitle>
+                  <MessageCircle className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{mockStats.totalComments}</div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-600 flex items-center">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +{mockStats.monthlyGrowth.engagement}%
+                    </span>
+                    engagement
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Mi Piace</CardTitle>
+                  <Heart className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{mockStats.totalLikes}</div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="text-green-600 flex items-center">
+                      <TrendingUp className="h-3 w-3 mr-1" />
+                      +{mockStats.monthlyGrowth.engagement}%
+                    </span>
+                    interazioni
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Top Categories */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Categorie più Popolari</CardTitle>
+                <CardDescription>Distribuzione degli articoli per categoria</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {mockStats.topCategories.map((category, index) => (
+                    <div key={category.name} className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-medium">
+                          {index + 1}
+                        </div>
+                        <span className="font-medium">{category.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-24 bg-muted rounded-full h-2">
+                          <div 
+                            className="bg-primary h-2 rounded-full" 
+                            style={{ width: `${(category.count / mockStats.topCategories[0].count) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-sm text-muted-foreground w-12 text-right">
+                          {category.count}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="users" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Gestione Utenti</CardTitle>
-                <CardDescription>
-                  Visualizza e gestisci tutti gli utenti registrati
-                </CardDescription>
+                <CardDescription>Visualizza e gestisci tutti gli utenti registrati</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="relative flex-1">
+                  <div className="relative flex-1 max-w-sm">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input placeholder="Cerca utenti..." className="pl-10" />
+                    <Input
+                      placeholder="Cerca utenti..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
                   </div>
-                  <Button variant="outline" size="sm">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Filtri
-                  </Button>
+                  <Select defaultValue="all">
+                    <SelectTrigger className="w-40">
+                      <SelectValue placeholder="Ruolo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tutti i ruoli</SelectItem>
+                      <SelectItem value="administrator">Amministratore</SelectItem>
+                      <SelectItem value="editor">Editor</SelectItem>
+                      <SelectItem value="registered_user">Utente</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Utente</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Ruolo</TableHead>
-                      <TableHead>Ultimo Accesso</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.username}</TableCell>
-                        <TableCell>{user.email}</TableCell>
-                        <TableCell>
-                          <Badge variant={user.role === 'administrator' ? 'destructive' : user.role === 'editor' ? 'default' : 'secondary'}>
-                            {user.role === 'administrator' ? 'Admin' : 
-                             user.role === 'editor' ? 'Editor' : 'Utente'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(user.last_login).toLocaleDateString('it-IT')}</TableCell>
-                        <TableCell>
-                          <Badge variant={user.status === 'active' ? 'default' : 'destructive'}>
-                            {user.status === 'active' ? 'Attivo' : 
-                             user.status === 'suspended' ? 'Sospeso' : 'Bannato'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
+                <div className="space-y-4">
+                  {mockUsers.map((user) => (
+                    <div key={user.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <Users className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="font-medium">{user.username}</p>
+                            <p className="text-sm text-muted-foreground">{user.email}</p>
+                            <div className="flex items-center gap-4 mt-1">
+                              <Badge variant={
+                                user.role === 'administrator' ? 'default' :
+                                user.role === 'editor' ? 'secondary' : 'outline'
+                              }>
+                                {user.role === 'administrator' ? 'Admin' :
+                                 user.role === 'editor' ? 'Editor' : 'Utente'}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {user.posts_count} articoli
+                              </span>
+                              <span className="text-xs text-muted-foreground">
+                                {user.login_count} accessi
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Dialog>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" size="sm">
+                                <Eye className="h-3 w-3 mr-1" />
+                                Dettagli
                               </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Visualizza
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Modifica
-                              </DropdownMenuItem>
-                              {user.status === 'active' ? (
-                                <>
-                                  <DropdownMenuItem onClick={() => handleUserAction(user.id, 'suspend')}>
-                                    <Ban className="mr-2 h-4 w-4" />
-                                    Sospendi
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem onClick={() => handleUserAction(user.id, 'ban')}>
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                    Banna
-                                  </DropdownMenuItem>
-                                </>
-                              ) : (
-                                <DropdownMenuItem onClick={() => handleUserAction(user.id, 'activate')}>
-                                  <Check className="mr-2 h-4 w-4" />
-                                  Riattiva
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-md">
+                              <DialogHeader>
+                                <DialogTitle>Dettagli Utente</DialogTitle>
+                              </DialogHeader>
+                              <div className="space-y-4">
+                                <div>
+                                  <label className="text-sm font-medium">Nome utente</label>
+                                  <p className="text-sm text-muted-foreground">{user.username}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium">Email</label>
+                                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium">Ultimo accesso</label>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatDistanceToNow(new Date(user.last_login), {
+                                      addSuffix: true,
+                                      locale: it
+                                    })}
+                                  </p>
+                                </div>
+                                <div>
+                                  <label className="text-sm font-medium">Registrato</label>
+                                  <p className="text-sm text-muted-foreground">
+                                    {formatDistanceToNow(new Date(user.created_at), {
+                                      addSuffix: true,
+                                      locale: it
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+                            </DialogContent>
+                          </Dialog>
+                          
+                          <Select onValueChange={(value) => handleUserAction(user.id, value)}>
+                            <SelectTrigger className="w-32">
+                              <SelectValue placeholder="Azioni" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="promote">Promuovi</SelectItem>
+                              <SelectItem value="demote">Declassa</SelectItem>
+                              <SelectItem value="suspend">Sospendi</SelectItem>
+                              <SelectItem value="delete">Elimina</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Posts Tab */}
-          <TabsContent value="posts">
+          <TabsContent value="posts" className="space-y-6">
             <Card>
               <CardHeader>
                 <CardTitle>Gestione Contenuti</CardTitle>
-                <CardDescription>
-                  Modera e gestisci tutti i contenuti pubblicati
-                </CardDescription>
+                <CardDescription>Modera e gestisci tutti gli articoli pubblicati</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Titolo</TableHead>
-                      <TableHead>Autore</TableHead>
-                      <TableHead>Categoria</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Statistiche</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {posts.map((post) => (
-                      <TableRow key={post.id}>
-                        <TableCell className="font-medium">{post.title}</TableCell>
-                        <TableCell>{post.author}</TableCell>
-                        <TableCell>{post.category}</TableCell>
-                        <TableCell>
-                          <Badge variant={post.status === 'published' ? 'default' : 'secondary'}>
-                            {post.status === 'published' ? 'Pubblicato' : 
-                             post.status === 'draft' ? 'Bozza' : 'Archiviato'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm text-muted-foreground">
-                            {post.views} views • {post.likes} likes • {post.comments} commenti
+                <div className="space-y-4">
+                  {mockPosts.map((post) => (
+                    <div key={post.id} className="border rounded-lg p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <h3 className="font-medium">{post.title}</h3>
+                          <div className="flex items-center gap-4 mt-2">
+                            <span className="text-sm text-muted-foreground">
+                              di {post.author}
+                            </span>
+                            <Badge variant={
+                              post.status === 'published' ? 'default' :
+                              post.status === 'draft' ? 'secondary' : 'outline'
+                            }>
+                              {post.status === 'published' ? 'Pubblicato' :
+                               post.status === 'draft' ? 'Bozza' : post.status}
+                            </Badge>
+                            <span className="text-sm text-muted-foreground">
+                              {post.category}
+                            </span>
+                            {post.status === 'published' && (
+                              <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  {post.views}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Heart className="h-3 w-3" />
+                                  {post.likes}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <MessageCircle className="h-3 w-3" />
+                                  {post.comments}
+                                </span>
+                              </div>
+                            )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Visualizza
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Modifica
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Elimina
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {formatDistanceToNow(new Date(post.created_at), {
+                              addSuffix: true,
+                              locale: it
+                            })}
+                          </p>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-3 w-3 mr-1" />
+                            Modifica
+                          </Button>
+                          
+                          <Select onValueChange={(value) => handlePostAction(post.id, value)}>
+                            <SelectTrigger className="w-32">
+                              <SelectValue placeholder="Azioni" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {post.status === 'draft' ? (
+                                <SelectItem value="publish">Pubblica</SelectItem>
+                              ) : (
+                                <SelectItem value="unpublish">Nascondi</SelectItem>
+                              )}
+                              <SelectItem value="feature">In evidenza</SelectItem>
+                              <SelectItem value="archive">Archivia</SelectItem>
+                              <SelectItem value="delete">Elimina</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
 
-          {/* Reports Tab */}
-          <TabsContent value="reports">
+          <TabsContent value="reports" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Gestione Segnalazioni</CardTitle>
-                <CardDescription>
-                  Rivedi e gestisci le segnalazioni degli utenti
-                </CardDescription>
+                <CardTitle>Segnalazioni</CardTitle>
+                <CardDescription>Gestisci le segnalazioni inviate dagli utenti</CardDescription>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Contenuto Segnalato</TableHead>
-                      <TableHead>Segnalato da</TableHead>
-                      <TableHead>Motivo</TableHead>
-                      <TableHead>Data</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Azioni</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reports.map((report) => (
-                      <TableRow key={report.id}>
-                        <TableCell className="font-medium">{report.post_title}</TableCell>
-                        <TableCell>{report.reporter}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {report.reason === 'abuse' ? 'Abuso' :
-                             report.reason === 'spam' ? 'Spam' :
-                             report.reason === 'inaccuracy' ? 'Imprecisione' :
-                             report.reason === 'inappropriate' ? 'Inappropriato' : 'Errore'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{new Date(report.created_at).toLocaleDateString('it-IT')}</TableCell>
-                        <TableCell>
-                          <Badge variant={report.status === 'pending' ? 'destructive' : 'default'}>
-                            {report.status === 'pending' ? 'In attesa' :
-                             report.status === 'resolved' ? 'Risolto' :
-                             report.status === 'dismissed' ? 'Respinto' : 'Rivisto'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          {report.status === 'pending' && (
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => handleReportAction(report.id, 'approve')}
-                              >
-                                <Check className="h-3 w-3 mr-1" />
-                                Approva
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => handleReportAction(report.id, 'dismiss')}
-                              >
-                                <X className="h-3 w-3 mr-1" />
-                                Respingi
-                              </Button>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <div className="space-y-4">
+                  {mockReports.map((report) => (
+                    <div key={report.id} className="border rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <Flag className="h-4 w-4 text-red-500" />
+                            <h3 className="font-medium">{report.post_title}</h3>
+                            <Badge variant={
+                              report.status === 'pending' ? 'destructive' :
+                              report.status === 'reviewed' ? 'default' : 'secondary'
+                            }>
+                              {report.status === 'pending' ? 'In attesa' :
+                               report.status === 'reviewed' ? 'Esaminata' : 'Risolta'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <p className="text-sm">
+                              <strong>Segnalato da:</strong> {report.reporter}
+                            </p>
+                            <p className="text-sm">
+                              <strong>Motivo:</strong> {
+                                report.reason === 'abuse' ? 'Abuso' :
+                                report.reason === 'typo' ? 'Errore grammaticale' :
+                                report.reason === 'inaccuracy' ? 'Informazioni inesatte' :
+                                report.reason === 'spam' ? 'Spam' : 'Contenuto inappropriato'
+                              }
+                            </p>
+                            {report.description && (
+                              <p className="text-sm">
+                                <strong>Descrizione:</strong> {report.description}
+                              </p>
+                            )}
+                            <p className="text-xs text-muted-foreground">
+                              {formatDistanceToNow(new Date(report.created_at), {
+                                addSuffix: true,
+                                locale: it
+                              })}
+                            </p>
+                          </div>
+                        </div>
+                        
+                        {report.status === 'pending' && (
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleReportAction(report.id, 'approve')}
+                            >
+                              <CheckCircle className="h-3 w-3 mr-1" />
+                              Approva
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleReportAction(report.id, 'dismiss')}
+                            >
+                              <XCircle className="h-3 w-3 mr-1" />
+                              Ignora
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                
+                {mockReports.length === 0 && (
+                  <div className="text-center py-8">
+                    <Flag className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-muted-foreground">Nessuna segnalazione in attesa</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
@@ -506,6 +583,4 @@ const AdminDashboard = () => {
       </div>
     </div>
   );
-};
-
-export default AdminDashboard;
+}
