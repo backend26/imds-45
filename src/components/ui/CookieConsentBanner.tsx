@@ -14,7 +14,6 @@ export const CookieConsentBanner = () => {
   const [preferences, setPreferences] = useState({
     necessary: true,
     analytics: false,
-    marketing: false,
     functional: true
   });
 
@@ -29,7 +28,6 @@ export const CookieConsentBanner = () => {
     const allPreferences = {
       necessary: true,
       analytics: true,
-      marketing: true,
       functional: true
     };
     await saveConsent(allPreferences);
@@ -43,7 +41,6 @@ export const CookieConsentBanner = () => {
     const minimalPreferences = {
       necessary: true,
       analytics: false,
-      marketing: false,
       functional: false
     };
     await saveConsent(minimalPreferences);
@@ -160,20 +157,6 @@ export const CookieConsentBanner = () => {
               />
             </div>
             
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <Label className="font-medium">Cookie Marketing</Label>
-                <p className="text-xs text-muted-foreground">
-                  Personalizzano pubblicità e contenuti
-                </p>
-              </div>
-              <Switch 
-                checked={preferences.marketing}
-                onCheckedChange={(checked) => 
-                  setPreferences(prev => ({ ...prev, marketing: checked }))
-                }
-              />
-            </div>
           </div>
           
           <div className="flex gap-2 pt-4">

@@ -406,6 +406,7 @@ export type Database = {
       posts: {
         Row: {
           author_id: string
+          banner_url: string | null
           category_id: string
           co_authoring_enabled: boolean | null
           comments_enabled: boolean | null
@@ -423,6 +424,7 @@ export type Database = {
         }
         Insert: {
           author_id: string
+          banner_url?: string | null
           category_id: string
           co_authoring_enabled?: boolean | null
           comments_enabled?: boolean | null
@@ -440,6 +442,7 @@ export type Database = {
         }
         Update: {
           author_id?: string
+          banner_url?: string | null
           category_id?: string
           co_authoring_enabled?: boolean | null
           comments_enabled?: boolean | null
@@ -474,12 +477,16 @@ export type Database = {
       }
       profiles: {
         Row: {
+          banner_url: string | null
           bio: string | null
+          birth_date: string | null
           cookie_consent: Json | null
           cookie_consent_date: string | null
           created_at: string
           id: string
+          is_banned: boolean | null
           last_login: string | null
+          location: string | null
           login_count: number | null
           notification_preferences: Json | null
           preferred_sports: string[] | null
@@ -493,12 +500,16 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          banner_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean | null
           last_login?: string | null
+          location?: string | null
           login_count?: number | null
           notification_preferences?: Json | null
           preferred_sports?: string[] | null
@@ -512,12 +523,16 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          banner_url?: string | null
           bio?: string | null
+          birth_date?: string | null
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
           id?: string
+          is_banned?: boolean | null
           last_login?: string | null
+          location?: string | null
           login_count?: number | null
           notification_preferences?: Json | null
           preferred_sports?: string[] | null

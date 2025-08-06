@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
+import { ThemeManager } from "@/components/ThemeManager";
 import AdminDashboard from "./pages/admin/Dashboard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -29,6 +30,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ThemeManager />
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
