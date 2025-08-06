@@ -26,6 +26,7 @@ import BasketPage from "./pages/sports/Basket";
 import NotFound from "./pages/NotFound";
 import NewPostPage from "./pages/editor/new";
 import EditPostPage from "./pages/editor/[postId]/edit";
+import AdminGuide from "./pages/AdminGuide";
 
 const queryClient = new QueryClient();
 
@@ -40,14 +41,15 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/registrati" element={<Register />} />
+            <Route path="/register" element={<Register />} /> {/* Compatibility fallback */}
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/account" element={<Account />} />
             <Route path="/@:username" element={<PublicProfile />} />
             <Route path="/editor/new" element={<NewPostPage />} />
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            {/* <Route path="/admin" element={<AdminDashboard />} /> */}
+            <Route path="/admin/guide" element={<AdminGuide />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

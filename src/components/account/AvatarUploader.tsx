@@ -168,6 +168,9 @@ export const AvatarUploader = ({ currentImageUrl, onClose, onSuccess, onError }:
               <p className="text-sm text-muted-foreground mt-2">
                 JPG, PNG fino a 5MB
               </p>
+              <p className="text-xs text-amber-600 mt-1">
+                ⚠️ Le immagini devono essere appropriate e non contenere contenuti espliciti
+              </p>
             </div>
           ) : (
             <div>

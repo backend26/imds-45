@@ -8,6 +8,7 @@ import Youtube from '@tiptap/extension-youtube';
 import { EditorToolbar } from './EditorToolbar';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
+import { ContentModerationAlert } from './ContentModerationAlert';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -183,6 +184,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3 space-y-6">
+        {/* Content Moderation Alert */}
+        <ContentModerationAlert />
         {/* Title and Excerpt */}
         <Card>
           <CardHeader>
