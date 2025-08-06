@@ -38,22 +38,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          username: username
-        }
-      }
-    });
-    
+const signUp = async (email: string, password: string, username?: string) => {
+  const redirectUrl = `${window.location.origin}/`;
+
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectUrl,
+      data: {
+        username: username,
+      },
+    },
+  });
+
+  if (error) {
     return { error };
-  };
+  }
+
+  const user = data?.user;
+  if (!user) {
+    return { error: new Error("Registrazione riuscita, ma utente non disponibile") };
+  }
+
+  const { error: profileError } = await supabase.from("profiles").insert([
+    {
+      user_id: user.id,
+      username: username,
+    },
+  ]);
+
+  if (profileError) {
+    console.error("ERRORE PROFILO:", profileError);
+    return { error: profileError };
+  }
+
+  return { error: null };
+};
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
