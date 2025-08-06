@@ -7,7 +7,8 @@ import { Footer } from "@/components/Footer";
 import { ProfileSection } from "@/components/account/ProfileSection";
 import { SecurityDashboard } from "@/components/account/SecurityDashboard";
 import { PreferencesDashboard } from "@/components/account/PreferencesDashboard";
-import { User, Settings, Bell, Activity } from "lucide-react";
+import { DataManagement } from "@/components/account/DataManagement";
+import { User, Settings, Bell, Activity, Download } from "lucide-react";
 
 export default function Account() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -73,7 +74,7 @@ export default function Account() {
             {/* Main Content */}
             <div className="lg:col-span-3">
               <Tabs defaultValue="security" className="space-y-6">
-                <TabsList className="grid w-full grid-cols-3 bg-card/50 backdrop-blur-sm border border-border/50">
+                <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm border border-border/50">
                   <TabsTrigger value="security" className="flex items-center gap-2">
                     <Settings className="h-4 w-4" />
                     Sicurezza
@@ -81,6 +82,10 @@ export default function Account() {
                   <TabsTrigger value="preferences" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Preferenze
+                  </TabsTrigger>
+                  <TabsTrigger value="data" className="flex items-center gap-2">
+                    <Download className="h-4 w-4" />
+                    I Miei Dati
                   </TabsTrigger>
                   <TabsTrigger value="activity" className="flex items-center gap-2">
                     <Activity className="h-4 w-4" />
@@ -94,6 +99,10 @@ export default function Account() {
 
                 <TabsContent value="preferences" className="space-y-6">
                   <PreferencesDashboard />
+                </TabsContent>
+
+                <TabsContent value="data" className="space-y-6">
+                  <DataManagement />
                 </TabsContent>
 
                 <TabsContent value="activity" className="space-y-6">

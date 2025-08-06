@@ -1,272 +1,165 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { X, Cookie, Shield, BarChart3, Target } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-
-interface CookiePreferences {
-  necessary: boolean;
-  analytics: boolean;
-  marketing: boolean;
-}
-
-const COOKIE_TYPES = [
-  {
-    id: 'necessary',
-    name: 'Cookie Necessari',
-    description: 'Essenziali per il funzionamento del sito',
-    icon: Shield,
-    required: true
-  },
-  {
-    id: 'analytics',
-    name: 'Cookie Analitici',
-    description: 'Ci aiutano a migliorare il sito analizzando il comportamento degli utenti',
-    icon: BarChart3,
-    required: false
-  },
-  {
-    id: 'marketing',
-    name: 'Cookie Marketing',
-    description: 'Utilizzati per mostrare pubblicità personalizzata',
-    icon: Target,
-    required: false
-  }
-] as const;
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { X } from "lucide-react";
 
 export const CookieConsentBanner = () => {
-  const [isVisible, setIsVisible] = useState(false);
-  const [showDetails, setShowDetails] = useState(false);
-  const [preferences, setPreferences] = useState<CookiePreferences>({
-    necessary: true,
-    analytics: false,
-    marketing: false
-  });
   const { user } = useAuth();
+  const [showBanner, setShowBanner] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    checkCookieConsent();
+    checkConsentStatus();
   }, [user]);
 
-  const checkCookieConsent = async () => {
-    if (user) {
-      // Per utenti autenticati, controlla il database
-      const { data } = await supabase
-        .from('profiles')
-        .select('cookie_consent')
-        .eq('user_id', user.id)
-        .single();
+  const checkConsentStatus = async () => {
+    try {
+      if (user) {
+        // Check database for authenticated users
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('cookie_consent')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) throw error;
+        
+        const consent = data?.cookie_consent as any;
+        setShowBanner(!consent?.consent && consent?.consent !== false);
+      } else {
+        // Check localStorage for guests
+        const stored = localStorage.getItem('cookie_consent');
+        if (!stored) {
+          setShowBanner(true);
+        } else {
+          const consent = JSON.parse(stored);
+          setShowBanner(!consent.consent && consent.consent !== false);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking consent:', error);
+      // Show banner on error to be safe
+      setShowBanner(true);
+    }
+  };
+
+  const handleConsent = async (consent: boolean) => {
+    setLoading(true);
+    
+    try {
+      const consentData = {
+        consent,
+        date: new Date().toISOString()
+      };
+
+      if (user) {
+        // Save to database for authenticated users
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            cookie_consent: consentData,
+            cookie_consent_date: new Date().toISOString()
+          })
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+      } else {
+        // Save to localStorage for guests
+        localStorage.setItem('cookie_consent', JSON.stringify(consentData));
+      }
+
+      setShowBanner(false);
       
-      if (!data?.cookie_consent) {
-        setIsVisible(true);
+      // Apply consent logic
+      if (consent) {
+        // Enable necessary cookies
+        document.cookie = "consent=true; path=/; max-age=31536000; SameSite=Lax";
+      } else {
+        // Disable non-essential cookies
+        document.cookie = "consent=false; path=/; max-age=31536000; SameSite=Lax";
       }
-    } else {
-      // Per ospiti, controlla localStorage
-      const consent = localStorage.getItem('cookie_consent');
-      if (!consent) {
-        setIsVisible(true);
-      }
+    } catch (error) {
+      console.error('Error saving consent:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAcceptAll = async () => {
-    const fullPreferences = {
-      necessary: true,
-      analytics: true,
-      marketing: true
-    };
-    
-    await saveCookiePreferences(fullPreferences);
-    setIsVisible(false);
-  };
-
-  const handleAcceptSelected = async () => {
-    await saveCookiePreferences(preferences);
-    setIsVisible(false);
-  };
-
-  const handleRejectAll = async () => {
-    const minimalPreferences = {
-      necessary: true,
-      analytics: false,
-      marketing: false
-    };
-    
-    await saveCookiePreferences(minimalPreferences);
-    setIsVisible(false);
-  };
-
-  const saveCookiePreferences = async (prefs: CookiePreferences) => {
-    const consentData = {
-      ...prefs,
-      timestamp: new Date().toISOString()
-    };
-
-    if (user) {
-      // Salva nel database per utenti autenticati
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          cookie_consent: consentData,
-          cookie_consent_date: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
-
-      if (error) {
-        toast({
-          title: "Errore",
-          description: "Impossibile salvare le preferenze cookie",
-          variant: "destructive"
-        });
-        return;
-      }
-    } else {
-      // Salva in localStorage per ospiti
-      localStorage.setItem('cookie_consent', JSON.stringify(consentData));
-    }
-
-    // Applica le preferenze immediatamente
-    applyCookiePreferences(prefs);
-    
-    toast({
-      title: "Preferenze salvate",
-      description: "Le tue preferenze sui cookie sono state aggiornate"
-    });
-  };
-
-  const applyCookiePreferences = (prefs: CookiePreferences) => {
-    // Configura Google Analytics se abilitato
-    if (prefs.analytics && window.gtag) {
-      window.gtag('consent', 'update', {
-        analytics_storage: 'granted'
-      });
-    }
-
-    // Configura cookie marketing se abilitati
-    if (prefs.marketing && window.gtag) {
-      window.gtag('consent', 'update', {
-        ad_storage: 'granted'
-      });
-    }
-  };
-
-  const updatePreference = (type: keyof CookiePreferences, value: boolean) => {
-    setPreferences(prev => ({
-      ...prev,
-      [type]: value
-    }));
-  };
-
-  if (!isVisible) return null;
+  if (!showBanner) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-end md:items-center justify-center p-4">
-      <Card className="w-full max-w-2xl border-border/50 bg-card/95 backdrop-blur-sm">
-        <CardHeader className="flex flex-row items-start justify-between">
-          <div className="flex items-center gap-2">
-            <Cookie className="h-5 w-5 text-primary" />
-            <div>
-              <CardTitle>Cookie e Privacy</CardTitle>
-              <CardDescription>
-                Utilizziamo i cookie per migliorare la tua esperienza su I Malati dello Sport
-              </CardDescription>
-            </div>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsVisible(false)}
-            className="shrink-0"
-          >
-            <X className="h-4 w-4" />
-          </Button>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {!showDetails ? (
-            <div className="space-y-4">
+    <div className="fixed bottom-0 left-0 right-0 z-50 p-4">
+      <Card className="mx-auto max-w-4xl bg-card/95 backdrop-blur-sm border shadow-lg">
+        <div className="p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex-1 space-y-3">
+              <h3 className="text-lg font-semibold text-foreground">
+                Cookie e Privacy
+              </h3>
               <p className="text-sm text-muted-foreground">
-                Utilizziamo cookie necessari per il funzionamento del sito e cookie opzionali 
-                per analisi e marketing. Puoi scegliere quali accettare.
+                Utilizziamo cookie strettamente necessari per il funzionamento del sito 
+                (autenticazione, sicurezza, preferenze). Non utilizziamo cookie di 
+                tracciamento o marketing.
               </p>
-              
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={handleAcceptAll} className="flex-1 min-w-[120px]">
-                  Accetta Tutti
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDetails(true)}
-                  className="flex-1 min-w-[120px]"
+              <p className="text-xs text-muted-foreground">
+                Consulta la nostra{" "}
+                <a 
+                  href="/cookie-policy" 
+                  className="text-primary hover:underline"
                 >
-                  Personalizza
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={handleRejectAll}
-                  className="flex-1 min-w-[120px]"
+                  Cookie Policy
+                </a>
+                {" "}e{" "}
+                <a 
+                  href="/privacy-policy" 
+                  className="text-primary hover:underline"
                 >
-                  Rifiuta Opzionali
-                </Button>
-              </div>
+                  Privacy Policy
+                </a>
+                {" "}per maggiori dettagli.
+              </p>
             </div>
-          ) : (
-            <div className="space-y-4">
-              <div className="space-y-3">
-                {COOKIE_TYPES.map((type) => {
-                  const Icon = type.icon;
-                  return (
-                    <div key={type.id} className="flex items-start space-x-3 p-3 border border-border/50 rounded-lg">
-                      <div className="flex items-center space-x-2 flex-1">
-                        <Icon className="h-4 w-4 text-primary shrink-0" />
-                        <div className="flex-1">
-                          <Label className="text-sm font-medium">{type.name}</Label>
-                          <p className="text-xs text-muted-foreground">{type.description}</p>
-                        </div>
-                      </div>
-                      <Checkbox
-                        checked={preferences[type.id as keyof CookiePreferences]}
-                        onCheckedChange={(checked) => 
-                          updatePreference(type.id as keyof CookiePreferences, Boolean(checked))
-                        }
-                        disabled={type.required}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <Button onClick={handleAcceptSelected} className="flex-1 min-w-[120px]">
-                  Salva Preferenze
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowDetails(false)}
-                  className="flex-1 min-w-[120px]"
-                >
-                  Indietro
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <p className="text-xs text-muted-foreground">
-            Leggi la nostra{' '}
-            <a href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </a>{' '}
-            e i{' '}
-            <a href="/terms" className="text-primary hover:underline">
-              Termini di Servizio
-            </a>{' '}
-            per maggiori informazioni.
-          </p>
-        </CardContent>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowBanner(false)}
+              className="h-8 w-8 p-0"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          <div className="flex flex-wrap gap-3 mt-4">
+            <Button
+              onClick={() => handleConsent(true)}
+              disabled={loading}
+              className="flex-1 min-w-0"
+            >
+              Accetto i Cookie
+            </Button>
+            <Button
+              onClick={() => handleConsent(false)}
+              disabled={loading}
+              variant="outline"
+              className="flex-1 min-w-0"
+            >
+              Rifiuto
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              asChild
+              className="whitespace-nowrap"
+            >
+              <a href="/cookie-policy">
+                Personalizza
+              </a>
+            </Button>
+          </div>
+        </div>
       </Card>
     </div>
   );

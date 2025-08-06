@@ -1,22 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Star } from 'lucide-react';
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Star } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface RatingSystemProps {
   postId: string;
   className?: string;
 }
 
-export const RatingSystem = ({ postId, className = "" }: RatingSystemProps) => {
+export const RatingSystem = ({ postId, className }: RatingSystemProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [userRating, setUserRating] = useState<number>(0);
   const [averageRating, setAverageRating] = useState<number>(0);
   const [totalRatings, setTotalRatings] = useState<number>(0);
-  const [hoveredRating, setHoveredRating] = useState<number>(0);
   const [loading, setLoading] = useState(false);
-  const { user } = useAuth();
+  const [hoveredStar, setHoveredStar] = useState<number>(0);
 
   useEffect(() => {
     loadRatings();
@@ -24,17 +25,7 @@ export const RatingSystem = ({ postId, className = "" }: RatingSystemProps) => {
 
   const loadRatings = async () => {
     try {
-      // Carica la media e il totale delle valutazioni
-      const { data: averageData } = await supabase
-        .rpc('get_post_average_rating', { post_id: postId });
-      
-      const { data: countData } = await supabase
-        .rpc('get_post_rating_count', { post_id: postId });
-
-      setAverageRating(averageData || 0);
-      setTotalRatings(countData || 0);
-
-      // Se l'utente è autenticato, carica la sua valutazione
+      // Get user's rating if authenticated
       if (user) {
         const { data: userRatingData } = await supabase
           .from('post_ratings')
@@ -45,8 +36,25 @@ export const RatingSystem = ({ postId, className = "" }: RatingSystemProps) => {
 
         setUserRating(userRatingData?.rating || 0);
       }
+
+      // Get average and count
+      const { data: ratingsData, error } = await supabase
+        .from('post_ratings')
+        .select('rating')
+        .eq('post_id', postId);
+
+      if (error) throw error;
+
+      if (ratingsData && ratingsData.length > 0) {
+        const average = ratingsData.reduce((sum, r) => sum + r.rating, 0) / ratingsData.length;
+        setAverageRating(average);
+        setTotalRatings(ratingsData.length);
+      } else {
+        setAverageRating(0);
+        setTotalRatings(0);
+      }
     } catch (error) {
-      console.error('Errore nel caricamento delle valutazioni:', error);
+      console.error('Error loading ratings:', error);
     }
   };
 
@@ -54,131 +62,114 @@ export const RatingSystem = ({ postId, className = "" }: RatingSystemProps) => {
     if (!user) {
       toast({
         title: "Accesso richiesto",
-        description: "Devi essere autenticato per valutare questo articolo",
-        variant: "destructive"
+        description: "Devi effettuare l'accesso per valutare gli articoli",
+        variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-    
     try {
       const { error } = await supabase
         .from('post_ratings')
         .upsert({
-          post_id: postId,
           user_id: user.id,
-          rating: rating
-        }, {
-          onConflict: 'post_id,user_id'
+          post_id: postId,
+          rating,
+          updated_at: new Date().toISOString()
         });
 
       if (error) throw error;
 
       setUserRating(rating);
-      await loadRatings(); // Ricarica per aggiornare la media
-
+      await loadRatings(); // Refresh to get updated average
+      
       toast({
         title: "Valutazione salvata",
-        description: `Hai valutato questo articolo con ${rating} stelle`
+        description: `Hai assegnato ${rating} stella${rating !== 1 ? 'e' : ''} a questo articolo`,
       });
     } catch (error) {
-      console.error('Errore nel salvare la valutazione:', error);
+      console.error('Error saving rating:', error);
       toast({
         title: "Errore",
         description: "Impossibile salvare la valutazione",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const renderStars = (rating: number, interactive: boolean = false) => {
-    return Array.from({ length: 5 }, (_, index) => {
-      const starNumber = index + 1;
-      const isFilled = starNumber <= rating;
-      
-      return (
-        <Star
-          key={index}
-          className={`h-5 w-5 transition-colors ${
-            interactive ? 'cursor-pointer' : ''
-          } ${
-            isFilled 
-              ? 'fill-yellow-400 text-yellow-400' 
-              : 'text-muted-foreground'
-          } ${
-            interactive && hoveredRating >= starNumber 
-              ? 'fill-yellow-300 text-yellow-300' 
-              : ''
-          }`}
-          onClick={interactive ? () => handleRating(starNumber) : undefined}
-          onMouseEnter={interactive ? () => setHoveredRating(starNumber) : undefined}
-          onMouseLeave={interactive ? () => setHoveredRating(0) : undefined}
-        />
-      );
-    });
-  };
+  const displayRating = hoveredStar || userRating;
 
   return (
-    <div className={`space-y-3 ${className}`}>
-      {/* Media generale */}
-      <div className="flex items-center gap-3">
+    <div className={cn("space-y-2", className)}>
+      {/* Interactive Stars */}
+      <div className="flex items-center gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            onClick={() => handleRating(star)}
+            onMouseEnter={() => setHoveredStar(star)}
+            onMouseLeave={() => setHoveredStar(0)}
+            disabled={loading || !user}
+            className={cn(
+              "transition-all duration-200 hover:scale-110",
+              !user && "cursor-not-allowed opacity-50",
+              user && "cursor-pointer"
+            )}
+          >
+            <Star
+              className={cn(
+                "h-5 w-5 transition-colors",
+                star <= displayRating
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "fill-transparent text-muted-foreground hover:text-yellow-400"
+              )}
+            />
+          </button>
+        ))}
+        
+        {user && (
+          <span className="text-sm text-muted-foreground ml-2">
+            {userRating ? `La tua valutazione: ${userRating}/5` : "Clicca per valutare"}
+          </span>
+        )}
+      </div>
+
+      {/* Average Rating Display */}
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <div className="flex items-center gap-1">
-          {renderStars(averageRating)}
+          {[1, 2, 3, 4, 5].map((star) => (
+            <Star
+              key={star}
+              className={cn(
+                "h-4 w-4",
+                star <= Math.round(averageRating)
+                  ? "fill-yellow-400 text-yellow-400"
+                  : "fill-transparent text-muted-foreground"
+              )}
+            />
+          ))}
         </div>
-        <div className="text-sm text-muted-foreground">
+        
+        <span>
           {averageRating > 0 ? (
             <>
-              {averageRating.toFixed(1)} su 5 
-              {totalRatings > 0 && (
-                <span> ({totalRatings} valutazion{totalRatings === 1 ? 'e' : 'i'})</span>
-              )}
+              {averageRating.toFixed(1)} ({totalRatings} valutazion{totalRatings !== 1 ? 'i' : 'e'})
             </>
           ) : (
             "Nessuna valutazione"
           )}
-        </div>
+        </span>
       </div>
 
-      {/* Valutazione utente */}
-      {user && (
-        <div className="border-t border-border/50 pt-3">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">La tua valutazione:</span>
-            <div className="flex items-center gap-1">
-              {renderStars(hoveredRating || userRating, true)}
-            </div>
-            {userRating > 0 && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleRating(0)}
-                disabled={loading}
-                className="text-xs"
-              >
-                Rimuovi
-              </Button>
-            )}
-          </div>
-          {loading && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Salvando valutazione...
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Messaggio per utenti non autenticati */}
       {!user && (
-        <div className="border-t border-border/50 pt-3">
-          <p className="text-sm text-muted-foreground">
-            <a href="/login" className="text-primary hover:underline">
-              Accedi
-            </a> per valutare questo articolo
-          </p>
-        </div>
+        <p className="text-xs text-muted-foreground">
+          <a href="/login" className="text-primary hover:underline">
+            Accedi
+          </a> per valutare questo articolo
+        </p>
       )}
     </div>
   );
