@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { SafeLink } from "@/lib/router-utils";
 
 interface SearchResult {
   id: string;

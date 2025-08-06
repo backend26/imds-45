@@ -6,7 +6,7 @@ import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
-import { gsap } from "gsap";
+
 
 interface ArticleCardProps {
   title: string;
@@ -48,24 +48,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     setIsLiked(!isLiked);
     setIsLikeAnimating(true);
     
-    // GSAP animation for like button
+    // Simple animation for like button
     const button = e.currentTarget;
-    gsap.timeline()
-      .to(button, {
-        scale: 0.8,
-        duration: 0.1,
-        ease: 'power2.in'
-      })
-      .to(button, {
-        scale: 1.2,
-        duration: 0.2,
-        ease: 'back.out(1.7)'
-      })
-      .to(button, {
-        scale: 1,
-        duration: 0.1,
-        ease: 'power2.out'
-      });
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      button.style.transform = 'scale(1)';
+    }, 150);
     
     setTimeout(() => setIsLikeAnimating(false), 600);
   };
@@ -80,24 +68,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
     setIsSaved(!isSaved);
     setIsSaveAnimating(true);
     
-    // GSAP animation for bookmark button
+    // Simple animation for bookmark button
     const button = e.currentTarget;
-    gsap.timeline()
-      .to(button, {
-        scale: 0.8,
-        duration: 0.1,
-        ease: 'power2.in'
-      })
-      .to(button, {
-        scale: 1.2,
-        duration: 0.2,
-        ease: 'back.out(1.7)'
-      })
-      .to(button, {
-        scale: 1,
-        duration: 0.1,
-        ease: 'power2.out'
-      });
+    button.style.transform = 'scale(0.95)';
+    setTimeout(() => {
+      button.style.transform = 'scale(1)';
+    }, 150);
     
     setTimeout(() => setIsSaveAnimating(false), 400);
   };
@@ -114,24 +90,16 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       aria-labelledby={`article-title-${title.replace(/\s+/g, '-').toLowerCase()}`}
       onMouseEnter={() => {
         if (cardRef.current) {
-          gsap.to(cardRef.current, {
-            y: -8,
-            scale: 1.02,
-            duration: 0.3,
-            ease: 'power2.out',
-            boxShadow: '0 25px 50px rgba(255, 48, 54, 0.25), 0 10px 30px rgba(0, 0, 0, 0.3)'
-          });
+          cardRef.current.style.transform = 'translateY(-8px) scale(1.02)';
+          cardRef.current.style.boxShadow = '0 25px 50px rgba(255, 48, 54, 0.25), 0 10px 30px rgba(0, 0, 0, 0.3)';
+          cardRef.current.style.transition = 'all 0.3s ease-out';
         }
       }}
       onMouseLeave={() => {
         if (cardRef.current) {
-          gsap.to(cardRef.current, {
-            y: 0,
-            scale: 1,
-            duration: 0.3,
-            ease: 'power2.out',
-            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
-          });
+          cardRef.current.style.transform = 'translateY(0) scale(1)';
+          cardRef.current.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+          cardRef.current.style.transition = 'all 0.3s ease-out';
         }
       }}
     >

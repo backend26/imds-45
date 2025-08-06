@@ -20,8 +20,6 @@ import F1Page from "./pages/sports/F1";
 import NFLPage from "./pages/sports/NFL";
 import BasketPage from "./pages/sports/Basket";
 import NotFound from "./pages/NotFound";
-import NewPostPage from "./pages/editor/new";
-import EditPostPage from "./pages/editor/[postId]/edit";
 
 const queryClient = new QueryClient();
 
@@ -35,8 +33,6 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/registrati" element={<Register />} />
             <Route path="/account" element={<Account />} />
-            <Route path="/editor/new" element={<NewPostPage />} />
-            <Route path="/editor/:postId/edit" element={<EditPostPage />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
@@ -52,10 +48,10 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsentBanner />
         </BrowserRouter>
         <Toaster />
         <Sonner />
-        <CookieConsentBanner />
       </TooltipProvider>
     </AuthProvider>
   </QueryClientProvider>

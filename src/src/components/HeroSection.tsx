@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Enhanced3DFootball } from "./Enhanced3DFootball";
+
 
 import { heroArticles } from "@/data/articles";
 import { getImageUrl } from "@/config/images";

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { X, Cookie, FileText, Shield } from "lucide-react";
-import { Link } from "react-router-dom";
+
 import { cn } from "@/lib/utils";
 
 interface CookieConsent {
@@ -75,19 +75,19 @@ export const CookieConsentBanner = () => {
               <p className="text-sm text-muted-foreground leading-relaxed">
                 Usiamo cookie per migliorare la tua esperienza. 
                 Continuando accetti la nostra{" "}
-                <Link 
-                  to="/privacy-policy" 
+                <a 
+                  href="/privacy-policy" 
                   className="text-primary hover:underline font-medium"
                 >
                   Privacy Policy
-                </Link>{" "}
+                </a>{" "}
                 e i{" "}
-                <Link 
-                  to="/terms-and-conditions" 
+                <a 
+                  href="/terms-and-conditions" 
                   className="text-primary hover:underline font-medium"
                 >
                   Termini e Condizioni
-                </Link>
+                </a>
                 .
               </p>
             </div>
@@ -148,7 +148,7 @@ export const CookieConsentBanner = () => {
               >
                 {showDetails ? "Nascondi" : "Dettagli"}
               </Button>
-              <Link to="/cookie-policy">
+              <a href="/cookie-policy">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -157,7 +157,7 @@ export const CookieConsentBanner = () => {
                   <FileText className="h-3 w-3 mr-1" />
                   Politica Cookie
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </CardContent>
