@@ -4,8 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { User, Calendar, MapPin, Edit, Upload } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AvatarEditor } from "./AvatarEditor";
+import { EditProfileModal } from "./EditProfileModal";
+import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+import { toast } from "@/hooks/use-toast";
 
 interface StatsProps {
   likes: number;
@@ -30,13 +34,56 @@ const StatsPanel = ({ likes, comments, posts }: StatsProps) => (
   </div>
 );
 
+type Profile = Database['public']['Tables']['profiles']['Row'];
+
 export const ProfileSection = () => {
   const { user } = useAuth();
   const [showAvatarEditor, setShowAvatarEditor] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      toast({
+        title: "Errore",
+        description: "Impossibile caricare il profilo",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
 
   if (!user) return null;
 
-  const userInitials = user.user_metadata?.username?.substring(0, 2).toUpperCase() || 
+  if (loading) {
+    return (
+      <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant">
+        <CardContent className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const userInitials = profile?.username?.substring(0, 2).toUpperCase() || 
                       user.email?.substring(0, 2).toUpperCase() || 'US';
 
   return (
@@ -71,7 +118,7 @@ export const ProfileSection = () => {
       <CardContent className="space-y-4">
         <div className="text-center">
           <h2 className="text-xl font-bold text-foreground">
-            {user.user_metadata?.username || 'Utente'}
+            {profile?.username || 'Utente'}
           </h2>
           <p className="text-muted-foreground text-sm">{user.email}</p>
         </div>
@@ -81,17 +128,9 @@ export const ProfileSection = () => {
             <User className="h-4 w-4 text-muted-foreground" />
             <span className="text-muted-foreground">Membro da:</span>
             <span className="font-medium">
-              {new Date(user.created_at).toLocaleDateString('it-IT')}
+              {new Date(profile?.created_at || user.created_at).toLocaleDateString('it-IT')}
             </span>
           </div>
-          
-          {user.user_metadata?.location && (
-            <div className="flex items-center gap-2 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Località:</span>
-              <span className="font-medium">{user.user_metadata.location}</span>
-            </div>
-          )}
           
           <div className="flex items-center gap-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground" />
@@ -111,7 +150,7 @@ export const ProfileSection = () => {
         <Button 
           variant="outline" 
           className="w-full mt-4"
-          onClick={() => {/* TODO: Navigate to edit profile */}}
+          onClick={() => setShowEditModal(true)}
         >
           <Edit className="h-4 w-4 mr-2" />
           Modifica Profilo
@@ -122,6 +161,15 @@ export const ProfileSection = () => {
         <AvatarEditor 
           imageUrl={user.user_metadata?.profile_picture_url}
           onClose={() => setShowAvatarEditor(false)}
+          onAvatarUpdated={fetchProfile}
+        />
+      )}
+
+      {showEditModal && (
+        <EditProfileModal
+          profile={profile}
+          onClose={() => setShowEditModal(false)}
+          onProfileUpdated={fetchProfile}
         />
       )}
     </Card>

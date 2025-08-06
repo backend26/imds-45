@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 interface AvatarEditorProps {
   imageUrl?: string;
   onClose: () => void;
+  onAvatarUpdated?: () => void;
 }
 
 interface CropArea {
@@ -62,7 +63,7 @@ const getCroppedImg = async (imageSrc: string, pixelCrop: CropArea): Promise<Blo
   });
 };
 
-export const AvatarEditor = ({ imageUrl, onClose }: AvatarEditorProps) => {
+export const AvatarEditor = ({ imageUrl, onClose, onAvatarUpdated }: AvatarEditorProps) => {
   const [imageSrc, setImageSrc] = useState(imageUrl || '');
   const [crop, setCrop] = useState({ x: 0, y: 0 });
   const [zoom, setZoom] = useState(1);
@@ -116,7 +117,7 @@ export const AvatarEditor = ({ imageUrl, onClose }: AvatarEditorProps) => {
         .from('avatars')
         .getPublicUrl(fileName);
 
-      // Aggiorna il profilo utente
+      // Aggiorna sia i metadati dell'utente che il profilo
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           ...user.user_metadata,
@@ -133,6 +134,7 @@ export const AvatarEditor = ({ imageUrl, onClose }: AvatarEditorProps) => {
         description: "La tua immagine profilo è stata aggiornata con successo",
       });
 
+      onAvatarUpdated?.();
       onClose();
     } catch (error) {
       console.error('Errore salvataggio avatar:', error);
