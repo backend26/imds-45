@@ -477,12 +477,14 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_terms_at: string | null
           banner_url: string | null
           bio: string | null
           birth_date: string | null
           cookie_consent: Json | null
           cookie_consent_date: string | null
           created_at: string
+          display_name: string | null
           id: string
           is_banned: boolean | null
           last_login: string | null
@@ -490,6 +492,7 @@ export type Database = {
           login_count: number | null
           notification_preferences: Json | null
           preferred_sports: string[] | null
+          privacy_settings: Json | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["app_role"]
           tfa_enabled: boolean | null
@@ -500,12 +503,14 @@ export type Database = {
           username: string | null
         }
         Insert: {
+          accepted_terms_at?: string | null
           banner_url?: string | null
           bio?: string | null
           birth_date?: string | null
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -513,6 +518,7 @@ export type Database = {
           login_count?: number | null
           notification_preferences?: Json | null
           preferred_sports?: string[] | null
+          privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tfa_enabled?: boolean | null
@@ -523,12 +529,14 @@ export type Database = {
           username?: string | null
         }
         Update: {
+          accepted_terms_at?: string | null
           banner_url?: string | null
           bio?: string | null
           birth_date?: string | null
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
+          display_name?: string | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -536,6 +544,7 @@ export type Database = {
           login_count?: number | null
           notification_preferences?: Json | null
           preferred_sports?: string[] | null
+          privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tfa_enabled?: boolean | null

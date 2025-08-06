@@ -2,15 +2,17 @@ import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
+import { useSessionMonitor } from "@/hooks/use-session-monitor";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProfileCard } from "@/components/account/ProfileCard";
 import { PublicProfileTab } from "@/components/account/PublicProfileTab";
 import { ActivityTab } from "@/components/account/ActivityTab";
 import { SecurityTab } from "@/components/account/SecurityTab";
+import { PrivacyTab } from "@/components/account/PrivacyTab";
 import { ErrorModal } from "@/components/ErrorModal";
 import { useErrorHandler } from "@/hooks/use-error-handler";
-import { User, Activity, Shield, Edit } from "lucide-react";
+import { User, Activity, Shield, Edit, Eye } from "lucide-react";
 
 export default function Account() {
   const [darkMode, setDarkMode] = useState(() => {
@@ -20,6 +22,9 @@ export default function Account() {
   
   const { user, loading } = useAuth();
   const { errorState, handleError, closeModal } = useErrorHandler();
+  
+  // Monitor session and banned status
+  useSessionMonitor();
 
   const toggleTheme = () => {
     const newTheme = !darkMode;
@@ -92,13 +97,13 @@ export default function Account() {
                     <Activity className="h-4 w-4" />
                     Attività
                   </TabsTrigger>
+                  <TabsTrigger value="privacy" className="flex items-center gap-2">
+                    <Eye className="h-4 w-4" />
+                    Privacy
+                  </TabsTrigger>
                   <TabsTrigger value="security" className="flex items-center gap-2">
                     <Shield className="h-4 w-4" />
                     Sicurezza
-                  </TabsTrigger>
-                  <TabsTrigger value="preferences" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Preferenze
                   </TabsTrigger>
                 </TabsList>
 
@@ -110,18 +115,12 @@ export default function Account() {
                   <ActivityTab onError={handleError} />
                 </TabsContent>
 
-                <TabsContent value="security" className="space-y-6">
-                  <SecurityTab onError={handleError} />
+                <TabsContent value="privacy" className="space-y-6">
+                  <PrivacyTab onError={handleError} />
                 </TabsContent>
 
-                <TabsContent value="preferences" className="space-y-6">
-                  <div className="p-6 text-center text-muted-foreground">
-                    <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Preferenze Avanzate</h3>
-                    <p className="text-muted-foreground">
-                      Questa sezione sarà implementata nelle prossime versioni
-                    </p>
-                  </div>
+                <TabsContent value="security" className="space-y-6">
+                  <SecurityTab onError={handleError} />
                 </TabsContent>
               </Tabs>
             </div>

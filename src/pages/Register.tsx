@@ -5,12 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { isAllowedEmail, getAllowedDomains } from "@/utils/emailValidator";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
 export default function Register() {
@@ -23,7 +25,16 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [usernameValidation, setUsernameValidation] = useState<{
+    isValid: boolean | null;
+    message: string;
+  }>({
+    isValid: null,
+    message: ""
+  });
   const [emailValidation, setEmailValidation] = useState<{
     isValid: boolean | null;
     message: string;
@@ -76,6 +87,33 @@ export default function Register() {
     return <Navigate to="/" replace />;
   }
 
+  const validateUsername = (usernameValue: string) => {
+    if (!usernameValue) {
+      setUsernameValidation({ isValid: null, message: "" });
+      return;
+    }
+
+    const isValidFormat = /^[a-z0-9_]+$/.test(usernameValue.toLowerCase());
+    const isValidLength = usernameValue.length >= 3 && usernameValue.length <= 20;
+
+    if (!isValidFormat) {
+      setUsernameValidation({
+        isValid: false,
+        message: "Solo lettere minuscole, numeri e underscore"
+      });
+    } else if (!isValidLength) {
+      setUsernameValidation({
+        isValid: false,
+        message: "Deve essere tra 3 e 20 caratteri"
+      });
+    } else {
+      setUsernameValidation({
+        isValid: true,
+        message: "Username valido"
+      });
+    }
+  };
+
   const validateEmail = async (emailValue: string) => {
     if (!emailValue || !emailValue.includes('@')) {
       setEmailValidation({ isValid: null, message: "", allowedDomains: [] });
@@ -102,6 +140,12 @@ export default function Register() {
     }
   };
 
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.toLowerCase();
+    setUsername(value);
+    validateUsername(value);
+  };
+
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
@@ -119,7 +163,7 @@ export default function Register() {
     setIsLoading(true);
 
     try {
-      // Verifica finale del dominio email
+      // Validazioni finali
       if (!(await isAllowedEmail(email))) {
         toast({
           title: "Email non consentita",
@@ -130,26 +174,67 @@ export default function Register() {
         return;
       }
 
-      const { error } = await signUp(email, password, username);
-      
-      if (error) {
+      if (!acceptedTerms) {
         toast({
-          title: "Errore di registrazione",
-          description: error.message,
+          title: "Termini di servizio",
+          description: "Devi accettare i termini di servizio per continuare.",
           variant: "destructive",
         });
-      } else {
-        toast({
-          title: "Registrazione completata!",
-          description: "Ti abbiamo inviato una email di conferma. Clicca sul link per attivare il tuo account.",
-          duration: 6000,
-        });
-        // Redirect to a dedicated confirmation page instead of login
-        navigate("/email-confirmation", { 
-          state: { email, message: "Ti abbiamo inviato una email di conferma" }
-        });
+        setIsLoading(false);
+        return;
       }
+
+      // Step 1: Registra l'utente con Supabase Auth
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        }
+      });
+
+      if (authError) {
+        toast({
+          title: "Errore di registrazione",
+          description: authError.message,
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Step 2: Crea il profilo usando la Edge Function
+      if (authData.user) {
+        const { data: functionData, error: functionError } = await supabase.functions.invoke('handle-signup', {
+          body: {
+            userId: authData.user.id,
+            username: username,
+            displayName: displayName || username
+          }
+        });
+
+        if (functionError) {
+          console.error('Profile creation error:', functionError);
+          toast({
+            title: "Avviso",
+            description: "Account creato ma potrebbero esserci problemi con il profilo. Contatta il supporto se necessario.",
+            variant: "destructive",
+          });
+        }
+      }
+
+      toast({
+        title: "Registrazione completata!",
+        description: "Ti abbiamo inviato una email di conferma. Clicca sul link per attivare il tuo account.",
+        duration: 6000,
+      });
+
+      navigate("/email-confirmation", { 
+        state: { email, message: "Ti abbiamo inviato una email di conferma" }
+      });
+
     } catch (error) {
+      console.error('Registration error:', error);
       toast({
         title: "Errore",
         description: "Si è verificato un errore imprevisto",
@@ -187,15 +272,45 @@ export default function Register() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="username">Username</Label>
+                  <Label htmlFor="username">Username (@nomeutente)</Label>
                   <Input
                     id="username"
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={handleUsernameChange}
+                    placeholder="es: mario_123"
                     required
+                    className={`mt-1 ${usernameValidation.isValid === false ? "border-destructive" : ""}`}
+                  />
+                  {usernameValidation.isValid !== null && (
+                    <Alert variant={usernameValidation.isValid ? "default" : "destructive"} className="mt-2">
+                      <div className="flex items-center gap-2">
+                        {usernameValidation.isValid ? (
+                          <CheckCircle className="h-4 w-4 text-green-600" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4" />
+                        )}
+                        <AlertDescription className="text-sm">
+                          {usernameValidation.message}
+                        </AlertDescription>
+                      </div>
+                    </Alert>
+                  )}
+                </div>
+                
+                <div>
+                  <Label htmlFor="displayName">Nome Visualizzato (opzionale)</Label>
+                  <Input
+                    id="displayName"
+                    type="text"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    placeholder="es: Mario Rossi"
                     className="mt-1"
                   />
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Il nome che verrà mostrato sui tuoi contenuti
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -234,10 +349,24 @@ export default function Register() {
                     minLength={6}
                   />
                 </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    id="terms" 
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked as boolean)}
+                  />
+                  <Label htmlFor="terms" className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                    Dichiaro di aver letto e accettato i{" "}
+                    <Link to="/terms-and-conditions" className="text-primary hover:underline">
+                      Termini di Servizio
+                    </Link>
+                  </Label>
+                </div>
+                
                 <Button
                   type="submit"
                   className="w-full"
-                  disabled={isLoading || emailValidation.isValid === false}
+                  disabled={isLoading || emailValidation.isValid === false || usernameValidation.isValid === false || !acceptedTerms}
                 >
                   {isLoading ? "Registrazione in corso..." : "Registrati"}
                 </Button>

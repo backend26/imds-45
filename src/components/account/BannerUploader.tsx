@@ -107,10 +107,10 @@ export const BannerUploader = ({ currentImageUrl, onClose, onSuccess, onError }:
       const croppedImageBlob = await getCroppedImg(imageSrc, croppedAreaPixels);
       const fileName = `banner-${user.id}-${Date.now()}.jpg`;
       
-      // Upload su Supabase Storage  
+      // Upload su Supabase Storage (usa il bucket corretto)
       const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(fileName, croppedImageBlob, {
+        .from('profile-images')
+        .upload(`banners/${fileName}`, croppedImageBlob, {
           contentType: 'image/jpeg',
           upsert: true
         });
@@ -119,8 +119,8 @@ export const BannerUploader = ({ currentImageUrl, onClose, onSuccess, onError }:
 
       // Ottieni l'URL pubblico
       const { data: urlData } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(fileName);
+        .from('profile-images')
+        .getPublicUrl(`banners/${fileName}`);
 
       // Aggiorna il profilo nel database
       const { error: updateError } = await supabase
