@@ -132,6 +132,95 @@ export type Database = {
           },
         ]
       }
+      data_deletions: {
+        Row: {
+          created_at: string | null
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          reason: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_deletions_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "data_deletions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      data_exports: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          download_url: string | null
+          expires_at: string | null
+          export_type: string
+          file_size_bytes: number | null
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          expires_at?: string | null
+          export_type?: string
+          file_size_bytes?: number | null
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          download_url?: string | null
+          expires_at?: string | null
+          export_type?: string
+          file_size_bytes?: number | null
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "data_exports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string
@@ -217,16 +306,117 @@ export type Database = {
           },
         ]
       }
+      post_ratings: {
+        Row: {
+          created_at: string
+          post_id: string
+          rating: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          post_id: string
+          rating: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          post_id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_ratings_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      post_reports: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          post_id: string
+          reason: string
+          reporter_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          post_id?: string
+          reason?: string
+          reporter_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_reports_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "post_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           author_id: string
           category_id: string
+          co_authoring_enabled: boolean | null
+          comments_enabled: boolean | null
           content: string
+          cover_images: Json | null
           created_at: string
           excerpt: string | null
           featured_image_url: string | null
           id: string
           published_at: string | null
+          status: string | null
           tags: string[] | null
           title: string
           updated_at: string
@@ -234,12 +424,16 @@ export type Database = {
         Insert: {
           author_id: string
           category_id: string
+          co_authoring_enabled?: boolean | null
+          comments_enabled?: boolean | null
           content: string
+          cover_images?: Json | null
           created_at?: string
           excerpt?: string | null
           featured_image_url?: string | null
           id?: string
           published_at?: string | null
+          status?: string | null
           tags?: string[] | null
           title: string
           updated_at?: string
@@ -247,12 +441,16 @@ export type Database = {
         Update: {
           author_id?: string
           category_id?: string
+          co_authoring_enabled?: boolean | null
+          comments_enabled?: boolean | null
           content?: string
+          cover_images?: Json | null
           created_at?: string
           excerpt?: string | null
           featured_image_url?: string | null
           id?: string
           published_at?: string | null
+          status?: string | null
           tags?: string[] | null
           title?: string
           updated_at?: string
@@ -263,7 +461,7 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
+            referencedColumns: ["user_id"]
           },
           {
             foreignKeyName: "posts_category_id_fkey"
@@ -277,47 +475,97 @@ export type Database = {
       profiles: {
         Row: {
           bio: string | null
+          cookie_consent: Json | null
+          cookie_consent_date: string | null
           created_at: string
           id: string
           last_login: string | null
           login_count: number | null
+          notification_preferences: Json | null
+          preferred_sports: string[] | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["app_role"]
           tfa_enabled: boolean | null
           tfa_secret: string | null
+          theme_preference: string | null
           updated_at: string
           user_id: string
           username: string | null
         }
         Insert: {
           bio?: string | null
+          cookie_consent?: Json | null
+          cookie_consent_date?: string | null
           created_at?: string
           id?: string
           last_login?: string | null
           login_count?: number | null
+          notification_preferences?: Json | null
+          preferred_sports?: string[] | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tfa_enabled?: boolean | null
           tfa_secret?: string | null
+          theme_preference?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
         }
         Update: {
           bio?: string | null
+          cookie_consent?: Json | null
+          cookie_consent_date?: string | null
           created_at?: string
           id?: string
           last_login?: string | null
           login_count?: number | null
+          notification_preferences?: Json | null
+          preferred_sports?: string[] | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
           tfa_enabled?: boolean | null
           tfa_secret?: string | null
+          theme_preference?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
         }
         Relationships: []
+      }
+      user_sessions: {
+        Row: {
+          created_at: string
+          ip_address: unknown | null
+          last_seen: string
+          session_id: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ip_address?: unknown | null
+          last_seen?: string
+          session_id: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ip_address?: unknown | null
+          last_seen?: string
+          session_id?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
     }
     Views: {

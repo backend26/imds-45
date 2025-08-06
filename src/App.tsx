@@ -10,6 +10,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import EmailConfirmation from "./pages/EmailConfirmation";
 import Account from "./pages/Account";
 import CookiePolicy from "./pages/CookiePolicy";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/registrati" element={<Register />} />
+            <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/account" element={<Account />} />
             <Route path="/editor/new" element={<NewPostPage />} />
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />

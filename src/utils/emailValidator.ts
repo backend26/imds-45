@@ -1,17 +1,4 @@
-// TODO: Implementare whitelist email quando le tabelle saranno create
-// import { supabase } from '@/integrations/supabase/client';
-
-// Domini consentiti temporanei (da sostituire con database)
-const ALLOWED_DOMAINS = [
-  'gmail.com',
-  'yahoo.com', 
-  'outlook.com',
-  'hotmail.com',
-  'libero.it',
-  'alice.it',
-  'virgilio.it',
-  'tiscali.it'
-];
+import { supabase } from '@/integrations/supabase/client';
 
 export const isAllowedEmail = async (email: string): Promise<boolean> => {
   try {
@@ -21,31 +8,37 @@ export const isAllowedEmail = async (email: string): Promise<boolean> => {
       throw new Error('Email format non valido');
     }
 
-    // TODO: Sostituire con query al database
-    // const { data, error } = await supabase
-    //   .from('allowed_email_domains')
-    //   .select('domain')
-    //   .eq('domain', domain)
-    //   .eq('is_active', true);
+    const { data, error } = await supabase
+      .from('allowed_email_domains')
+      .select('domain')
+      .eq('domain', domain.toLowerCase())
+      .maybeSingle();
     
-    // Simulazione controllo whitelist
-    return ALLOWED_DOMAINS.includes(domain.toLowerCase());
+    if (error) {
+      console.error('Errore validazione email:', error);
+      return false;
+    }
+    
+    return !!data;
   } catch (error) {
     console.error('Errore validazione email:', error);
     return false;
   }
 };
 
-export const getAllowedDomains = async () => {
+export const getAllowedDomains = async (): Promise<string[]> => {
   try {
-    // TODO: Sostituire con query al database
-    // const { data, error } = await supabase
-    //   .from('allowed_email_domains')
-    //   .select('domain')
-    //   .eq('is_active', true)
-    //   .order('domain');
+    const { data, error } = await supabase
+      .from('allowed_email_domains')
+      .select('domain')
+      .order('domain');
     
-    return ALLOWED_DOMAINS;
+    if (error) {
+      console.error('Errore recupero domini:', error);
+      return [];
+    }
+    
+    return data?.map(item => item.domain) || [];
   } catch (error) {
     console.error('Errore recupero domini:', error);
     return [];

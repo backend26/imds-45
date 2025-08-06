@@ -78,10 +78,14 @@ export default function Login() {
         });
       } else {
         toast({
-          title: "Accesso effettuato",
-          description: "Benvenuto!",
+          title: "Accesso effettuato con successo",
+          description: "Benvenuto nella community degli appassionati di sport!",
+          duration: 4000,
         });
-        navigate("/");
+        // Clear form and redirect
+        setEmail("");
+        setPassword("");
+        navigate("/", { replace: true });
       }
     } catch (error) {
       toast({

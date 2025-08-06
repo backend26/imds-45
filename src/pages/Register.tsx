@@ -140,10 +140,14 @@ export default function Register() {
         });
       } else {
         toast({
-          title: "Registrazione completata",
-          description: "Controlla la tua email per confermare l'account",
+          title: "Registrazione completata!",
+          description: "Ti abbiamo inviato una email di conferma. Clicca sul link per attivare il tuo account.",
+          duration: 6000,
         });
-        navigate("/login");
+        // Redirect to a dedicated confirmation page instead of login
+        navigate("/email-confirmation", { 
+          state: { email, message: "Ti abbiamo inviato una email di conferma" }
+        });
       }
     } catch (error) {
       toast({
