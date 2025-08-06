@@ -52,6 +52,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
 
+    if (profileError) {
+  console.error("ERRORE PROFILO:", profileError);
+  return { error: profileError };
+}
+
+    if (profileError) {
+  console.error("ERRORE PROFILO:", profileError);
+  return { error: profileError };
+}
+
+    
     if (error) {
       return { error };
     }
