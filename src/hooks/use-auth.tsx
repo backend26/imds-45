@@ -38,34 +38,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+const signUp = async (email: string, password: string, username?: string) => {
+  const redirectUrl = `${window.location.origin}/`;
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          username: username,
-        },
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: {
+      emailRedirectTo: redirectUrl,
+      data: {
+        username: username,
       },
-    });
+    },
+  });
 
-    if (profileError) {
-  console.error("ERRORE PROFILO:", profileError);
-  return { error: profileError };
-}
-
-    if (profileError) {
-  console.error("ERRORE PROFILO:", profileError);
-  return { error: profileError };
-}
-
-    
-    if (error) {
-      return { error };
-    }
+  if (error) {
+    return { error };
+  }
 
   const user = data?.user;
   if (!user) {
@@ -80,12 +69,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   ]);
 
   if (profileError) {
+    console.error("ERRORE PROFILO:", profileError);
     return { error: profileError };
   }
 
   return { error: null };
 };
-
 
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
