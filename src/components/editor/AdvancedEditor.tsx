@@ -227,28 +227,28 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         {/* Title and Excerpt */}
         <Card>
           <CardHeader>
-            <CardTitle>Post Details</CardTitle>
+            <CardTitle>Dettagli Articolo</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Title *
+                Titolo *
               </label>
               <Input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="Enter post title..."
+                placeholder="Inserisci il titolo dell'articolo..."
                 className="text-lg font-semibold"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">
-                Excerpt
+                Estratto
               </label>
               <Textarea
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Brief description of your post..."
+                placeholder="Breve descrizione dell'articolo..."
                 rows={3}
               />
             </div>
@@ -313,7 +313,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             title={!canPublish ? 'Inserisci titolo, contenuto e categoria per salvare la bozza' : undefined}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Draft
+            Salva Bozza
           </Button>
           <Button
             onClick={() => handleSave('published')}
@@ -322,7 +322,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             title={!canPublish ? 'Completa titolo, contenuto e categoria per pubblicare' : undefined}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {initialPost ? 'Update' : 'Publish'}
+            {initialPost ? 'Aggiorna' : 'Pubblica'}
           </Button>
         </div>
       </div>

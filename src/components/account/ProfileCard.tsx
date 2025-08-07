@@ -23,7 +23,7 @@ export const ProfileCard = ({ onError }: ProfileCardProps) => {
   const [showAvatarUploader, setShowAvatarUploader] = useState(false);
   const [showBannerUploader, setShowBannerUploader] = useState(false);
 
-  const fetchProfile = async () => {
+  const fetchProfile = async (retryCount = 0) => {
     if (!user) return;
     
     try {
@@ -34,29 +34,54 @@ export const ProfileCard = ({ onError }: ProfileCardProps) => {
         .maybeSingle();
 
       if (error) {
+        // Handle 406/409 errors with retry logic
+        if ((error.code === 'PGRST116' || error.message?.includes('406') || error.message?.includes('409')) && retryCount < 3) {
+          console.log(`Retrying profile fetch (attempt ${retryCount + 1})`);
+          setTimeout(() => {
+            fetchProfile(retryCount + 1);
+          }, Math.pow(2, retryCount) * 1000); // Exponential backoff: 1s, 2s, 4s
+          return;
+        }
+        
         console.error('Error fetching profile:', error);
         onError(error);
         return;
       }
       
-      // Se non esiste un profilo, crealo
+      // Se non esiste un profilo, crealo utilizzando la funzione edge
       if (!data) {
-        const { data: newProfile, error: createError } = await supabase
-          .from('profiles')
-          .insert({
-            user_id: user.id,
-            username: user.email?.split('@')[0] || 'user',
-            display_name: user.email?.split('@')[0] || 'User'
-          })
-          .select()
-          .single();
+        try {
+          const { error: signupError } = await supabase.functions.invoke('handle-signup', {
+            body: {
+              userId: user.id,
+              username: user.email?.split('@')[0] || `user_${user.id.slice(0, 8)}`,
+              displayName: user.email?.split('@')[0] || `User ${user.id.slice(0, 8)}`
+            }
+          });
           
-        if (createError) {
-          console.error('Error creating profile:', createError);
+          if (signupError) {
+            console.error('Error creating profile via function:', signupError);
+          }
+          
+          // Retry fetching after creation attempt
+          const { data: newData, error: newError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .maybeSingle();
+            
+          if (newError) {
+            console.error('Error fetching profile after creation:', newError);
+            onError(newError);
+            return;
+          }
+          
+          setProfile(newData);
+        } catch (createError) {
+          console.error('Error in profile creation flow:', createError);
           onError(createError);
           return;
         }
-        setProfile(newProfile);
       } else {
         setProfile(data);
       }

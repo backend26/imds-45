@@ -28,11 +28,11 @@ export const useRoleCheck = ({ allowedRoles, redirectOnFail = false }: UseRoleCh
   const [refreshKey, setRefreshKey] = useState(0);
   const lastCheckRef = useRef(0);
 
-  // Refresh on tab focus with throttle to avoid loops (e.g., file pickers)
+  // Less frequent role checks - only refresh on focus every 5 minutes
   useEffect(() => {
     const onFocus = () => {
       const now = Date.now();
-      if (now - lastCheckRef.current > 15000) {
+      if (now - lastCheckRef.current > 300000) { // 5 minutes instead of 15 seconds
         setRefreshKey((k) => k + 1);
         lastCheckRef.current = now;
       }

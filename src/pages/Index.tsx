@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { ArticleCard } from "@/components/ArticleCard";
@@ -16,6 +17,7 @@ import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 
 const Index = () => {
+  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState(true); // Dark mode as default
   const [selectedCategory, setSelectedCategory] = useState("Tutti");
   const [selectedSport, setSelectedSport] = useState("all");
@@ -192,6 +194,7 @@ const Index = () => {
                 {...mapPostToCard(featuredArticle)}
                 featured={true}
                 className="w-full"
+                onClick={() => navigate(`/post/${featuredArticle.id}`)}
               />
             </div>
           )}
@@ -203,6 +206,7 @@ const Index = () => {
                 <ArticleCard
                   {...mapPostToCard(article)}
                   className="h-full"
+                  onClick={() => navigate(`/post/${article.id}`)}
                 />
               </div>
             ))}
@@ -242,14 +246,22 @@ function mapPostToCard(post: any) {
     ? (post.cover_images[0]?.url || post.cover_images[0])
     : post.featured_image_url || '/assets/images/hero-juventus-champions.jpg';
   const date = post.published_at || post.created_at;
+  
+  // Calculate realistic reading time
+  const content = post.content || '';
+  const wordsPerMinute = 200;
+  const textLength = content.replace(/<[^>]*>/g, '').split(' ').length;
+  const readTime = Math.max(1, Math.ceil(textLength / wordsPerMinute));
+  
   return {
+    id: post.id,
     title: post.title,
     excerpt: post.excerpt || '',
     imageUrl: image,
     category: post.categories?.name || 'News',
     publishedAt: new Date(date).toLocaleDateString('it-IT'),
-    author: 'Redazione',
-    readTime: '3 min',
+    author: 'Redazione', // Will be improved to show actual author
+    readTime: `${readTime} min`,
     likes: (post as any)?._metrics?.like_count || 0,
     comments: (post as any)?._metrics?.comment_count || 0,
   };

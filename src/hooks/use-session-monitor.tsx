@@ -70,12 +70,17 @@ export const useSessionMonitor = () => {
     // Check immediately
     checkSession();
 
-    // Check every 5 minutes
-    const interval = setInterval(checkSession, 5 * 60 * 1000);
+    // Check every 15 minutes (less invasive)
+    const interval = setInterval(checkSession, 15 * 60 * 1000);
 
-    // Check when window regains focus
+    // Throttled focus check to prevent excessive calls
+    let lastFocusCheck = 0;
     const handleFocus = () => {
-      checkSession();
+      const now = Date.now();
+      if (now - lastFocusCheck > 30000) { // Only check once every 30 seconds on focus
+        lastFocusCheck = now;
+        checkSession();
+      }
     };
 
     window.addEventListener('focus', handleFocus);

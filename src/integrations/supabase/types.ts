@@ -850,6 +850,10 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: boolean
       }
+      safe_purge_user_content: {
+        Args: { target_user_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "registered_user" | "editor" | "administrator" | "journalist"

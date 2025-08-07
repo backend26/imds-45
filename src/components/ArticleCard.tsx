@@ -9,6 +9,7 @@ import { getImageUrl } from "@/config/images";
 import { gsap } from "gsap";
 
 interface ArticleCardProps {
+  id?: string;
   title: string;
   excerpt: string;
   imageUrl: string;
@@ -20,9 +21,11 @@ interface ArticleCardProps {
   comments: number;
   featured?: boolean;
   className?: string;
+  onClick?: () => void;
 }
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({
+  id,
   title,
   excerpt,
   imageUrl,
@@ -33,7 +36,8 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   likes,
   comments,
   featured = false,
-  className
+  className,
+  onClick
 }) => {
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -105,6 +109,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   return (
     <article 
       ref={cardRef}
+      onClick={onClick}
       className={cn(
         "article-card group cursor-pointer overflow-hidden border-border/50 bg-card/50 backdrop-blur-sm",
         featured && "w-full",

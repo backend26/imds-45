@@ -32,9 +32,9 @@ function NewPostPageContent() {
       <Header darkMode={false} toggleTheme={() => {}} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Create New Post</h1>
+          <h1 className="text-3xl font-bold text-foreground">Crea Nuovo Articolo</h1>
           <p className="text-muted-foreground mt-2">
-            Write and publish your next article
+            Scrivi e pubblica il tuo prossimo articolo
             {profile && ` | ${profile.display_name || profile.username}`}
           </p>
         </div>
