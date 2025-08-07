@@ -142,18 +142,80 @@ export default function AdminDashboard() {
         return;
       }
 
+      console.log('=== ADMIN DIAGNOSTIC INFO ===');
+      console.log('User ID:', user.id);
+      console.log('User email:', user.email);
+      
       try {
+        // First check all profiles
+        const { data: allProfiles, error: allError } = await supabase
+          .from('profiles')
+          .select('user_id, username, role, display_name');
+        
+        console.log('All profiles:', allProfiles);
+        
+        // Then check current user profile
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('role')
+          .select('user_id, username, role, display_name')
           .eq('user_id', user.id)
           .single();
 
+        console.log('Current user profile:', profile);
+        console.log('Profile error:', error);
+
         if (error) {
           console.error('Error checking admin status:', error);
-          setIsAdmin(false);
+          
+          // If profile doesn't exist, create it with admin role
+          if (error.code === 'PGRST116') {
+            console.log('Creating new admin profile...');
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert({
+                user_id: user.id,
+                username: 'fradax2610',
+                display_name: 'Francesco',
+                role: 'administrator'
+              })
+              .select()
+              .single();
+            
+            if (createError) {
+              console.error('Error creating profile:', createError);
+              setIsAdmin(false);
+            } else {
+              console.log('Created new admin profile:', newProfile);
+              setIsAdmin(true);
+              toast({
+                title: "Profilo admin creato",
+                description: "Il tuo profilo amministratore è stato configurato correttamente",
+              });
+            }
+          } else {
+            setIsAdmin(false);
+          }
         } else {
-          setIsAdmin(profile?.role === 'administrator');
+          const isAdminRole = profile?.role === 'administrator';
+          console.log('Is admin role?', isAdminRole);
+          setIsAdmin(isAdminRole);
+          
+          if (!isAdminRole) {
+            // Update existing profile to admin
+            console.log('Updating profile to admin...');
+            const { error: updateError } = await supabase
+              .from('profiles')
+              .update({ role: 'administrator' })
+              .eq('user_id', user.id);
+            
+            if (!updateError) {
+              setIsAdmin(true);
+              toast({
+                title: "Accesso admin abilitato",
+                description: "I tuoi permessi amministratore sono stati aggiornati",
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Error:', error);
