@@ -596,9 +596,29 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      admin_analytics: {
+        Row: {
+          pending_reports: number | null
+          posts_this_month: number | null
+          total_comments: number | null
+          total_likes: number | null
+          total_published_posts: number | null
+          total_users: number | null
+          users_last_month: number | null
+          users_this_month: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
+      check_email_exists: {
+        Args: { email_check: string }
+        Returns: boolean
+      }
+      check_username_exists: {
+        Args: { username_check: string }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -615,9 +635,17 @@ export type Database = {
         Args: { user_uuid?: string }
         Returns: boolean
       }
+      is_user_editor_or_journalist: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
+      promote_user_to_journalist: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
-      app_role: "registered_user" | "editor" | "administrator"
+      app_role: "registered_user" | "editor" | "administrator" | "journalist"
       notification_type: "like" | "comment" | "mention" | "new_follower"
     }
     CompositeTypes: {
@@ -746,7 +774,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["registered_user", "editor", "administrator"],
+      app_role: ["registered_user", "editor", "administrator", "journalist"],
       notification_type: ["like", "comment", "mention", "new_follower"],
     },
   },

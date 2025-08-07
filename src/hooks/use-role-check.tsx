@@ -25,6 +25,19 @@ export const useRoleCheck = ({ allowedRoles, redirectOnFail = false }: UseRoleCh
   const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [profile, setProfile] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refresh on tab focus/visibility changes
+  useEffect(() => {
+    const onFocus = () => setRefreshKey((k) => k + 1);
+    const onVisibility = () => setRefreshKey((k) => k + 1);
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, []);
 
   useEffect(() => {
     const checkRole = async () => {
@@ -95,7 +108,7 @@ export const useRoleCheck = ({ allowedRoles, redirectOnFail = false }: UseRoleCh
     };
 
     checkRole();
-  }, [user, authLoading, allowedRoles]);
+  }, [user, authLoading, allowedRoles, refreshKey]);
 
   return {
     isLoading,
@@ -112,7 +125,7 @@ export const useAdminCheck = () => {
 };
 
 export const useEditorCheck = () => {
-  return useRoleCheck({ allowedRoles: ['administrator', 'editor'] });
+  return useRoleCheck({ allowedRoles: ['administrator', 'editor', 'journalist'] });
 };
 
 export const useModeratorCheck = () => {

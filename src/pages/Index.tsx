@@ -38,7 +38,7 @@ const Index = () => {
     document.documentElement.classList.add("dark");
   }, []);
 
-  // Fetch posts and hero
+  // Fetch posts and hero with real filters/sorting
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -46,21 +46,73 @@ const Index = () => {
         // Hero post
         const { data: heroData } = await supabase
           .from('posts')
-          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero')
+          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero, categories:category_id (name)')
           .eq('is_hero', true)
           .not('published_at', 'is', null)
           .order('published_at', { ascending: false })
           .limit(1) as { data: any[] | null };
         setFeatured(heroData?.[0] || null);
 
-        // Posts list
-        const { data: postsData } = await supabase
+        // Build base posts query
+        let query = supabase
           .from('posts')
-          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero')
-          .not('published_at', 'is', null)
+          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero, categories:category_id (name)')
+          .not('published_at', 'is', null);
+
+        // Period filter
+        const now = new Date();
+        let start: Date | null = null;
+        switch (period) {
+          case 'today': start = new Date(now); start.setHours(0,0,0,0); break;
+          case 'week': start = new Date(now); start.setDate(now.getDate() - 7); break;
+          case 'month': start = new Date(now); start.setMonth(now.getMonth() - 1); break;
+          case 'year': start = new Date(now); start.setFullYear(now.getFullYear() - 1); break;
+          default: start = null;
+        }
+        if (start) query = query.gte('published_at', start.toISOString());
+
+        // Fetch pool to sort/filter client-side
+        const { data: postsData } = await query
           .order('published_at', { ascending: false })
-          .limit(visibleArticles + 5) as { data: any[] | null };
-        setPosts(postsData || []);
+          .limit(visibleArticles + 24) as { data: any[] | null };
+
+        let list = postsData || [];
+
+        // Sport filter by category name
+        if (selectedSport !== 'all') {
+          const sportName = selectedSport.toUpperCase() === 'F1' ? 'F1' : selectedSport.charAt(0).toUpperCase() + selectedSport.slice(1);
+          list = list.filter(p => (p as any)?.categories?.name?.toLowerCase() === sportName.toLowerCase());
+        }
+
+        // Fetch metrics for popularity/comments/trending
+        if (list.length > 0 && (sortBy === 'popular' || sortBy === 'comments' || sortBy === 'trending')) {
+          const ids = list.map((p: any) => p.id);
+          const { data: metrics } = await (supabase as any).rpc('get_post_metrics', { post_ids: ids });
+          const metricsArr = Array.isArray(metrics) ? metrics : [];
+          const map = new Map<string, { like_count: number; comment_count: number }>();
+          metricsArr.forEach((m: any) => map.set(m.post_id, { like_count: Number(m.like_count) || 0, comment_count: Number(m.comment_count) || 0 }));
+          list = list.map((p: any) => ({ ...p, _metrics: map.get(p.id) || { like_count: 0, comment_count: 0 } }));
+
+          const trendScore = (p: any) => {
+            const likes = p._metrics.like_count;
+            const comments = p._metrics.comment_count;
+            const hours = Math.max(1, (Date.now() - new Date(p.published_at || p.created_at).getTime()) / 36e5);
+            return (likes * 2 + comments) / Math.pow(hours, 0.5);
+          };
+
+          if (sortBy === 'popular') {
+            list.sort((a: any, b: any) => (b._metrics.like_count + b._metrics.comment_count) - (a._metrics.like_count + a._metrics.comment_count));
+          } else if (sortBy === 'comments') {
+            list.sort((a: any, b: any) => b._metrics.comment_count - a._metrics.comment_count);
+          } else if (sortBy === 'trending') {
+            list.sort((a: any, b: any) => trendScore(b) - trendScore(a));
+          }
+        } else {
+          // Default: most recent
+          list.sort((a: any, b: any) => new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime());
+        }
+
+        setPosts(list);
       } catch (e) {
         console.error('Error fetching posts', e);
       } finally {
@@ -68,7 +120,7 @@ const Index = () => {
       }
     };
     fetchData();
-  }, [selectedCategory, sortBy, period, visibleArticles]);
+  }, [selectedSport, sortBy, period, visibleArticles]);
 
   const categories = [
     { name: "Tutti", count: posts.length },
@@ -194,12 +246,12 @@ function mapPostToCard(post: any) {
     title: post.title,
     excerpt: post.excerpt || '',
     imageUrl: image,
-    category: 'News',
+    category: post.categories?.name || 'News',
     publishedAt: new Date(date).toLocaleDateString('it-IT'),
     author: 'Redazione',
     readTime: '3 min',
-    likes: 0,
-    comments: 0,
+    likes: (post as any)?._metrics?.like_count || 0,
+    comments: (post as any)?._metrics?.comment_count || 0,
   };
 }
 

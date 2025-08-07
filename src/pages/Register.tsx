@@ -61,6 +61,22 @@ export default function Register() {
     }
   }, [darkMode]);
 
+  // Debounced email validation
+  useEffect(() => {
+    if (!email) return;
+    const id = setTimeout(() => {
+      validateEmail(email);
+    }, 500);
+    return () => clearTimeout(id);
+  }, [email]);
+
+  // Basic SEO for the Register page
+  useEffect(() => {
+    document.title = "Registrati | I Malati dello Sport";
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', 'Crea il tuo account su I Malati dello Sport. Registrazione con verifica email.');
+  }, []);
+
   // Redirect authenticated users
   useEffect(() => {
     if (user && !loading) {
@@ -87,7 +103,7 @@ export default function Register() {
     return <Navigate to="/" replace />;
   }
 
-  const validateUsername = (usernameValue: string) => {
+  const validateUsername = async (usernameValue: string) => {
     if (!usernameValue) {
       setUsernameValidation({ isValid: null, message: "" });
       return;
@@ -101,16 +117,30 @@ export default function Register() {
         isValid: false,
         message: "Solo lettere minuscole, numeri e underscore"
       });
-    } else if (!isValidLength) {
+      return;
+    }
+    if (!isValidLength) {
       setUsernameValidation({
         isValid: false,
         message: "Deve essere tra 3 e 20 caratteri"
       });
-    } else {
-      setUsernameValidation({
-        isValid: true,
-        message: "Username valido"
-      });
+      return;
+    }
+
+    // Check uniqueness in DB
+    try {
+      const { count } = await supabase
+        .from('profiles')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('username', usernameValue);
+
+      if ((count || 0) > 0) {
+        setUsernameValidation({ isValid: false, message: "Username già in uso" });
+      } else {
+        setUsernameValidation({ isValid: true, message: "Username disponibile" });
+      }
+    } catch (e) {
+      setUsernameValidation({ isValid: false, message: "Errore verifica username" });
     }
   };
 
@@ -122,19 +152,25 @@ export default function Register() {
 
     try {
       const domains = await getAllowedDomains();
-      const isValid = await isAllowedEmail(emailValue);
-      
+      const isDomainAllowed = await isAllowedEmail(emailValue);
+      // Check uniqueness via RPC (uses SECURITY DEFINER)
+      const { data: exists, error: existsError } = await supabase.rpc('check_email_exists', { email_check: emailValue.toLowerCase() });
+      const isEmailUnique = existsError ? false : !exists;
+
+      const ok = isDomainAllowed && isEmailUnique;
       setEmailValidation({
-        isValid,
-        message: isValid 
-          ? "Email valida e dominio consentito" 
-          : `Dominio non consentito. Domini accettati: ${domains.join(', ')}`,
+        isValid: ok,
+        message: ok
+          ? "Email valida"
+          : (!isDomainAllowed
+              ? `Dominio non consentito. Domini accettati: ${domains.join(', ')}`
+              : "Email già registrata"),
         allowedDomains: domains
       });
     } catch (error) {
       setEmailValidation({
         isValid: false,
-        message: "Errore durante la verifica del dominio email",
+        message: "Errore durante la verifica dell'email",
         allowedDomains: []
       });
     }
@@ -149,13 +185,6 @@ export default function Register() {
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setEmail(value);
-    
-    // Debounce validation
-    const timeoutId = setTimeout(() => {
-      validateEmail(value);
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -180,6 +209,41 @@ export default function Register() {
           description: "Devi accettare i termini di servizio per continuare.",
           variant: "destructive",
         });
+        setIsLoading(false);
+        return;
+      }
+
+      if (!displayName.trim()) {
+        toast({
+          title: "Nome visualizzato obbligatorio",
+          description: "Inserisci il tuo nome visualizzato",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
+      // Controlli di unicità pre-submit
+      const { data: usernameExists, error: usernameErr } = await supabase.rpc('check_username_exists', { username_check: username });
+      if (usernameErr) {
+        toast({ title: "Errore", description: "Errore verifica username", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      if (usernameExists) {
+        toast({ title: "Username non disponibile", description: "Scegli un altro username", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: emailExists, error: emailErr } = await supabase.rpc('check_email_exists', { email_check: email.toLowerCase() });
+      if (emailErr) {
+        toast({ title: "Errore", description: "Errore verifica email", variant: "destructive" });
+        setIsLoading(false);
+        return;
+      }
+      if (emailExists) {
+        toast({ title: "Email già registrata", description: "Prova ad accedere o usa un'email diversa", variant: "destructive" });
         setIsLoading(false);
         return;
       }
@@ -299,7 +363,7 @@ export default function Register() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="displayName">Nome Visualizzato (opzionale)</Label>
+                  <Label htmlFor="displayName">Nome Visualizzato</Label>
                   <Input
                     id="displayName"
                     type="text"
@@ -307,10 +371,8 @@ export default function Register() {
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="es: Mario Rossi"
                     className="mt-1"
+                    required
                   />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Il nome che verrà mostrato sui tuoi contenuti
-                  </p>
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>

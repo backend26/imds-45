@@ -267,12 +267,10 @@ function AdminDashboardContent() {
     try {
       switch (action) {
         case 'promote':
-          const { error: promoteError } = await supabase
-            .from('profiles')
-            .update({ role: 'editor' })
-            .eq('user_id', userId);
-          if (promoteError) throw promoteError;
-          toast({ title: "Successo", description: "Utente promosso a editor" });
+          const { data: promoteData, error: promoteError } = await supabase
+            .rpc('promote_user_to_journalist', { user_uuid: userId });
+          if (promoteError || promoteData === false) throw promoteError || new Error('Permission denied');
+          toast({ title: "Successo", description: "Utente promosso a giornalista" });
           break;
 
         case 'demote':
@@ -455,13 +453,7 @@ function AdminDashboardContent() {
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Aggiorna
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={toggleTheme}
-            >
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
+            {/* Theme toggle removed to avoid duplication; use global Header toggle */}
           </div>
         </div>
 

@@ -4,12 +4,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, MapPin, Mail, Activity } from "lucide-react";
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "@/hooks/use-toast";
 
 interface PublicPost {
   id: string;
@@ -46,6 +49,12 @@ export default function PublicProfile() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [isBanned, setIsBanned] = useState(false);
+  const [stats, setStats] = useState<{ posts_count: number; likes_received: number; comments_received: number } | null>(null);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followLoading, setFollowLoading] = useState(false);
+  const { user } = useAuth();
 
   const toggleTheme = () => {
     const newTheme = !darkMode;
@@ -66,6 +75,14 @@ export default function PublicProfile() {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  // SEO for profile page
+  useEffect(() => {
+    if (!profile) return;
+    document.title = `${profile.display_name || profile.username} | Profilo | I Malati dello Sport`;
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.setAttribute('content', `Profilo di ${profile.display_name || profile.username}: articoli, follower e attività.`);
+  }, [profile]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -144,6 +161,78 @@ export default function PublicProfile() {
 
     fetchProfile();
   }, [username]);
+
+  // Fetch stats and follow info when profile is ready
+  useEffect(() => {
+    const loadExtra = async () => {
+      if (!profile) return;
+      try {
+        // Author stats
+        const { data: statsData } = await (supabase as any).rpc('get_author_stats', { author_uuid: profile.user_id });
+        if (Array.isArray(statsData) && statsData[0]) {
+          setStats({
+            posts_count: Number(statsData[0].posts_count) || 0,
+            likes_received: Number(statsData[0].likes_received) || 0,
+            comments_received: Number(statsData[0].comments_received) || 0,
+          });
+        }
+        // Followers / Following counts
+        const [{ count: followers }, { count: following }] = await Promise.all([
+          (supabase as any).from('follows').select('id', { count: 'exact', head: true }).eq('following_id', profile.user_id),
+          (supabase as any).from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', profile.user_id),
+        ]);
+        setFollowerCount(followers || 0);
+        setFollowingCount(following || 0);
+        // Following state for current user
+        if (user?.id) {
+          const { data: rel } = await (supabase as any)
+            .from('follows')
+            .select('id')
+            .eq('follower_id', user.id)
+            .eq('following_id', profile.user_id)
+            .maybeSingle();
+          setIsFollowing(!!rel);
+        }
+      } catch (e) {
+        console.error('Error loading profile extras', e);
+      }
+    };
+    loadExtra();
+  }, [profile, user]);
+
+  const handleToggleFollow = async () => {
+    if (!user || !profile) {
+      toast({ title: 'Accedi per seguire', description: 'Devi effettuare il login per seguire gli autori.' });
+      return;
+    }
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        const res: any = await (supabase as any)
+          .from('follows')
+          .delete()
+          .eq('follower_id', user.id)
+          .eq('following_id', profile.user_id);
+        if (res.error) throw res.error;
+        setIsFollowing(false);
+        setFollowerCount((c) => Math.max(0, c - 1));
+        toast({ title: 'Non segui più', description: `Hai smesso di seguire @${profile.username}` });
+      } else {
+        const res2: any = await (supabase as any)
+          .from('follows')
+          .insert({ follower_id: user.id, following_id: profile.user_id });
+        if (res2.error) throw res2.error;
+        setIsFollowing(true);
+        setFollowerCount((c) => c + 1);
+        toast({ title: 'Ora segui', description: `Stai seguendo @${profile.username}` });
+      }
+    } catch (e) {
+      console.error(e);
+      toast({ title: 'Errore', description: 'Impossibile aggiornare il follow', variant: 'destructive' });
+    } finally {
+      setFollowLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -235,6 +324,20 @@ export default function PublicProfile() {
                 {profile.display_name || profile.username}
               </h1>
               <Badge variant="secondary">@{profile.username}</Badge>
+            </div>
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div className="flex gap-4 text-sm text-muted-foreground">
+                <span><strong className="text-foreground">{stats?.posts_count ?? 0}</strong> post</span>
+                <span><strong className="text-foreground">{followerCount}</strong> follower</span>
+                <span><strong className="text-foreground">{followingCount}</strong> seguiti</span>
+                <span><strong className="text-foreground">{stats?.likes_received ?? 0}</strong> like</span>
+                <span><strong className="text-foreground">{stats?.comments_received ?? 0}</strong> commenti</span>
+              </div>
+              {user?.id !== profile.user_id && (
+                <Button size="sm" onClick={handleToggleFollow} disabled={followLoading} variant={isFollowing ? 'secondary' : 'default'}>
+                  {isFollowing ? 'Non seguire' : 'Segui'}
+                </Button>
+              )}
             </div>
             
             {profile.bio && (
