@@ -57,6 +57,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "bookmarked_posts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       categories: {
@@ -117,6 +124,13 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "comments_parent_comment_id_fkey"
             columns: ["parent_comment_id"]
             isOneToOne: false
@@ -169,10 +183,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "data_deletions_processed_by_fkey"
+            columns: ["processed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "data_deletions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "data_deletions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -219,7 +247,32 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "data_exports_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
+      }
+      follows: {
+        Row: {
+          created_at: string
+          follower_id: string
+          following_id: string
+        }
+        Insert: {
+          created_at?: string
+          follower_id: string
+          following_id: string
+        }
+        Update: {
+          created_at?: string
+          follower_id?: string
+          following_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -258,10 +311,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "notifications_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "notifications_recipient_id_fkey"
             columns: ["recipient_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -304,6 +371,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "post_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
       post_ratings: {
@@ -341,6 +415,13 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -395,10 +476,24 @@ export type Database = {
             referencedColumns: ["user_id"]
           },
           {
+            foreignKeyName: "post_reports_reporter_id_fkey"
+            columns: ["reporter_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
             foreignKeyName: "post_reports_reviewed_by_fkey"
             columns: ["reviewed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "post_reports_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
         ]
@@ -418,6 +513,7 @@ export type Database = {
           id: string
           is_hero: boolean | null
           published_at: string | null
+          scheduled_at: string | null
           status: string | null
           tags: string[] | null
           title: string
@@ -437,6 +533,7 @@ export type Database = {
           id?: string
           is_hero?: boolean | null
           published_at?: string | null
+          scheduled_at?: string | null
           status?: string | null
           tags?: string[] | null
           title: string
@@ -456,6 +553,7 @@ export type Database = {
           id?: string
           is_hero?: boolean | null
           published_at?: string | null
+          scheduled_at?: string | null
           status?: string | null
           tags?: string[] | null
           title?: string
@@ -467,6 +565,13 @@ export type Database = {
             columns: ["author_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "posts_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
             referencedColumns: ["user_id"]
           },
           {
@@ -592,6 +697,13 @@ export type Database = {
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
+          {
+            foreignKeyName: "user_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
         ]
       }
     }
@@ -609,6 +721,54 @@ export type Database = {
         }
         Relationships: []
       }
+      public_profiles: {
+        Row: {
+          banner_url: string | null
+          bio: string | null
+          birth_date: string | null
+          created_at: string | null
+          display_name: string | null
+          id: string | null
+          location: string | null
+          preferred_sports: string[] | null
+          privacy_settings: Json | null
+          profile_picture_url: string | null
+          role: Database["public"]["Enums"]["app_role"] | null
+          user_id: string | null
+          username: string | null
+        }
+        Insert: {
+          banner_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          location?: string | null
+          preferred_sports?: string[] | null
+          privacy_settings?: Json | null
+          profile_picture_url?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Update: {
+          banner_url?: string | null
+          bio?: string | null
+          birth_date?: string | null
+          created_at?: string | null
+          display_name?: string | null
+          id?: string | null
+          location?: string | null
+          preferred_sports?: string[] | null
+          privacy_settings?: Json | null
+          profile_picture_url?: string | null
+          role?: Database["public"]["Enums"]["app_role"] | null
+          user_id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       check_email_exists: {
@@ -619,9 +779,56 @@ export type Database = {
         Args: { username_check: string }
         Returns: boolean
       }
+      get_admin_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          pending_reports: number | null
+          posts_this_month: number | null
+          total_comments: number | null
+          total_likes: number | null
+          total_published_posts: number | null
+          total_users: number | null
+          users_last_month: number | null
+          users_this_month: number | null
+        }[]
+      }
+      get_author_stats: {
+        Args: { author_uuid: string }
+        Returns: {
+          posts_count: number
+          likes_received: number
+          comments_received: number
+        }[]
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_post_metrics: {
+        Args: { post_ids: string[] }
+        Returns: {
+          post_id: string
+          like_count: number
+          comment_count: number
+        }[]
+      }
+      get_public_profile_by_user_id: {
+        Args: { p_user_id: string }
+        Returns: {
+          id: string
+          user_id: string
+          username: string
+          display_name: string
+          bio: string
+          profile_picture_url: string
+          banner_url: string
+          role: Database["public"]["Enums"]["app_role"]
+          preferred_sports: string[]
+          created_at: string
+          location: string
+          birth_date: string
+          privacy_settings: Json
+        }[]
       }
       initialize_admin: {
         Args: {

@@ -90,7 +90,7 @@ export default function PublicProfile() {
 
       try {
         // Direct query without complex type inference
-        const profileQuery = supabase.from('profiles').select('*');
+        const profileQuery = supabase.from('public_profiles').select('*');
         const { data: profileList, error: directError } = await profileQuery.eq('username', username.replace('@', ''));
 
         if (directError || !profileList || profileList.length === 0) {
@@ -101,13 +101,7 @@ export default function PublicProfile() {
 
         const profileData = profileList[0];
 
-        if (profileData.is_banned) {
-          setIsBanned(true);
-          setLoading(false);
-          return;
-        }
-
-        // Map to our interface manually
+        // Banned users are already excluded by the public view
         const mappedProfile: PublicProfileData = {
           id: profileData.id,
           user_id: profileData.user_id,
@@ -119,7 +113,7 @@ export default function PublicProfile() {
           profile_picture_url: profileData.profile_picture_url,
           banner_url: profileData.banner_url,
           privacy_settings: profileData.privacy_settings as Record<string, any>,
-          is_banned: profileData.is_banned,
+          is_banned: false,
           created_at: profileData.created_at
         };
 

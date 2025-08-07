@@ -230,7 +230,7 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
                 asChild
                 disabled={isSaving}
               >
-                <Link to={`/@${profile.username}`} target="_blank">
+                <Link to={`/@${profile.username}`} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Vedi Profilo
                 </Link>
