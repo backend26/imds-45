@@ -45,6 +45,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [isHero, setIsHero] = useState<boolean>((initialPost as any)?.is_hero ?? false);
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
 
   const extensions = useMemo(() => (
     [

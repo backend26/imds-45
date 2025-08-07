@@ -48,7 +48,12 @@ const Index = () => {
         // Hero post
         const { data: heroData } = await supabase
           .from('posts')
-          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero, categories:category_id (name)')
+          .select(`
+            id, title, excerpt, content, cover_images, featured_image_url, 
+            published_at, created_at, author_id, category_id, is_hero,
+            categories:category_id (name),
+            profiles:author_id (username, display_name)
+          `)
           .eq('is_hero', true)
           .not('published_at', 'is', null)
           .order('published_at', { ascending: false })
@@ -58,7 +63,12 @@ const Index = () => {
         // Build base posts query
         let query = supabase
           .from('posts')
-          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero, categories:category_id (name)')
+          .select(`
+            id, title, excerpt, content, cover_images, featured_image_url, 
+            published_at, created_at, author_id, category_id, is_hero,
+            categories:category_id (name),
+            profiles:author_id (username, display_name)
+          `)
           .not('published_at', 'is', null);
 
         // Period filter
@@ -242,16 +252,27 @@ const Index = () => {
 };
 
 function mapPostToCard(post: any) {
-  const image = Array.isArray(post.cover_images) && post.cover_images.length > 0
-    ? (post.cover_images[0]?.url || post.cover_images[0])
-    : post.featured_image_url || '/assets/images/hero-juventus-champions.jpg';
+  // Handle cover image from either cover_images array or featured_image_url
+  let image = '/assets/images/hero-juventus-champions.jpg'; // fallback
+  
+  if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
+    const coverImg = post.cover_images[0];
+    image = typeof coverImg === 'string' ? coverImg : coverImg?.url || image;
+  } else if (post.featured_image_url) {
+    image = post.featured_image_url;
+  }
+  
   const date = post.published_at || post.created_at;
   
-  // Calculate realistic reading time
+  // Calculate realistic reading time from actual content
   const content = post.content || '';
   const wordsPerMinute = 200;
-  const textLength = content.replace(/<[^>]*>/g, '').split(' ').length;
-  const readTime = Math.max(1, Math.ceil(textLength / wordsPerMinute));
+  const cleanText = content.replace(/<[^>]*>/g, '').trim();
+  const wordCount = cleanText ? cleanText.split(/\s+/).length : 0;
+  const readTime = Math.max(1, Math.ceil(wordCount / wordsPerMinute));
+  
+  // Get real author name from profiles join
+  const authorName = post.profiles?.display_name || post.profiles?.username || 'Redazione';
   
   return {
     id: post.id,
@@ -260,7 +281,7 @@ function mapPostToCard(post: any) {
     imageUrl: image,
     category: post.categories?.name || 'News',
     publishedAt: new Date(date).toLocaleDateString('it-IT'),
-    author: 'Redazione', // Will be improved to show actual author
+    author: authorName,
     readTime: `${readTime} min`,
     likes: (post as any)?._metrics?.like_count || 0,
     comments: (post as any)?._metrics?.comment_count || 0,

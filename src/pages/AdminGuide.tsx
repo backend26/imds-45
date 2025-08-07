@@ -3,7 +3,7 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { AdminGuide as AdminGuideComponent } from '@/components/admin/AdminGuide';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useAdminCheck } from '@/hooks/use-role-check';
+import { useAdminCheck } from '@/hooks/use-role-check-cached';
 
 function AdminGuideContent() {
   const [darkMode, setDarkMode] = useState(() => {

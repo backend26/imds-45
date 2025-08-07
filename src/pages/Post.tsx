@@ -6,7 +6,10 @@ import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share2, Bookmark, Clock, User, ArrowLeft } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, Clock, User, ArrowLeft, CalendarDays } from 'lucide-react';
+import { SocialInteractions } from '@/components/posts/SocialInteractions';
+import { formatDistanceToNow } from 'date-fns';
+import { it } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import DOMPurify from 'dompurify';
 

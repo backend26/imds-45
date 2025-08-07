@@ -102,28 +102,28 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
           isActive={editor.isActive('bold')}
-          title="Bold"
+          title="Grassetto"
         >
           <Bold className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
           isActive={editor.isActive('italic')}
-          title="Italic"
+          title="Corsivo"
         >
           <Italic className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
           isActive={editor.isActive('underline')}
-          title="Underline"
+          title="Sottolineato"
         >
           <Underline className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleStrike().run()}
           isActive={editor.isActive('strike')}
-          title="Strikethrough"
+          title="Barrato"
         >
           <Strikethrough className="h-4 w-4" />
         </ToolbarButton>
@@ -134,21 +134,21 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
+          title="Titolo 1"
         >
           <Type className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
           isActive={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
+          title="Titolo 2"
         >
           <span className="text-xs font-bold">H2</span>
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
           isActive={editor.isActive('heading', { level: 3 })}
-          title="Heading 3"
+          title="Titolo 3"
         >
           <span className="text-xs font-bold">H3</span>
         </ToolbarButton>
@@ -159,21 +159,21 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
           isActive={editor.isActive({ textAlign: 'left' })}
-          title="Align Left"
+          title="Allinea a Sinistra"
         >
           <AlignLeft className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
           isActive={editor.isActive({ textAlign: 'center' })}
-          title="Align Center"
+          title="Allinea al Centro"
         >
           <AlignCenter className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
           isActive={editor.isActive({ textAlign: 'right' })}
-          title="Align Right"
+          title="Allinea a Destra"
         >
           <AlignRight className="h-4 w-4" />
         </ToolbarButton>
@@ -184,14 +184,14 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           isActive={editor.isActive('bulletList')}
-          title="Bullet List"
+          title="Elenco Puntato"
         >
           <List className="h-4 w-4" />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           isActive={editor.isActive('orderedList')}
-          title="Numbered List"
+          title="Elenco Numerato"
         >
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
@@ -201,36 +201,36 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
       <div className="flex gap-1">
         <Dialog open={showLinkDialog} onOpenChange={setShowLinkDialog}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" title="Add Link" className="h-8 w-8 p-0">
+            <Button variant="ghost" size="sm" title="Aggiungi Link" className="h-8 w-8 p-0">
               <LinkIcon className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Add Link</DialogTitle>
-              <DialogDescription className="sr-only">Enter a URL to add a hyperlink to the selected text.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Enter URL..."
-                value={linkUrl}
-                onChange={(e) => setLinkUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddLink()}
-              />
-              <div className="flex gap-2">
-                <Button onClick={handleAddLink}>Add Link</Button>
-                <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
-                  Cancel
-                </Button>
-              </div>
+          <DialogHeader>
+            <DialogTitle>Aggiungi Link</DialogTitle>
+            <DialogDescription className="sr-only">Inserisci un URL per aggiungere un collegamento ipertestuale al testo selezionato.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Inserisci URL..."
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddLink()}
+            />
+            <div className="flex gap-2">
+              <Button onClick={handleAddLink}>Aggiungi Link</Button>
+              <Button variant="outline" onClick={() => setShowLinkDialog(false)}>
+                Annulla
+              </Button>
             </div>
+          </div>
           </DialogContent>
         </Dialog>
 
         <Button
           variant="ghost"
           size="sm"
-          title="Upload Image"
+          title="Carica Immagine"
           className="h-8 w-8 p-0"
           onClick={() => document.getElementById('image-upload')?.click()}
         >
@@ -246,29 +246,29 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
 
         <Dialog open={showYoutubeDialog} onOpenChange={setShowYoutubeDialog}>
           <DialogTrigger asChild>
-            <Button variant="ghost" size="sm" title="Embed YouTube" className="h-8 w-8 p-0">
+            <Button variant="ghost" size="sm" title="Incorpora YouTube" className="h-8 w-8 p-0">
               <Youtube className="h-4 w-4" />
             </Button>
           </DialogTrigger>
           <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Embed YouTube Video</DialogTitle>
-              <DialogDescription className="sr-only">Paste a YouTube URL to embed it in the article.</DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <Input
-                placeholder="Enter YouTube URL..."
-                value={youtubeUrl}
-                onChange={(e) => setYoutubeUrl(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleAddYoutube()}
-              />
-              <div className="flex gap-2">
-                <Button onClick={handleAddYoutube}>Embed Video</Button>
-                <Button variant="outline" onClick={() => setShowYoutubeDialog(false)}>
-                  Cancel
-                </Button>
-              </div>
+          <DialogHeader>
+            <DialogTitle>Incorpora Video YouTube</DialogTitle>
+            <DialogDescription className="sr-only">Incolla un URL di YouTube per incorporarlo nell'articolo.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Inserisci URL YouTube..."
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddYoutube()}
+            />
+            <div className="flex gap-2">
+              <Button onClick={handleAddYoutube}>Incorpora Video</Button>
+              <Button variant="outline" onClick={() => setShowYoutubeDialog(false)}>
+                Annulla
+              </Button>
             </div>
+          </div>
           </DialogContent>
         </Dialog>
       </div>

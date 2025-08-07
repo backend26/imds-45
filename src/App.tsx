@@ -27,6 +27,7 @@ import NotFound from "./pages/NotFound";
 import NewPostPage from "./pages/editor/new";
 import EditPostPage from "./pages/editor/[postId]/edit";
 import AdminGuide from "./pages/AdminGuide";
+import Post from "./pages/Post";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/@:username" element={<PublicProfile />} />
             <Route path="/editor/new" element={<NewPostPage />} />
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />
+            <Route path="/post/:postId" element={<Post />} />
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
             <Route path="/admin/guide" element={<AdminGuide />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
