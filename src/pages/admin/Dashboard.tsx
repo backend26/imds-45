@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useState } from 'react';
+import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { useAdminCheck } from '@/hooks/use-role-check';
 import { Header } from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -125,128 +123,12 @@ const mockStats = {
   ]
 };
 
-export default function AdminDashboard() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user || authLoading) {
-        setLoading(false);
-        return;
-      }
-
-      console.log('=== ADMIN DIAGNOSTIC INFO ===');
-      console.log('User ID:', user.id);
-      console.log('User email:', user.email);
-      
-      try {
-        // First check all profiles
-        const { data: allProfiles, error: allError } = await supabase
-          .from('profiles')
-          .select('user_id, username, role, display_name');
-        
-        console.log('All profiles:', allProfiles);
-        
-        // Then check current user profile
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('user_id, username, role, display_name')
-          .eq('user_id', user.id)
-          .single();
-
-        console.log('Current user profile:', profile);
-        console.log('Profile error:', error);
-
-        if (error) {
-          console.error('Error checking admin status:', error);
-          
-          // If profile doesn't exist, create it with admin role
-          if (error.code === 'PGRST116') {
-            console.log('Creating new admin profile...');
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                user_id: user.id,
-                username: 'fradax2610',
-                display_name: 'Francesco',
-                role: 'administrator'
-              })
-              .select()
-              .single();
-            
-            if (createError) {
-              console.error('Error creating profile:', createError);
-              setIsAdmin(false);
-            } else {
-              console.log('Created new admin profile:', newProfile);
-              setIsAdmin(true);
-              toast({
-                title: "Profilo admin creato",
-                description: "Il tuo profilo amministratore è stato configurato correttamente",
-              });
-            }
-          } else {
-            setIsAdmin(false);
-          }
-        } else {
-          const isAdminRole = profile?.role === 'administrator';
-          console.log('Is admin role?', isAdminRole);
-          setIsAdmin(isAdminRole);
-          
-          if (!isAdminRole) {
-            // Update existing profile to admin
-            console.log('Updating profile to admin...');
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ role: 'administrator' })
-              .eq('user_id', user.id);
-            
-            if (!updateError) {
-              setIsAdmin(true);
-              toast({
-                title: "Accesso admin abilitato",
-                description: "I tuoi permessi amministratore sono stati aggiornati",
-              });
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        setIsAdmin(false);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user, authLoading]);
-
-  useEffect(() => {
-    if (!authLoading && !loading && (!user || !isAdmin)) {
-      if (!user) {
-        toast({
-          title: "Accesso richiesto",
-          description: "Devi essere autenticato per accedere a questa pagina",
-          variant: "destructive",
-        });
-        navigate('/login');
-      } else if (!isAdmin) {
-        toast({
-          title: "Accesso negato",
-          description: "Non hai i permessi per accedere a questa pagina",
-          variant: "destructive",
-        });
-        navigate('/');
-      }
-    }
-  }, [user, authLoading, loading, isAdmin, navigate]);
+  const { profile } = useAdminCheck();
 
   const handleUserAction = (userId: string, action: string) => {
     console.log(`User ${userId} - ${action}`);
@@ -263,21 +145,6 @@ export default function AdminDashboard() {
     // Implement report actions (approve, dismiss)
   };
 
-  if (authLoading || loading) {
-    return (
-      <div className="min-h-screen bg-background">
-        <Header darkMode={false} toggleTheme={() => {}} />
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground mt-4">Verifica autorizzazioni...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user || !isAdmin) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -286,7 +153,10 @@ export default function AdminDashboard() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-foreground">Dashboard Amministratore</h1>
-          <p className="text-muted-foreground mt-2">Gestisci utenti, contenuti e monitora le statistiche</p>
+          <p className="text-muted-foreground mt-2">
+            Gestisci utenti, contenuti e monitora le statistiche
+            {profile && ` | Benvenuto, ${profile.display_name || profile.username}`}
+          </p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -694,5 +564,13 @@ export default function AdminDashboard() {
         </Tabs>
       </div>
     </div>
+  );
+}
+
+export default function AdminDashboard() {
+  return (
+    <ProtectedRoute allowedRoles={['administrator']}>
+      <AdminDashboardContent />
+    </ProtectedRoute>
   );
 }
