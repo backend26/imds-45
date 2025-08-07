@@ -2,7 +2,7 @@ import React, { useCallback, useState } from 'react';
 import { Editor } from '@tiptap/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { 
   Bold, 
   Italic, 
@@ -42,11 +42,27 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
   }, [editor, onImageUpload]);
 
   const handleAddLink = useCallback(() => {
-    if (linkUrl) {
-      editor.chain().focus().setLink({ href: linkUrl }).run();
-      setLinkUrl('');
-      setShowLinkDialog(false);
+    if (!linkUrl) return;
+    const { from, to, empty } = editor.state.selection;
+    const url = linkUrl;
+    if (empty) {
+      editor
+        .chain()
+        .focus()
+        .insertContent(url)
+        .setTextSelection({ from, to: from + url.length })
+        .setLink({ href: url })
+        .run();
+    } else {
+      editor
+        .chain()
+        .focus()
+        .extendMarkRange('link')
+        .setLink({ href: url })
+        .run();
     }
+    setLinkUrl('');
+    setShowLinkDialog(false);
   }, [editor, linkUrl]);
 
   const handleAddYoutube = useCallback(() => {
@@ -192,6 +208,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Add Link</DialogTitle>
+              <DialogDescription className="sr-only">Enter a URL to add a hyperlink to the selected text.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input
@@ -236,6 +253,7 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Embed YouTube Video</DialogTitle>
+              <DialogDescription className="sr-only">Paste a YouTube URL to embed it in the article.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <Input

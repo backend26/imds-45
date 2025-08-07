@@ -12,39 +12,45 @@ export const useGSAPAnimations = () => {
   const animatePageLoad = () => {
     const tl = gsap.timeline();
     
-    // Hero section entrance with dramatic effect
-    tl.from('.hero-section', {
-      opacity: 0,
-      y: 100,
-      scale: 0.9,
-      duration: 1.5,
-      ease: 'power4.out'
-    });
+    const hero = document.querySelector('.hero-section');
+    if (hero) {
+      tl.from(hero, {
+        opacity: 0,
+        y: 100,
+        scale: 0.9,
+        duration: 1.5,
+        ease: 'power4.out'
+      });
+    }
 
-    // Advanced staggered card animation with wave effect
-    tl.from('.article-card', {
-      opacity: 0,
-      y: 80,
-      scale: 0.8,
-      rotationY: 15,
-      duration: 1,
-      stagger: {
-        amount: 1.2,
-        from: "start",
-        ease: "power2.inOut"
-      },
-      ease: 'back.out(2)'
-    }, '-=1');
+    const cards = document.querySelectorAll('.article-card');
+    if (cards.length) {
+      tl.from(cards, {
+        opacity: 0,
+        y: 80,
+        scale: 0.8,
+        rotationY: 15,
+        duration: 1,
+        stagger: {
+          amount: 1.2,
+          from: "start",
+          ease: "power2.inOut"
+        },
+        ease: 'back.out(2)'
+      }, '-=1');
+    }
 
-    // Sidebar modules with enhanced physics
-    tl.from('.sidebar > *', {
-      opacity: 0,
-      x: 50,
-      rotationY: 10,
-      duration: 0.8,
-      stagger: 0.2,
-      ease: 'back.out(1.5)'
-    }, '-=0.6');
+    const sidebarItems = document.querySelectorAll('.sidebar > *');
+    if (sidebarItems.length) {
+      tl.from(sidebarItems, {
+        opacity: 0,
+        x: 50,
+        rotationY: 10,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'back.out(1.5)'
+      }, '-=0.6');
+    }
 
     return tl;
   };

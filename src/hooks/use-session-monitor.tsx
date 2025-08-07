@@ -18,11 +18,25 @@ export const useSessionMonitor = () => {
           .from('profiles')
           .select('is_banned')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error checking user status:', error);
           return;
+        }
+
+        // Auto-create profile if missing (first login)
+        if (!profile) {
+          try {
+            await supabase.from('profiles').insert({
+              user_id: user.id,
+              username: `user_${user.id.slice(0, 8)}`,
+              display_name: user.email || `User ${user.id.slice(0, 8)}`,
+            });
+          } catch (e) {
+            console.warn('Profile auto-create failed (may already exist):', e);
+          }
+          return; // will be re-checked on next interval/focus
         }
 
         if (profile?.is_banned) {

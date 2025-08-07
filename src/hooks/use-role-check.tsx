@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
@@ -26,16 +26,20 @@ export const useRoleCheck = ({ allowedRoles, redirectOnFail = false }: UseRoleCh
   const [profile, setProfile] = useState<any | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const lastCheckRef = useRef(0);
 
-  // Refresh on tab focus/visibility changes
+  // Refresh on tab focus with throttle to avoid loops (e.g., file pickers)
   useEffect(() => {
-    const onFocus = () => setRefreshKey((k) => k + 1);
-    const onVisibility = () => setRefreshKey((k) => k + 1);
+    const onFocus = () => {
+      const now = Date.now();
+      if (now - lastCheckRef.current > 15000) {
+        setRefreshKey((k) => k + 1);
+        lastCheckRef.current = now;
+      }
+    };
     window.addEventListener('focus', onFocus);
-    document.addEventListener('visibilitychange', onVisibility);
     return () => {
       window.removeEventListener('focus', onFocus);
-      document.removeEventListener('visibilitychange', onVisibility);
     };
   }, []);
 

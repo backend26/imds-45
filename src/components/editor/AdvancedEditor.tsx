@@ -1,10 +1,11 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Youtube from '@tiptap/extension-youtube';
+import Underline from '@tiptap/extension-underline';
 import { EditorToolbar } from './EditorToolbar';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
@@ -16,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle2, AlertCircle, Info } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -45,9 +46,10 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [showPreview, setShowPreview] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
 
-  const editor = useEditor({
-    extensions: [
+  const extensions = useMemo(() => (
+    [
       StarterKit,
+      Underline,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
@@ -70,7 +72,11 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           class: 'rounded-lg',
         },
       }),
-    ],
+    ]
+  ), []);
+
+  const editor = useEditor({
+    extensions,
     content: initialPost?.content || '',
     editorProps: {
       attributes: {
@@ -123,6 +129,25 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       return;
     }
 
+    const contentText = editor.getText().trim();
+    if (!contentText) {
+      toast({
+        title: "Errore di validazione",
+        description: "Il contenuto non può essere vuoto",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!categoryId) {
+      toast({
+        title: "Errore di validazione",
+        description: "Seleziona una categoria",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setSaving(true);
 
     try {
@@ -133,7 +158,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         content: sanitizedContent,
         excerpt: excerpt.trim(),
         author_id: user.id,
-        category_id: categoryId || null,
+        category_id: categoryId,
         tags,
         cover_images: coverImages,
         comments_enabled: commentsEnabled,
@@ -187,6 +212,12 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       setSaving(false);
     }
   };
+
+  const contentText = editor?.getText().trim() ?? '';
+  const isTitleOK = title.trim().length > 0;
+  const isContentOK = contentText.length > 0;
+  const isCategoryOK = !!categoryId;
+  const canPublish = isTitleOK && isContentOK && isCategoryOK;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -276,17 +307,19 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         <div className="flex gap-4">
           <Button
             onClick={() => handleSave('draft')}
-            disabled={saving}
+            disabled={saving || !canPublish}
             variant="outline"
             className="flex items-center gap-2"
+            title={!canPublish ? 'Inserisci titolo, contenuto e categoria per salvare la bozza' : undefined}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Draft
           </Button>
           <Button
             onClick={() => handleSave('published')}
-            disabled={saving}
+            disabled={saving || !canPublish}
             className="flex items-center gap-2"
+            title={!canPublish ? 'Completa titolo, contenuto e categoria per pubblicare' : undefined}
           >
             {saving && <Loader2 className="h-4 w-4 animate-spin" />}
             {initialPost ? 'Update' : 'Publish'}
@@ -295,7 +328,32 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       </div>
 
       {/* Sidebar */}
-      <div className="lg:col-span-1">
+      <div className="lg:col-span-1 space-y-6">
+        {/* Publish checklist */}
+        <Card className="sticky top-24">
+          <CardHeader>
+            <CardTitle>Checklist pubblicazione</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm">
+            <div className="flex items-center gap-2">
+              {isTitleOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
+              <span>Titolo</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isContentOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
+              <span>Contenuto</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {isCategoryOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
+              <span>Categoria</span>
+            </div>
+            <div className="flex items-start gap-2 text-muted-foreground">
+              <Info className="h-4 w-4 mt-0.5" />
+              <span>Per salvare la bozza sono richiesti titolo, contenuto e categoria.</span>
+            </div>
+          </CardContent>
+        </Card>
+
         <PostSettingsSidebar
           categoryId={categoryId}
           setCategoryId={setCategoryId}
