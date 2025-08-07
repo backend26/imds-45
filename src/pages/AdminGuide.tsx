@@ -38,66 +38,22 @@ export default function AdminGuide() {
         return;
       }
 
-      console.log('=== ADMIN GUIDE DIAGNOSTIC ===');
-      console.log('User ID:', user.id);
-      console.log('User email:', user.email);
-
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('user_id, username, role, display_name')
           .eq('user_id', user.id)
-          .single();
-
-        console.log('Profile found:', profile);
+          .maybeSingle();
 
         if (error) {
           console.error('Error checking admin status:', error);
-          
-          // If profile doesn't exist, create it with admin role
-          if (error.code === 'PGRST116') {
-            const { data: newProfile, error: createError } = await supabase
-              .from('profiles')
-              .insert({
-                user_id: user.id,
-                username: 'fradax2610',
-                display_name: 'Francesco',
-                role: 'administrator'
-              })
-              .select()
-              .single();
-            
-            if (!createError) {
-              setIsAdmin(true);
-              toast({
-                title: "Profilo admin creato",
-                description: "Il tuo profilo amministratore è stato configurato",
-              });
-            } else {
-              setIsAdmin(false);
-            }
-          } else {
-            setIsAdmin(false);
-          }
-        } else {
-          const isAdminRole = profile?.role === 'administrator';
+          setIsAdmin(false);
+        } else if (profile) {
+          const isAdminRole = profile.role === 'administrator';
           setIsAdmin(isAdminRole);
-          
-          if (!isAdminRole) {
-            // Update to admin role
-            const { error: updateError } = await supabase
-              .from('profiles')
-              .update({ role: 'administrator' })
-              .eq('user_id', user.id);
-            
-            if (!updateError) {
-              setIsAdmin(true);
-              toast({
-                title: "Accesso admin abilitato",
-                description: "I tuoi permessi amministratore sono stati aggiornati",
-              });
-            }
-          }
+        } else {
+          // Profilo non trovato
+          setIsAdmin(false);
         }
       } catch (error) {
         console.error('Error:', error);

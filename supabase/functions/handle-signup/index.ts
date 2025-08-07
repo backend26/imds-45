@@ -37,11 +37,16 @@ serve(async (req) => {
     while (true) {
       const testUsername = counter === 0 ? finalUsername : `${finalUsername}_${counter}`
       
-      const { data: existingProfile } = await supabaseClient
+      const { data: existingProfile, error: checkError } = await supabaseClient
         .from('profiles')
         .select('username')
         .eq('username', testUsername)
-        .single()
+        .maybeSingle()
+      
+      if (checkError) {
+        console.error('Error checking username:', checkError)
+        // Continue with the username if error checking
+      }
       
       if (!existingProfile) {
         finalUsername = testUsername

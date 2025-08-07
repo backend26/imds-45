@@ -31,10 +31,35 @@ export const ProfileCard = ({ onError }: ProfileCardProps) => {
         .from('profiles')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      setProfile(data);
+      if (error) {
+        console.error('Error fetching profile:', error);
+        onError(error);
+        return;
+      }
+      
+      // Se non esiste un profilo, crealo
+      if (!data) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: user.id,
+            username: user.email?.split('@')[0] || 'user',
+            display_name: user.email?.split('@')[0] || 'User'
+          })
+          .select()
+          .single();
+          
+        if (createError) {
+          console.error('Error creating profile:', createError);
+          onError(createError);
+          return;
+        }
+        setProfile(newProfile);
+      } else {
+        setProfile(data);
+      }
     } catch (error) {
       console.error('Error fetching profile:', error);
       onError(error);
