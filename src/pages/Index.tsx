@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { TrendingUp, Filter } from "lucide-react";
 import { Icon } from "@/components/Icon";
-import { mockArticles } from "@/data/articles";
+import { supabase } from "@/integrations/supabase/client";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 
@@ -22,6 +22,9 @@ const Index = () => {
   const [sortBy, setSortBy] = useState("recent");
   const [period, setPeriod] = useState("all");
   const [visibleArticles, setVisibleArticles] = useState(6);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [featured, setFeatured] = useState<any | null>(null);
+  const [loadingPosts, setLoadingPosts] = useState(false);
   const { pageRef, animateCardHover, animateIconClick, animateCounter } = useGSAPAnimations();
   useLiquidAnimation();
 
@@ -35,18 +38,43 @@ const Index = () => {
     document.documentElement.classList.add("dark");
   }, []);
 
+  // Fetch posts and hero
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoadingPosts(true);
+        // Hero post
+        const { data: heroData } = await supabase
+          .from('posts')
+          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero')
+          .eq('is_hero', true)
+          .not('published_at', 'is', null)
+          .order('published_at', { ascending: false })
+          .limit(1) as { data: any[] | null };
+        setFeatured(heroData?.[0] || null);
+
+        // Posts list
+        const { data: postsData } = await supabase
+          .from('posts')
+          .select('id, title, excerpt, cover_images, featured_image_url, published_at, created_at, author_id, category_id, is_hero')
+          .not('published_at', 'is', null)
+          .order('published_at', { ascending: false })
+          .limit(visibleArticles + 5) as { data: any[] | null };
+        setPosts(postsData || []);
+      } catch (e) {
+        console.error('Error fetching posts', e);
+      } finally {
+        setLoadingPosts(false);
+      }
+    };
+    fetchData();
+  }, [selectedCategory, sortBy, period, visibleArticles]);
+
   const categories = [
-    { name: "Tutti", count: mockArticles.length },
-    { name: "Calcio", count: mockArticles.filter(a => a.category === "Calcio").length },
-    { name: "Tennis", count: mockArticles.filter(a => a.category === "Tennis").length },
-    { name: "F1", count: mockArticles.filter(a => a.category === "F1").length },
-    { name: "NFL", count: mockArticles.filter(a => a.category === "NFL").length },
-    { name: "Basket", count: mockArticles.filter(a => a.category === "Basket").length },
+    { name: "Tutti", count: posts.length },
   ];
 
-  const filteredArticles = selectedCategory === "Tutti" 
-    ? mockArticles 
-    : mockArticles.filter(article => article.category === selectedCategory);
+  const filteredArticles = posts;
 
   // Animate trending counter on load
   useEffect(() => {
@@ -56,12 +84,14 @@ const Index = () => {
     }
   }, [animateCounter]);
 
-  const featuredArticle = mockArticles.find(article => article.featured) || mockArticles[0];
-  const regularArticles = mockArticles.filter(article => !article.featured);
+  const featuredArticle = featured || filteredArticles[0];
+  const regularArticles = filteredArticles.filter(a => a?.id !== featuredArticle?.id);
 
   return (
     <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      {/* SEO */}
+      <TitleAndMeta />
       
       {/* Hero Section */}
       <div className="hero-section">
@@ -104,20 +134,22 @@ const Index = () => {
           />
 
           {/* Featured Article - Full Width */}
-          <div className="mb-8 article-card">
-            <ArticleCard
-              {...featuredArticle}
-              featured={true}
-              className="w-full"
-            />
-          </div>
+          {featuredArticle && (
+            <div className="mb-8 article-card">
+              <ArticleCard
+                {...mapPostToCard(featuredArticle)}
+                featured={true}
+                className="w-full"
+              />
+            </div>
+          )}
 
           {/* Regular Articles Grid - Uniform Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredArticles.slice(1, visibleArticles).map((article, index) => (
-              <div key={index} className="article-card h-full">
+            {regularArticles.slice(0, Math.max(0, visibleArticles - 1)).map((article: any) => (
+              <div key={article.id} className="article-card h-full">
                 <ArticleCard
-                  {...article}
+                  {...mapPostToCard(article)}
                   className="h-full"
                 />
               </div>
@@ -125,7 +157,7 @@ const Index = () => {
           </div>
 
           {/* Load More Button */}
-          {visibleArticles < filteredArticles.length && (
+          {visibleArticles < (regularArticles.length + 1) && (
             <div className="text-center mt-8">
               <Button 
                 variant="outline" 
@@ -133,7 +165,7 @@ const Index = () => {
                 className="hover:bg-primary hover:text-primary-foreground transition-colors px-8"
                 onClick={() => setVisibleArticles(prev => prev + 6)}
               >
-                Carica Altri Articoli ({filteredArticles.length - visibleArticles} rimanenti)
+                Carica Altri Articoli
               </Button>
             </div>
           )}
@@ -152,5 +184,32 @@ const Index = () => {
     </div>
   );
 };
+
+function mapPostToCard(post: any) {
+  const image = Array.isArray(post.cover_images) && post.cover_images.length > 0
+    ? (post.cover_images[0]?.url || post.cover_images[0])
+    : post.featured_image_url || '/assets/images/hero-juventus-champions.jpg';
+  const date = post.published_at || post.created_at;
+  return {
+    title: post.title,
+    excerpt: post.excerpt || '',
+    imageUrl: image,
+    category: 'News',
+    publishedAt: new Date(date).toLocaleDateString('it-IT'),
+    author: 'Redazione',
+    readTime: '3 min',
+    likes: 0,
+    comments: 0,
+  };
+}
+
+function TitleAndMeta() {
+  useEffect(() => {
+    document.title = 'Ultime notizie sport | Malati dello Sport';
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', 'Homepage con articoli sportivi reali dal database: calcio, tennis, F1, NBA e NFL.');
+  }, []);
+  return null;
+}
 
 export default Index;

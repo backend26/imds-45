@@ -416,6 +416,7 @@ export type Database = {
           excerpt: string | null
           featured_image_url: string | null
           id: string
+          is_hero: boolean | null
           published_at: string | null
           status: string | null
           tags: string[] | null
@@ -434,6 +435,7 @@ export type Database = {
           excerpt?: string | null
           featured_image_url?: string | null
           id?: string
+          is_hero?: boolean | null
           published_at?: string | null
           status?: string | null
           tags?: string[] | null
@@ -452,6 +454,7 @@ export type Database = {
           excerpt?: string | null
           featured_image_url?: string | null
           id?: string
+          is_hero?: boolean | null
           published_at?: string | null
           status?: string | null
           tags?: string[] | null
@@ -484,7 +487,7 @@ export type Database = {
           cookie_consent: Json | null
           cookie_consent_date: string | null
           created_at: string
-          display_name: string | null
+          display_name: string
           id: string
           is_banned: boolean | null
           last_login: string | null
@@ -510,7 +513,7 @@ export type Database = {
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
-          display_name?: string | null
+          display_name: string
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -536,7 +539,7 @@ export type Database = {
           cookie_consent?: Json | null
           cookie_consent_date?: string | null
           created_at?: string
-          display_name?: string | null
+          display_name?: string
           id?: string
           is_banned?: boolean | null
           last_login?: string | null

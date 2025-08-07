@@ -22,6 +22,8 @@ interface PostSettingsSidebarProps {
   setCommentsEnabled: (enabled: boolean) => void;
   coAuthoringEnabled: boolean;
   setCoAuthoringEnabled: (enabled: boolean) => void;
+  isHero: boolean;
+  setIsHero: (enabled: boolean) => void;
   status: 'draft' | 'published' | 'archived';
   setStatus: (status: 'draft' | 'published' | 'archived') => void;
 }
@@ -35,6 +37,8 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
   setCommentsEnabled,
   coAuthoringEnabled,
   setCoAuthoringEnabled,
+  isHero,
+  setIsHero,
   status,
   setStatus,
 }) => {
@@ -120,7 +124,7 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
         <CardContent>
           <Select 
             value={categoryId} 
-            onValueChange={setCategoryId}
+            onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}
             disabled={categoriesLoading}
           >
             <SelectTrigger>
@@ -208,6 +212,17 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
               id="co-authoring-enabled"
               checked={coAuthoringEnabled}
               onCheckedChange={setCoAuthoringEnabled}
+            />
+          </div>
+
+          <div className="flex items-center justify-between">
+            <Label htmlFor="is-hero" className="text-sm font-medium">
+              Articolo Hero
+            </Label>
+            <Switch
+              id="is-hero"
+              checked={isHero}
+              onCheckedChange={setIsHero}
             />
           </div>
         </CardContent>

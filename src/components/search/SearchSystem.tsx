@@ -9,7 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { mockArticles } from '@/data/articles';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SearchFilters {
   category: string;
@@ -62,7 +62,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
     sortBy: 'relevance'
   });
   const [recentSearches, setRecentSearches] = useState(mockRecentSearches);
-  const [searchResults, setSearchResults] = useState<(typeof mockArticles[0] & { id: number; tags: string[] })[]>([]);
+  const [searchResults, setSearchResults] = useState<{ id: string; title: string; excerpt: string; category: string; readTime: string }[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
   const handleSearch = (searchQuery: string = query) => {
@@ -74,15 +74,25 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
       return [searchQuery, ...filtered].slice(0, 5);
     });
 
-    // Perform search (mock implementation)
-    const results = mockArticles.map((article, index) => ({ ...article, id: index + 1, tags: [] })).filter(article => 
-      article.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      article.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    setSearchResults(results);
-    onSearch?.(searchQuery, filters);
+    // Search via Supabase
+    supabase
+      .from('posts')
+      .select('id,title,excerpt,published_at,created_at')
+      .or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`)
+      .not('published_at', 'is', null)
+      .order('published_at', { ascending: false })
+      .limit(20)
+      .then(({ data }) => {
+        const results = (data || []).map((p) => ({
+          id: p.id as unknown as string,
+          title: (p as any).title,
+          excerpt: (p as any).excerpt || '',
+          category: 'News',
+          readTime: '3 min',
+        }));
+        setSearchResults(results);
+        onSearch?.(searchQuery, filters);
+      });
   };
 
   const clearRecentSearches = () => {

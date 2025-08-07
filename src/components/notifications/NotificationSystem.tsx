@@ -15,46 +15,59 @@ type Notification = Database['public']['Tables']['notifications']['Row'] & {
   related_post: { title: string } | null;
 };
 
-const mockNotifications: Notification[] = [
-  {
-    id: '1',
-    recipient_id: 'user1',
-    actor_id: 'user2',
-    type: 'like',
-    related_post_id: 'post1',
-    is_read: false,
-    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-    actor: { username: 'MarcoSport', profile_picture_url: null },
-    related_post: { title: 'Juventus conquista la Champions League' }
-  },
-  {
-    id: '2',
-    recipient_id: 'user1',
-    actor_id: 'user3',
-    type: 'comment',
-    related_post_id: 'post2',
-    is_read: false,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-    actor: { username: 'TifosaInter', profile_picture_url: null },
-    related_post: { title: 'Derby della Madonnina: Inter vs Milan' }
-  },
-  {
-    id: '3',
-    recipient_id: 'user1',
-    actor_id: 'user4',
-    type: 'new_follower',
-    related_post_id: null,
-    is_read: true,
-    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
-    actor: { username: 'CalcioFan', profile_picture_url: null },
-    related_post: null
-  }
-];
-
 export const NotificationSystem = () => {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const load = async () => {
+      const { data } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('recipient_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+      const base = data || [];
+      // Enrich with actor username and related post title
+      const enriched = await Promise.all(base.map(async (n: any) => {
+        const [actorRes, postRes] = await Promise.all([
+          supabase.from('profiles').select('username, profile_picture_url').eq('user_id', n.actor_id).maybeSingle(),
+          n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
+        ]);
+        return {
+          ...n,
+          actor: { username: actorRes.data?.username || 'Utente', profile_picture_url: actorRes.data?.profile_picture_url || null },
+          related_post: n.related_post_id ? { title: (postRes as any).data?.title || '' } : null
+        } as Notification;
+      }));
+      setNotifications(enriched);
+    };
+    load();
+
+    const channel = supabase
+      .channel('notifications-feed')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
+        const n = payload.new as any;
+        if (n.recipient_id !== user.id) return;
+        const [actorRes, postRes] = await Promise.all([
+          supabase.from('profiles').select('username, profile_picture_url').eq('user_id', n.actor_id).maybeSingle(),
+          n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
+        ]);
+        const enriched: Notification = {
+          ...(n as any),
+          actor: { username: actorRes.data?.username || 'Utente', profile_picture_url: actorRes.data?.profile_picture_url || null },
+          related_post: n.related_post_id ? { title: (postRes as any).data?.title || '' } : null
+        };
+        setNotifications(prev => [enriched, ...prev]);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
@@ -93,10 +106,12 @@ export const NotificationSystem = () => {
 
   const markAsRead = async (notificationId: string) => {
     try {
-      // In real implementation, this would update the database
-      setNotifications(prev => 
-        prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
-      );
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId)
+        .eq('recipient_id', user!.id);
+      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
@@ -104,10 +119,12 @@ export const NotificationSystem = () => {
 
   const markAllAsRead = async () => {
     try {
-      // In real implementation, this would update all unread notifications
-      setNotifications(prev => 
-        prev.map(n => ({ ...n, is_read: true }))
-      );
+      await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('recipient_id', user!.id)
+        .eq('is_read', false);
+      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }
@@ -115,7 +132,11 @@ export const NotificationSystem = () => {
 
   const deleteNotification = async (notificationId: string) => {
     try {
-      // In real implementation, this would delete from database
+      await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId)
+        .eq('recipient_id', user!.id);
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (error) {
       console.error('Error deleting notification:', error);

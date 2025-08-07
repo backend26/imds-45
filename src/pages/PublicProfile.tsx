@@ -114,15 +114,15 @@ export default function PublicProfile() {
 
         if (showPosts) {
           // Use a simpler approach for posts
-          const postsResponse = await fetch(`https://ybybtquplonmoopexljw.supabase.co/rest/v1/posts?user_id=eq.${mappedProfile.user_id}&status=eq.published&order=created_at.desc&limit=6&select=id,title,excerpt,banner_url,created_at`, {
-            headers: {
-              'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlieWJ0cXVwbG9ubW9vcGV4bGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMzAwNDQsImV4cCI6MjA2ODcwNjA0NH0.-w4zJpfpzvCIFNOrl6yIXsAUnFbNO-9H35IfX0v-oPc',
-              'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlieWJ0cXVwbG9ubW9vcGV4bGp3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMxMzAwNDQsImV4cCI6MjA2ODcwNjA0NH0.-w4zJpfpzvCIFNOrl6yIXsAUnFbNO-9H35IfX0v-oPc'
-            }
-          });
+          const { data: postsList } = await supabase
+            .from('posts')
+            .select('id,title,excerpt,banner_url,created_at')
+            .eq('author_id', mappedProfile.user_id)
+            .not('published_at', 'is', null)
+            .order('created_at', { ascending: false })
+            .limit(6);
           
-          if (postsResponse.ok) {
-            const postsList = await postsResponse.json();
+          if (postsList) {
             const mappedPosts: PublicPost[] = postsList.map((post: any) => ({
               id: post.id,
               title: post.title,

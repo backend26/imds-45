@@ -41,6 +41,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(
     (initialPost as any)?.status as 'draft' | 'published' | 'archived' || 'draft'
   );
+  const [isHero, setIsHero] = useState<boolean>((initialPost as any)?.is_hero ?? false);
+  const [showPreview, setShowPreview] = useState<boolean>(false);
   const [saving, setSaving] = useState(false);
 
   const editor = useEditor({
@@ -101,8 +103,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
-        title: "Upload Error",
-        description: "Failed to upload image",
+        title: "Errore di caricamento",
+        description: "Impossibile caricare l’immagine",
         variant: "destructive",
       });
       return null;
@@ -114,8 +116,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
 
     if (!title.trim()) {
       toast({
-        title: "Validation Error",
-        description: "Title is required",
+        title: "Errore di validazione",
+        description: "Il titolo è obbligatorio",
         variant: "destructive",
       });
       return;
@@ -126,7 +128,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     try {
       const sanitizedContent = DOMPurify.sanitize(editor.getHTML());
       
-      const postData = {
+      const baseData = {
         title: title.trim(),
         content: sanitizedContent,
         excerpt: excerpt.trim(),
@@ -136,16 +138,21 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         cover_images: coverImages,
         comments_enabled: commentsEnabled,
         co_authoring_enabled: coAuthoringEnabled,
+        is_hero: isHero,
         status: publishStatus,
         updated_at: new Date().toISOString(),
-      };
+      } as any;
+
+      const dataWithPublish = publishStatus === 'published'
+        ? { ...baseData, published_at: new Date().toISOString() }
+        : baseData;
 
       let result;
       if (initialPost) {
         // Update existing post
         result = await supabase
           .from('posts')
-          .update(postData)
+          .update(dataWithPublish)
           .eq('id', initialPost.id)
           .select()
           .single();
@@ -153,7 +160,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         // Create new post
         result = await supabase
           .from('posts')
-          .insert({ ...postData, created_at: new Date().toISOString() })
+          .insert({ ...dataWithPublish, created_at: new Date().toISOString() })
           .select()
           .single();
       }
@@ -163,8 +170,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       }
 
       toast({
-        title: "Success",
-        description: `Post ${publishStatus === 'published' ? 'published' : 'saved'} successfully`,
+        title: "Operazione riuscita",
+        description: `Articolo ${publishStatus === 'published' ? 'pubblicato' : 'salvato'} correttamente`,
       });
 
       setStatus(publishStatus);
@@ -236,15 +243,32 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             <CardTitle>Content</CardTitle>
           </CardHeader>
           <CardContent>
-            {editor && (
-              <EditorToolbar 
-                editor={editor} 
-                onImageUpload={handleImageUpload}
-              />
-            )}
+            <div className="flex items-center justify-between">
+              {editor && (
+                <EditorToolbar 
+                  editor={editor} 
+                  onImageUpload={handleImageUpload}
+                />
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setShowPreview((v) => !v)}
+              >
+                {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
+              </Button>
+            </div>
             <div className="border rounded-lg mt-4 min-h-[400px]">
               <EditorContent editor={editor} />
             </div>
+            {showPreview && (
+              <div className="border rounded-lg mt-4 p-4 prose max-w-none">
+                <div
+                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editor?.getHTML() || '') }}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -281,6 +305,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           setCommentsEnabled={setCommentsEnabled}
           coAuthoringEnabled={coAuthoringEnabled}
           setCoAuthoringEnabled={setCoAuthoringEnabled}
+          isHero={isHero}
+          setIsHero={setIsHero}
           status={status}
           setStatus={setStatus}
         />
