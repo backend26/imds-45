@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 import { Header } from '@/components/Header';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -124,18 +126,65 @@ const mockStats = {
 };
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!loading && (!user || user.user_metadata?.role !== 'administrator')) {
-      navigate('/');
+    const checkAdminStatus = async () => {
+      if (!user || authLoading) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        } else {
+          setIsAdmin(profile?.role === 'administrator');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        setIsAdmin(false);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user, authLoading]);
+
+  useEffect(() => {
+    if (!authLoading && !loading && (!user || !isAdmin)) {
+      if (!user) {
+        toast({
+          title: "Accesso richiesto",
+          description: "Devi essere autenticato per accedere a questa pagina",
+          variant: "destructive",
+        });
+        navigate('/login');
+      } else if (!isAdmin) {
+        toast({
+          title: "Accesso negato",
+          description: "Non hai i permessi per accedere a questa pagina",
+          variant: "destructive",
+        });
+        navigate('/');
+      }
     }
-  }, [user, loading, navigate]);
+  }, [user, authLoading, loading, isAdmin, navigate]);
 
   const handleUserAction = (userId: string, action: string) => {
     console.log(`User ${userId} - ${action}`);
@@ -152,18 +201,19 @@ export default function AdminDashboard() {
     // Implement report actions (approve, dismiss)
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
         <Header darkMode={false} toggleTheme={() => {}} />
         <div className="flex items-center justify-center h-64">
           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground mt-4">Verifica autorizzazioni...</p>
         </div>
       </div>
     );
   }
 
-  if (!user || user.user_metadata?.role !== 'administrator') {
+  if (!user || !isAdmin) {
     return null;
   }
 
