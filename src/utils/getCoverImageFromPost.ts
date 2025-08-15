@@ -1,4 +1,4 @@
-// Utility to safely extract cover image from post data - UNIFIED VERSION
+// Utility to safely extract cover image from post data - ENHANCED VERSION
 export const getCoverImageFromPost = (post: any): string => {
   try {
     // Handle null/undefined
@@ -31,6 +31,15 @@ export const getCoverImageFromPost = (post: any): string => {
       // Handle already parsed array
       if (Array.isArray(post.cover_images) && post.cover_images.length > 0 && post.cover_images[0]) {
         return post.cover_images[0];
+      }
+    }
+
+    // PRIORITY 2: Extract first image from content HTML (NEW)
+    if (post.content && typeof post.content === 'string') {
+      const imgRegex = /<img[^>]+src="([^">]+)"/i;
+      const match = post.content.match(imgRegex);
+      if (match && match[1] && match[1].startsWith('http')) {
+        return match[1];
       }
     }
 

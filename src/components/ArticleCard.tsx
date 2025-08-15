@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
 import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
+import { ContentPreview } from "@/components/posts/ContentPreview";
 import { gsap } from "gsap";
 import { usePostInteractions } from "@/hooks/use-post-interactions";
 import { SocialShareModal } from "@/components/posts/SocialShareModal";
@@ -307,9 +308,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           >
             {title}
           </h3>
-          <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
-            {excerpt}
-          </p>
+              {article?.content ? (
+                <ContentPreview 
+                  content={article.content} 
+                  maxLength={120}
+                  className="mb-4"
+                />
+              ) : (
+                <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed">
+                  {excerpt}
+                </p>
+              )}
           
           {/* Author and metadata */}
           <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-4">

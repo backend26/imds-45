@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
 import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
+import { ContentPreview } from "@/components/posts/ContentPreview";
 
 interface HorizontalArticleCardProps {
   title: string;
@@ -119,9 +120,17 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
                 {title}
               </h3>
               
-              <p className="text-muted-foreground text-sm mb-3 line-clamp-2 leading-relaxed">
-                {excerpt}
-              </p>
+              {article?.content ? (
+                <ContentPreview 
+                  content={article.content} 
+                  maxLength={100}
+                  className="mb-3"
+                />
+              ) : (
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2 leading-relaxed">
+                  {excerpt}
+                </p>
+              )}
               
               {/* Author and metadata */}
               <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-3">
