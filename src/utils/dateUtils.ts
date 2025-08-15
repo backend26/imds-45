@@ -97,7 +97,7 @@ export const getCoverImageFromPost = (post: any): string => {
   const categoryFallbacks: Record<string, string> = {
     'calcio': '/assets/images/derby-inter-milan.jpg',
     'f1': '/assets/images/verstappen-monza.jpg',
-    'tennis': '/assets/images/sinner-usopen.jpg',
+    'tennis': '/assets/images/hero-sinner-usopen.jpg',
     'basket': '/assets/images/lakers-warriors.jpg',
     'nfl': '/assets/images/chiefs-superbowl.jpg'
   };

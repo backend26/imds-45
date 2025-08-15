@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 import { getTimeAgo, getCoverImageFromPost } from "@/utils/dateUtils";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -168,10 +169,11 @@ const Index = () => {
   const regularArticles = filteredArticles;
 
   return (
-    <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
-      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
-      {/* SEO */}
-      <TitleAndMeta />
+    <ErrorBoundary>
+      <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+        {/* SEO */}
+        <TitleAndMeta />
       
       {/* Hero Section */}
       <div className="hero-section">
@@ -261,9 +263,10 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <Footer />
-    </div>
+        {/* Footer */}
+        <Footer />
+      </div>
+    </ErrorBoundary>
   );
 };
 
