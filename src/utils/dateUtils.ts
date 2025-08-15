@@ -58,27 +58,31 @@ export function formatDate(date: string | Date): string {
   });
 }
 
-/**
- * Gets a random cover image URL from an array of cover images
- * @param coverImages - Array of cover image objects or URLs
- * @returns A single image URL
- */
-export function getRandomCoverImage(coverImages: any[]): string {
-  if (!Array.isArray(coverImages) || coverImages.length === 0) {
-    return '/assets/images/hero-juventus-champions.jpg'; // fallback
-  }
+export const getRandomCoverImage = (): string => {
+  const images = [
+    '/assets/images/hero-juventus-champions.jpg',
+    '/assets/images/hero-sinner-usopen.jpg', 
+    '/assets/images/hero-verstappen-monza.jpg',
+    '/assets/images/derby-inter-milan.jpg',
+    '/assets/images/juventus-mercato.jpg',
+    '/assets/images/lakers-warriors.jpg',
+    '/assets/images/leclerc-ferrari.jpg',
+    '/assets/images/chiefs-superbowl.jpg',
+    '/assets/images/verstappen-monza.jpg'
+  ];
+  
+  return images[Math.floor(Math.random() * images.length)];
+};
 
-  const randomIndex = Math.floor(Math.random() * coverImages.length);
-  const selectedImage = coverImages[randomIndex];
-  
-  // Handle both string URLs and object formats
-  if (typeof selectedImage === 'string') {
-    return selectedImage;
+export const getCoverImageFromPost = (post: any): string => {
+  // Priority: cover_images array > featured_image_url > random fallback
+  if (post.cover_images && Array.isArray(post.cover_images) && post.cover_images.length > 0) {
+    return post.cover_images[0];
   }
   
-  if (selectedImage?.url) {
-    return selectedImage.url;
+  if (post.featured_image_url) {
+    return post.featured_image_url;
   }
   
-  return '/assets/images/hero-juventus-champions.jpg'; // fallback
-}
+  return getRandomCoverImage();
+};

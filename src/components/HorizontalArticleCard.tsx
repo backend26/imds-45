@@ -6,11 +6,12 @@ import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
+import { getCoverImageFromPost } from "@/utils/dateUtils";
 
 interface HorizontalArticleCardProps {
   title: string;
   excerpt: string;
-  imageUrl: string;
+  imageUrl?: string;
   category: string;
   publishedAt: string;
   timeAgo?: string;
@@ -19,6 +20,7 @@ interface HorizontalArticleCardProps {
   likes: number;
   comments: number;
   className?: string;
+  article?: any; // Full article object for cover image extraction
 }
 
 export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
@@ -32,8 +34,10 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
   readTime,
   likes,
   comments,
-  className
+  className,
+  article
 }) => {
+  const coverImage = article ? getCoverImageFromPost(article) : imageUrl;
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
@@ -76,7 +80,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
             <div 
               className="h-full bg-cover bg-center relative overflow-hidden"
               style={{ 
-                backgroundImage: isInView ? `url(${getImageUrl(imageUrl)})` : 'none',
+                backgroundImage: isInView ? `url(${getImageUrl(coverImage)})` : 'none',
                 backgroundColor: isLoaded ? 'transparent' : 'hsl(var(--muted))'
               }}
               role="img"
@@ -90,7 +94,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
               {/* Hidden image for lazy loading */}
               <img
                 ref={imgRef}
-                src={isInView ? getImageUrl(imageUrl) : ''}
+                src={isInView ? getImageUrl(coverImage) : ''}
                 alt={`Immagine per l'articolo: ${title}`}
                 className="hidden"
                 loading="lazy"

@@ -6,7 +6,19 @@ import Image from '@tiptap/extension-image';
 import TextAlign from '@tiptap/extension-text-align';
 import Youtube from '@tiptap/extension-youtube';
 import Underline from '@tiptap/extension-underline';
-import { EditorToolbar } from './EditorToolbar';
+import Color from '@tiptap/extension-color';
+import { TextStyle } from '@tiptap/extension-text-style';
+import FontFamily from '@tiptap/extension-font-family';
+import Highlight from '@tiptap/extension-highlight';
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
+import Blockquote from '@tiptap/extension-blockquote';
+import HorizontalRule from '@tiptap/extension-horizontal-rule';
+import Superscript from '@tiptap/extension-superscript';
+import Subscript from '@tiptap/extension-subscript';
+import { createLowlight } from 'lowlight';
+import { AdvancedEditorToolbar } from './AdvancedEditorToolbar';
+import { AlertBox } from './extensions/AlertBox';
+import { CallToAction } from './extensions/CallToAction';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
 import { ContentModerationAlert } from './ContentModerationAlert';
@@ -47,34 +59,62 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [saving, setSaving] = useState(false);
   const [publishing, setPublishing] = useState(false);
 
+  const lowlight = useMemo(() => createLowlight(), []);
+
   const extensions = useMemo(() => (
     [
       StarterKit,
       Underline,
+      TextStyle,
+      Color,
+      FontFamily,
+      Highlight.configure({
+        multicolor: true,
+      }),
+      CodeBlockLowlight.configure({
+        lowlight,
+        HTMLAttributes: {
+          class: 'bg-muted rounded-lg p-4 my-4 text-sm font-mono overflow-x-auto',
+        },
+      }),
+      Blockquote.configure({
+        HTMLAttributes: {
+          class: 'border-l-4 border-primary pl-4 my-4 italic text-muted-foreground',
+        },
+      }),
+      HorizontalRule.configure({
+        HTMLAttributes: {
+          class: 'my-6 border-border',
+        },
+      }),
+      Superscript,
+      Subscript,
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer',
+          class: 'text-primary underline cursor-pointer hover:text-primary/80',
         },
       }),
       Image.configure({
         HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg',
+          class: 'max-w-full h-auto rounded-lg my-4',
         },
       }),
       TextAlign.configure({
-        types: ['heading', 'paragraph'],
+        types: ['heading', 'paragraph', 'div'],
       }),
       Youtube.configure({
         controls: false,
         nocookie: true,
         modestBranding: true,
         HTMLAttributes: {
-          class: 'rounded-lg',
+          class: 'rounded-lg my-4',
         },
       }),
+      AlertBox,
+      CallToAction,
     ]
-  ), []);
+  ), [lowlight]);
 
   const editor = useEditor({
     extensions,
@@ -275,23 +315,25 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             <CardTitle>Content</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center justify-between">
+            <div className="space-y-4">
               {editor && (
-                <EditorToolbar 
+                <AdvancedEditorToolbar 
                   editor={editor} 
                   onImageUpload={handleImageUpload}
                 />
               )}
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setShowPreview((v) => !v)}
-              >
-                {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
-              </Button>
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowPreview((v) => !v)}
+                >
+                  {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
+                </Button>
+              </div>
             </div>
-            <div className="border rounded-lg mt-4 min-h-[400px]">
+            <div className="border rounded-lg min-h-[400px] prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl max-w-none p-4">
               <EditorContent editor={editor} />
             </div>
             {showPreview && (

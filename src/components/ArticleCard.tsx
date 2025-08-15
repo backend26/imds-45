@@ -6,6 +6,7 @@ import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
+import { getCoverImageFromPost } from "@/utils/dateUtils";
 import { gsap } from "gsap";
 import { usePostInteractions } from "@/hooks/use-post-interactions";
 import { SocialShareModal } from "@/components/posts/SocialShareModal";
@@ -15,7 +16,7 @@ interface ArticleCardProps {
   id?: string;
   title: string;
   excerpt: string;
-  imageUrl: string;
+  imageUrl?: string;
   category: string;
   publishedAt: string;
   timeAgo?: string;
@@ -26,6 +27,7 @@ interface ArticleCardProps {
   featured?: boolean;
   className?: string;
   onClick?: () => void;
+  article?: any; // Full article object for cover image extraction
 }
 
 export const ArticleCard: React.FC<ArticleCardProps> = ({
@@ -42,8 +44,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   comments,
   featured = false,
   className,
-  onClick
+  onClick,
+  article
 }) => {
+  const coverImage = article ? getCoverImageFromPost(article) : imageUrl;
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -166,7 +170,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             featured ? "aspect-[21/9]" : "aspect-[4/3]"
           )}
           style={{ 
-            backgroundImage: isInView ? `url(${getImageUrl(imageUrl)})` : 'none',
+            backgroundImage: isInView ? `url(${getImageUrl(coverImage)})` : 'none',
             backgroundColor: isLoaded ? 'transparent' : 'hsl(var(--muted))'
           }}
           role="img"
@@ -180,7 +184,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
           {/* Hidden image for lazy loading */}
                         <img
                 ref={imgRef}
-                src={isInView ? getImageUrl(imageUrl) : ''}
+                src={isInView ? getImageUrl(coverImage) : ''}
                 alt={`Immagine per l'articolo: ${title}`}
                 className="hidden"
                 loading="lazy"
