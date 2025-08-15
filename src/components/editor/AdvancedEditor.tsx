@@ -100,12 +100,12 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       blockquote: false,
       codeBlock: false,
       horizontalRule: false,
-      underline: false, // Disabilita underline di default
-      link: false,      // Disabilita link di default
+      underline: false,
+      link: false,
       heading: {
         levels: [1, 2, 3, 4, 5, 6],
         HTMLAttributes: {
-          class: 'font-bold',
+          class: 'font-bold text-foreground',
         },
       },
     }),
@@ -173,6 +173,17 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     editorProps: {
       attributes: {
         class: 'focus:outline-none min-h-[400px] p-4 text-foreground editor-content',
+      },
+      handleDOMEvents: {
+        blur: () => {
+          // Prevent selection errors on blur
+          try {
+            editor?.commands.blur();
+          } catch (e) {
+            console.warn('Editor blur error handled:', e);
+          }
+          return false;
+        },
       },
     },
     onCreate: ({ editor }) => {

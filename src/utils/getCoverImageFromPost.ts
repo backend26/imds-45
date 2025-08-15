@@ -6,30 +6,30 @@ export const getCoverImageFromPost = (post: any): string => {
       return '';
     }
 
-    // PRIORITY 1: Check cover_images field (current format) - ONLY source now
+    // PRIORITY 1: Check cover_images field (unified handling)
     if (post.cover_images) {
-      // If it's a string URL, return it directly
+      // Handle direct HTTP URL string
       if (typeof post.cover_images === 'string' && post.cover_images.startsWith('http')) {
         return post.cover_images;
       }
       
-      // If it's JSON/array, try to parse
+      // Handle JSON string or array
       if (typeof post.cover_images === 'string') {
         try {
           const parsed = JSON.parse(post.cover_images);
-          if (Array.isArray(parsed) && parsed.length > 0) {
+          if (Array.isArray(parsed) && parsed.length > 0 && parsed[0]) {
             return parsed[0];
           }
         } catch (e) {
-          // If parsing fails, treat as direct URL
+          // If JSON parsing fails, check if it's a direct URL
           if (post.cover_images.startsWith('http')) {
             return post.cover_images;
           }
         }
       }
       
-      // If it's already an array
-      if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
+      // Handle already parsed array
+      if (Array.isArray(post.cover_images) && post.cover_images.length > 0 && post.cover_images[0]) {
         return post.cover_images[0];
       }
     }

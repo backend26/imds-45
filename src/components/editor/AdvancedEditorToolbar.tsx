@@ -223,13 +223,22 @@ export const AdvancedEditorToolbar: React.FC<AdvancedEditorToolbarProps> = ({
         <Badge variant="outline" className="text-xs">Dimensione</Badge>
         <Select
           value={(() => {
-            const currentSize = editor.getAttributes('textStyle').fontSize;
-            if (!currentSize) return '16';
-            return currentSize.replace('px', '');
+            try {
+              const attrs = editor.getAttributes('textStyle');
+              const currentSize = attrs?.fontSize;
+              if (!currentSize) return '16';
+              return currentSize.toString().replace('px', '');
+            } catch (e) {
+              return '16';
+            }
           })()}
           onValueChange={(value) => {
-            const size = `${value}px`;
-            editor.chain().focus().setFontSize(size).run();
+            try {
+              const size = `${value}px`;
+              editor.chain().focus().setFontSize(size).run();
+            } catch (e) {
+              console.warn('Font size update failed:', e);
+            }
           }}
         >
           <SelectTrigger className="w-20 h-8">
