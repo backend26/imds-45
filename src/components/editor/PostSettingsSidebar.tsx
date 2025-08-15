@@ -1,3 +1,4 @@
+// src/components/editor/PostSettingsSidebar.tsx
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +53,8 @@ export const PostSettingsSidebar: React.FC<Props> = ({
       try {
         const { data, error } = await supabase.from('categories').select('*').order('name');
         if (error) throw error;
-        setCategories((data || []).filter((c) => c.id != null && c.id !== ''));
+        // 🔒 Evita ID vuoti/undefined che generano <SelectItem value="">
+        setCategories((data || []).filter(c => c && c.id != null && String(c.id).trim() !== ''));
       } catch (error) {
         console.error('Error fetching categories:', error);
         toast({ title: "Error", description: "Failed to load categories", variant: "destructive" });
@@ -64,16 +66,13 @@ export const PostSettingsSidebar: React.FC<Props> = ({
   }, [toast]);
 
   const addTag = () => {
-    const trimmed = tagInput.trim();
-    if (trimmed && !tags.includes(trimmed)) {
-      setTags([...tags, trimmed]);
+    const t = tagInput.trim();
+    if (t && !tags.includes(t)) {
+      setTags([...tags, t]);
       setTagInput('');
     }
   };
-
-  const removeTag = (toRemove: string) => {
-    setTags(tags.filter((t) => t !== toRemove));
-  };
+  const removeTag = (t: string) => setTags(tags.filter(x => x !== t));
 
   return (
     <div className="space-y-6">
@@ -92,20 +91,22 @@ export const PostSettingsSidebar: React.FC<Props> = ({
         </CardContent>
       </Card>
 
-      {/* Category Select */}
+      {/* Category */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Category</CardTitle></CardHeader>
         <CardContent>
           <Select
+            // ✅ placeholder via undefined (mai stringa vuota)
             value={categoryId || undefined}
             onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}
             disabled={categoriesLoading}
           >
             <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
             <SelectContent>
+              {/* ✅ opzione “nessuna” con value NON vuoto */}
               <SelectItem value="none">No category</SelectItem>
               {categories.map((c) => (
-                <SelectItem key={c.id} value={String(c.id)}>
+                <SelectItem key={String(c.id)} value={String(c.id)}>
                   {c.name}
                 </SelectItem>
               ))}
@@ -114,7 +115,7 @@ export const PostSettingsSidebar: React.FC<Props> = ({
         </CardContent>
       </Card>
 
-      {/* Tags Input */}
+      {/* Tags */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Tags</CardTitle></CardHeader>
         <CardContent className="space-y-3">
@@ -123,12 +124,10 @@ export const PostSettingsSidebar: React.FC<Props> = ({
               placeholder="Add a tag..."
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' || e.key === ',' ? (e.preventDefault(), addTag()) : undefined}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ',') ? (e.preventDefault(), addTag()) : undefined}
               onBlur={addTag}
             />
-            <Button type="button" size="sm" disabled={!tagInput.trim()} onClick={addTag}>
-              Add
-            </Button>
+            <Button type="button" size="sm" disabled={!tagInput.trim()} onClick={addTag}>Add</Button>
           </div>
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -145,7 +144,7 @@ export const PostSettingsSidebar: React.FC<Props> = ({
         </CardContent>
       </Card>
 
-      {/* Switches: Comments, Co-authoring, Hero */}
+      {/* Settings */}
       <Card>
         <CardHeader><CardTitle className="text-lg">Settings</CardTitle></CardHeader>
         <CardContent className="space-y-4">
