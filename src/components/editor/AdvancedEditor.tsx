@@ -24,6 +24,7 @@ import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
 import { ContentModerationAlert } from './ContentModerationAlert';
 import { PublishSuccessModal } from './PublishSuccessModal';
+import { EditorErrorBoundary } from './EditorErrorBoundary';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -68,6 +69,20 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     ({ currentLocation, nextLocation }) =>
       hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
   );
+
+  // Enhanced anti-reload system
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = 'Hai modifiche non salvate. Sei sicuro di voler uscire?';
+        return e.returnValue;
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const lowlight = useMemo(() => createLowlight(), []);
 
@@ -177,7 +192,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     
     const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
     
-    // Silent auto-save without prompts
+    // Enhanced auto-save with debugging
     const interval = setInterval(() => {
       if (title || excerpt || editor?.getText()) {
         const data = {
@@ -194,8 +209,9 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           timestamp: Date.now()
         };
         localStorage.setItem(storageKey, JSON.stringify(data));
+        console.log('✅ Auto-save completed:', { title: title.slice(0, 30), hasContent: !!editor?.getText() });
       }
-    }, 30000); // Every 30 seconds
+    }, 10000); // Every 10 seconds (faster)
 
     // Clear old auto-saves (older than 24 hours)
     const cleanupOldSaves = () => {
@@ -262,26 +278,33 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const handleSave = async (publishStatus: 'draft' | 'published') => {
     if (!user || !editor) return;
     
-    // Validation for publishing
+    console.log('💾 Starting save process:', { publishStatus, title: title.slice(0, 30) });
+    
+    // Enhanced validation for publishing
     if (publishStatus === 'published') {
-      if (!title.trim()) {
-        toast({ title: "Errore di validazione", description: "Il titolo è obbligatorio per pubblicare", variant: "destructive" });
-        return;
-      }
-      if (!editor.getText().trim()) {
-        toast({ title: "Errore di validazione", description: "Il contenuto non può essere vuoto per pubblicare", variant: "destructive" });
-        return;
-      }
-      if (!categoryId) {
-        toast({ title: "Errore di validazione", description: "Seleziona una categoria per pubblicare", variant: "destructive" });
+      const validationErrors = [];
+      if (!title.trim()) validationErrors.push("Titolo obbligatorio");
+      if (!editor.getText().trim()) validationErrors.push("Contenuto non può essere vuoto");
+      if (!categoryId) validationErrors.push("Categoria obbligatoria");
+      
+      if (validationErrors.length > 0) {
+        toast({ 
+          title: "Errore di validazione", 
+          description: validationErrors.join(", "), 
+          variant: "destructive" 
+        });
         return;
       }
     }
     
-    // Lighter validation for drafts
+    // Validation for drafts
     if (publishStatus === 'draft') {
       if (!title.trim() && !editor.getText().trim()) {
-        toast({ title: "Errore di validazione", description: "Inserisci almeno un titolo o del contenuto", variant: "destructive" });
+        toast({ 
+          title: "Errore di validazione", 
+          description: "Inserisci almeno un titolo o del contenuto", 
+          variant: "destructive" 
+        });
         return;
       }
     }
@@ -296,7 +319,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     try {
       const sanitizedContent = DOMPurify.sanitize(editor.getHTML());
       
-      // Base data for both drafts and published posts
+      // Enhanced data structure with debugging
       const baseData = {
         title: title.trim(),
         content: sanitizedContent,
@@ -304,42 +327,48 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         author_id: user.id,
         category_id: categoryId || null,
         tags,
-        cover_images: coverImages,
+        cover_images: coverImages || null,
         comments_enabled: commentsEnabled,
         co_authoring_enabled: coAuthoringEnabled,
         is_hero: isHero,
         status: publishStatus,
         updated_at: new Date().toISOString(),
+        published_at: publishStatus === 'published' ? new Date().toISOString() : null,
       } as any;
       
-      // Only set published_at when actually publishing
-      if (publishStatus === 'published') {
-        baseData.published_at = new Date().toISOString();
-      } else {
-        // For drafts, ensure published_at is null
-        baseData.published_at = null;
-      }
+      console.log('📦 Saving data:', { 
+        status: baseData.status, 
+        hasContent: !!baseData.content, 
+        hasCover: !!baseData.cover_images,
+        isUpdate: !!initialPost 
+      });
         
       const result = initialPost
         ? await supabase.from('posts').update(baseData).eq('id', initialPost.id).select().single()
         : await supabase.from('posts').insert({ ...baseData, created_at: new Date().toISOString() }).select().single();
         
-      if (result.error) throw result.error;
+      if (result.error) {
+        console.error('❌ Database error:', result.error);
+        throw result.error;
+      }
+
+      console.log('✅ Save successful:', result.data);
 
       if (publishStatus === 'published') {
         setPublishedPost({ id: result.data.id, title: result.data.title });
         setShowSuccessModal(true);
         setHasUnsavedChanges(false);
         resetEditor();
+        toast({ title: "Pubblicato!", description: "Articolo pubblicato con successo" });
       } else {
-        toast({ title: "Operazione riuscita", description: 'Bozza salvata' });
+        toast({ title: "Bozza salvata", description: "Le modifiche sono state salvate" });
         setHasUnsavedChanges(false);
       }
       
       setStatus(publishStatus);
     } catch (error) {
-      console.error('Error saving post:', error);
-      toast({ title: "Errore", description: "Impossibile salvare l'articolo", variant: "destructive" });
+      console.error('❌ Error saving post:', error);
+      toast({ title: "Errore", description: `Impossibile salvare l'articolo: ${error.message}`, variant: "destructive" });
     } finally {
       setSaving(false);
       setPublishing(false);
@@ -350,6 +379,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const canSaveDraft = !!title.trim() || !!editor?.getText().trim();
 
   return (
+    <EditorErrorBoundary>
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3 space-y-6">
         <ContentModerationAlert />
@@ -379,8 +409,12 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           <CardHeader><CardTitle>Contenuto</CardTitle></CardHeader>
           <CardContent>
             {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
-            <div className="border rounded-lg min-h-[400px] p-4">
-              <EditorContent editor={editor} className="focus:outline-none min-h-[400px] editor-content" />
+            <div className="border rounded-lg min-h-[400px] p-4 bg-card">
+              <EditorContent 
+                editor={editor} 
+                className="focus:outline-none min-h-[400px] editor-content prose prose-lg max-w-none" 
+                style={{ fontSize: '16px', lineHeight: '1.7' }}
+              />
             </div>
           </CardContent>
         </Card>
@@ -455,5 +489,6 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         />
       )}
     </div>
+    </EditorErrorBoundary>
   );
 };

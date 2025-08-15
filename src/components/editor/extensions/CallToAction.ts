@@ -35,8 +35,12 @@ export const CallToAction = Node.create<CallToActionOptions>({
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { 
-        'data-cta': '', 
-        contenteditable: 'true'
+        'data-cta': '',
+        'data-cta-title': HTMLAttributes.title || '',
+        'data-cta-button': HTMLAttributes.buttonText || '',
+        contenteditable: 'true',
+        role: 'region',
+        'aria-label': 'Call to Action'
       }),
       0
     ];

@@ -453,29 +453,34 @@
     }
   }
 
-  /* Editor specific styles */
+  /* Editor specific styles - ENHANCED READABILITY */
   .editor-content {
     color: hsl(var(--foreground)) !important;
+    line-height: 1.7;
+    font-size: 16px !important;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    letter-spacing: 0.015em;
   }
 
   .editor-content * {
     color: inherit !important;
+    font-size: inherit !important;
   }
 
-  /* Ensure default editor text is black in light mode and white in dark mode */
+  /* Perfect text contrast for both modes */
   :root:not(.dark) .editor-content {
     color: hsl(0 0% 5%) !important;
   }
 
-  /* Editor Content Styling */
-  .editor-content {
-    color: hsl(var(--foreground)) !important;
-    line-height: 1.6;
-    font-size: 16px;
+  .dark .editor-content {
+    color: hsl(0 0% 96%) !important;
   }
 
-  .editor-content * {
-    color: inherit !important;
+  /* Enhanced content editing experience */
+  .editor-content:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+    border-radius: 8px;
   }
 
   .editor-content h1 {
@@ -497,7 +502,45 @@
   }
 
   .editor-content p {
-    margin: 0.5em 0;
+    margin: 0.75em 0;
+    font-size: 16px !important;
+  }
+
+  /* Alert Box Styles */
+  .editor-content [data-type="alert-box"] {
+    border-radius: 8px !important;
+    padding: 16px !important;
+    margin: 16px 0 !important;
+    border-left-width: 4px !important;
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Call-to-Action Styles */
+  .editor-content [data-cta] {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2)) !important;
+    border: 2px solid hsl(var(--primary) / 0.3) !important;
+    border-radius: 12px !important;
+    padding: 24px !important;
+    margin: 24px 0 !important;
+    text-align: center !important;
+    position: relative !important;
+    overflow: hidden !important;
+  }
+
+  .editor-content [data-cta]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.1), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    100% { left: 100%; }
   }
 
   .editor-content ul, .editor-content ol {
@@ -527,15 +570,7 @@
     border: 1px solid;
   }
 
-  .editor-content [data-cta] {
-    margin: 1.5em 0;
-    padding: 1.5em;
-    border-radius: 8px;
-    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.2)));
-    border: 1px solid hsl(var(--primary) / 0.3);
-    text-align: center;
-  }
-
+  /* Dark mode specific editor styling */
   .dark .editor-content {
     color: hsl(0 0% 96%) !important;
   }
