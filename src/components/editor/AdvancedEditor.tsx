@@ -65,6 +65,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       blockquote: false,
       codeBlock: false,
       horizontalRule: false,
+      underline: false, // Disabilita underline di default
+      link: false,      // Disabilita link di default
     }),
     Underline,
     TextStyle,
