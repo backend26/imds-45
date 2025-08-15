@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
-import { useBlocker } from 'react-router-dom';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
@@ -64,13 +63,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [publishedPost, setPublishedPost] = useState<{ id: string; title: string } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
-  // Block navigation when there are unsaved changes
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
-  );
-
-  // Enhanced anti-reload system
+  // Enhanced navigation and reload protection
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
@@ -80,8 +73,23 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       }
     };
 
+    const handlePopState = (e: PopStateEvent) => {
+      if (hasUnsavedChanges) {
+        const shouldLeave = window.confirm('Hai modifiche non salvate. Sei sicuro di voler uscire?');
+        if (!shouldLeave) {
+          // Push the current state back to prevent navigation
+          window.history.pushState(null, '', window.location.href);
+        }
+      }
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, [hasUnsavedChanges]);
 
   const lowlight = useMemo(() => createLowlight(), []);
