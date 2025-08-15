@@ -1,18 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search, X, Clock, TrendingUp, Filter } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 
 interface SearchFilters {
-  category: string;
+  category?: string;
   dateRange: string;
   tags: string[];
   sortBy: string;
@@ -56,7 +55,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({
-    category: '',
+    category: undefined,
     dateRange: '',
     tags: [],
     sortBy: 'relevance'
@@ -68,13 +67,11 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
   const handleSearch = (searchQuery: string = query) => {
     if (!searchQuery.trim()) return;
 
-    // Add to recent searches
     setRecentSearches(prev => {
       const filtered = prev.filter(item => item !== searchQuery);
       return [searchQuery, ...filtered].slice(0, 5);
     });
 
-    // Search via Supabase
     supabase
       .from('posts')
       .select('id,title,excerpt,published_at,created_at')
@@ -95,9 +92,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
       });
   };
 
-  const clearRecentSearches = () => {
-    setRecentSearches([]);
-  };
+  const clearRecentSearches = () => setRecentSearches([]);
 
   const handleFilterChange = (key: keyof SearchFilters, value: any) => {
     setFilters(prev => ({
@@ -109,7 +104,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
   const handleTagToggle = (tag: string) => {
     setFilters(prev => ({
       ...prev,
-      tags: prev.tags.includes(tag) 
+      tags: prev.tags.includes(tag)
         ? prev.tags.filter(t => t !== tag)
         : [...prev.tags, tag]
     }));
@@ -117,7 +112,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
 
   const clearFilters = () => {
     setFilters({
-      category: '',
+      category: undefined,
       dateRange: '',
       tags: [],
       sortBy: 'relevance'
@@ -185,7 +180,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
                         <SelectValue placeholder="Tutte le categorie" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tutte le categorie</SelectItem>
+                        <SelectItem value={undefined}>Tutte le categorie</SelectItem>
                         {availableCategories.map(cat => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}
@@ -202,7 +197,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
                       onValueChange={(value) => handleFilterChange('sortBy', value)}
                     >
                       <SelectTrigger>
-                        <SelectValue />
+                        <SelectValue placeholder="Ordina per" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="relevance">Rilevanza</SelectItem>
@@ -294,25 +289,16 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
                     </div>
                   )}
 
-                  <Separator />
-
                   <div>
                     <h3 className="font-medium text-sm flex items-center gap-2 mb-3">
                       <TrendingUp className="h-4 w-4" />
-                      Ricerche popolari
+                      Trend del momento
                     </h3>
-                    <div className="space-y-2">
-                      {mockTrendingSearches.map((search, index) => (
-                        <button
-                          key={index}
-                          onClick={() => {
-                            setQuery(search);
-                            handleSearch(search);
-                          }}
-                          className="w-full text-left p-2 rounded hover:bg-muted/50 text-sm"
-                        >
-                          {search}
-                        </button>
+                    <div className="flex flex-wrap gap-2">
+                      {mockTrendingSearches.map((item, index) => (
+                        <Badge key={index} variant="outline" className="cursor-pointer">
+                          {item}
+                        </Badge>
                       ))}
                     </div>
                   </div>
