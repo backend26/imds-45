@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -42,8 +42,8 @@ interface AdvancedEditorProps {
 export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  
-  // Form state
+
+  // Stato form
   const [title, setTitle] = useState(initialPost?.title || '');
   const [excerpt, setExcerpt] = useState(initialPost?.excerpt || '');
   const [categoryId, setCategoryId] = useState<string>(initialPost?.category_id || '');
@@ -55,66 +55,71 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     (initialPost as any)?.status as 'draft' | 'published' | 'archived' || 'draft'
   );
   const [isHero, setIsHero] = useState<boolean>((initialPost as any)?.is_hero ?? false);
-  const [showPreview, setShowPreview] = useState<boolean>(false);
+  const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [publishing, setPublishing] = useState(false);
 
   const lowlight = useMemo(() => createLowlight(), []);
 
-  const extensions = useMemo(() => (
-    [
-      StarterKit,
-      Underline,
-      TextStyle,
-      Color,
-      FontFamily,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      CodeBlockLowlight.configure({
-        lowlight,
-        HTMLAttributes: {
-          class: 'bg-muted rounded-lg p-4 my-4 text-sm font-mono overflow-x-auto',
-        },
-      }),
-      Blockquote.configure({
-        HTMLAttributes: {
-          class: 'border-l-4 border-primary pl-4 my-4 italic text-muted-foreground',
-        },
-      }),
-      HorizontalRule.configure({
-        HTMLAttributes: {
-          class: 'my-6 border-border',
-        },
-      }),
-      Superscript,
-      Subscript,
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: 'text-primary underline cursor-pointer hover:text-primary/80',
-        },
-      }),
-      Image.configure({
-        HTMLAttributes: {
-          class: 'max-w-full h-auto rounded-lg my-4',
-        },
-      }),
-      TextAlign.configure({
-        types: ['heading', 'paragraph', 'div'],
-      }),
-      Youtube.configure({
-        controls: false,
-        nocookie: true,
-        modestBranding: true,
-        HTMLAttributes: {
-          class: 'rounded-lg my-4',
-        },
-      }),
-      AlertBox,
-      CallToAction,
-    ]
-  ), [lowlight]);
+  const rawExtensions = useMemo(() => ([
+    StarterKit.configure({
+      blockquote: false,
+      codeBlock: false,
+      horizontalRule: false,
+    }),
+    Underline,
+    TextStyle,
+    Color,
+    FontFamily,
+    Highlight.configure({ multicolor: true }),
+    CodeBlockLowlight.configure({
+      lowlight,
+      HTMLAttributes: {
+        class: 'bg-muted rounded-lg p-4 my-4 text-sm font-mono overflow-x-auto',
+      },
+    }),
+    Blockquote.configure({
+      HTMLAttributes: {
+        class: 'border-l-4 border-primary pl-4 my-4 italic text-muted-foreground',
+      },
+    }),
+    HorizontalRule.configure({
+      HTMLAttributes: { class: 'my-6 border-border' },
+    }),
+    Superscript,
+    Subscript,
+    Link.configure({
+      openOnClick: false,
+      HTMLAttributes: {
+        class: 'text-primary underline cursor-pointer hover:text-primary/80',
+      },
+    }),
+    Image.configure({
+      HTMLAttributes: { class: 'max-w-full h-auto rounded-lg my-4' },
+    }),
+    TextAlign.configure({
+      types: ['heading', 'paragraph'],
+    }),
+    Youtube.configure({
+      controls: false,
+      nocookie: true,
+      modestBranding: true,
+      HTMLAttributes: { class: 'rounded-lg my-4' },
+    }),
+    AlertBox,
+    CallToAction,
+  ]), [lowlight]);
+
+  // Filtro per rimuovere estensioni duplicate
+  const extensions = useMemo(() => {
+    const seen = new Set<string>();
+    return rawExtensions.filter((ext: any) => {
+      const name = (ext as any)?.name;
+      if (!name) return true;
+      if (seen.has(name)) return false;
+      seen.add(name);
+      return true;
+    });
+  }, [rawExtensions]);
 
   const editor = useEditor({
     extensions,
@@ -128,24 +133,15 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
 
   const handleImageUpload = useCallback(async (file: File) => {
     if (!user) return null;
-
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileName = `${crypto.randomUUID()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
-
       const { error: uploadError } = await supabase.storage
         .from('post-media')
         .upload(filePath, file);
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data } = supabase.storage
-        .from('post-media')
-        .getPublicUrl(filePath);
-
+      if (uploadError) throw uploadError;
+      const { data } = supabase.storage.from('post-media').getPublicUrl(filePath);
       return data.publicUrl;
     } catch (error) {
       console.error('Error uploading image:', error);
@@ -158,42 +154,23 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     }
   }, [user, toast]);
 
-  const handleSave = async (publishStatus: 'draft' | 'published' = 'draft') => {
+  const handleSave = async (publishStatus: 'draft' | 'published') => {
     if (!user || !editor) return;
-
     if (!title.trim()) {
-      toast({
-        title: "Errore di validazione",
-        description: "Il titolo è obbligatorio",
-        variant: "destructive",
-      });
+      toast({ title: "Errore di validazione", description: "Il titolo è obbligatorio", variant: "destructive" });
       return;
     }
-
-    const contentText = editor.getText().trim();
-    if (!contentText) {
-      toast({
-        title: "Errore di validazione",
-        description: "Il contenuto non può essere vuoto",
-        variant: "destructive",
-      });
+    if (!editor.getText().trim()) {
+      toast({ title: "Errore di validazione", description: "Il contenuto non può essere vuoto", variant: "destructive" });
       return;
     }
-
     if (!categoryId) {
-      toast({
-        title: "Errore di validazione",
-        description: "Seleziona una categoria",
-        variant: "destructive",
-      });
+      toast({ title: "Errore di validazione", description: "Seleziona una categoria", variant: "destructive" });
       return;
     }
-
     setSaving(true);
-
     try {
       const sanitizedContent = DOMPurify.sanitize(editor.getHTML());
-      
       const baseData = {
         title: title.trim(),
         content: sanitizedContent,
@@ -208,195 +185,98 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         status: publishStatus,
         updated_at: new Date().toISOString(),
       } as any;
-
       const dataWithPublish = publishStatus === 'published'
         ? { ...baseData, published_at: new Date().toISOString() }
         : baseData;
-
-      let result;
-      if (initialPost) {
-        // Update existing post
-        result = await supabase
-          .from('posts')
-          .update(dataWithPublish)
-          .eq('id', initialPost.id)
-          .select()
-          .single();
-      } else {
-        // Create new post
-        result = await supabase
-          .from('posts')
-          .insert({ ...dataWithPublish, created_at: new Date().toISOString() })
-          .select()
-          .single();
-      }
-
-      if (result.error) {
-        throw result.error;
-      }
-
-      toast({
-        title: "Operazione riuscita",
-        description: `Articolo ${publishStatus === 'published' ? 'pubblicato' : 'salvato'} correttamente`,
-      });
-
+      const result = initialPost
+        ? await supabase.from('posts').update(dataWithPublish).eq('id', initialPost.id).select().single()
+        : await supabase.from('posts').insert({ ...dataWithPublish, created_at: new Date().toISOString() }).select().single();
+      if (result.error) throw result.error;
+      toast({ title: "Operazione riuscita", description: publishStatus === 'published' ? 'Articolo pubblicato' : 'Bozza salvata' });
       setStatus(publishStatus);
-
     } catch (error) {
       console.error('Error saving post:', error);
-      toast({
-        title: "Save Error",
-        description: "Failed to save post",
-        variant: "destructive",
-      });
+      toast({ title: "Save Error", description: "Failed to save post", variant: "destructive" });
     } finally {
       setSaving(false);
     }
   };
 
-  const contentText = editor?.getText().trim() ?? '';
-  const isTitleOK = title.trim().length > 0;
-  const isContentOK = contentText.length > 0;
-  const isCategoryOK = !!categoryId;
-  const canPublish = isTitleOK && isContentOK && isCategoryOK;
+  const canPublish = !!title.trim() && !!editor?.getText().trim() && !!categoryId;
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
       <div className="lg:col-span-3 space-y-6">
-        {/* Content Moderation Alert */}
         <ContentModerationAlert />
-        {/* Title and Excerpt */}
+        {/* Titolo + Estratto */}
         <Card>
-          <CardHeader>
-            <CardTitle>Dettagli Articolo</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Dettagli Articolo</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Titolo *
-              </label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="Inserisci il titolo dell'articolo..."
-                className="text-lg font-semibold"
-              />
+              <label className="block text-sm font-medium mb-2">Titolo *</label>
+              <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Inserisci il titolo..." className="text-lg font-semibold" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Estratto
-              </label>
-              <Textarea
-                value={excerpt}
-                onChange={(e) => setExcerpt(e.target.value)}
-                placeholder="Breve descrizione dell'articolo..."
-                rows={3}
-              />
+              <label className="block text-sm font-medium mb-2">Estratto</label>
+              <Textarea value={excerpt} onChange={(e) => setExcerpt(e.target.value)} placeholder="Breve descrizione..." rows={3} />
             </div>
           </CardContent>
         </Card>
-
-        {/* Cover Images */}
+        {/* Cover */}
         <Card>
-          <CardHeader>
-            <CardTitle>Cover Images</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Cover Images</CardTitle></CardHeader>
           <CardContent>
-            <CoverImageUploader
-              images={coverImages}
-              onChange={setCoverImages}
-            />
+            <CoverImageUploader images={coverImages} onChange={setCoverImages} />
           </CardContent>
         </Card>
-
         {/* Editor */}
         <Card>
-          <CardHeader>
-            <CardTitle>Content</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Content</CardTitle></CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {editor && (
-                <AdvancedEditorToolbar 
-                  editor={editor} 
-                  onImageUpload={handleImageUpload}
-                />
-              )}
-              <div className="flex justify-end">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowPreview((v) => !v)}
-                >
-                  {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
-                </Button>
-              </div>
+            {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
+            <div className="flex justify-end mb-4">
+              <Button variant="outline" size="sm" onClick={() => setShowPreview(v => !v)}>
+                {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
+              </Button>
             </div>
-            <div className="border rounded-lg min-h-[400px] prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl max-w-none p-4">
+            <div className="border rounded-lg min-h-[400px] p-4">
               <EditorContent editor={editor} />
             </div>
             {showPreview && (
               <div className="border rounded-lg mt-4 p-4 prose max-w-none">
-                <div
-                  dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editor?.getHTML() || '') }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editor?.getHTML() || '') }} />
               </div>
             )}
           </CardContent>
         </Card>
-
-        {/* Action Buttons */}
+        {/* Azioni */}
         <div className="flex gap-4">
-          <Button
-            onClick={() => handleSave('draft')}
-            disabled={saving || !canPublish}
-            variant="outline"
-            className="flex items-center gap-2"
-            title={!canPublish ? 'Inserisci titolo, contenuto e categoria per salvare la bozza' : undefined}
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Salva Bozza
+          <Button onClick={() => handleSave('draft')} disabled={saving || !canPublish} variant="outline">
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />} Salva Bozza
           </Button>
-          <Button
-            onClick={() => handleSave('published')}
-            disabled={saving || !canPublish}
-            className="flex items-center gap-2"
-            title={!canPublish ? 'Completa titolo, contenuto e categoria per pubblicare' : undefined}
-          >
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />}
-            {initialPost ? 'Aggiorna' : 'Pubblica'}
+          <Button onClick={() => handleSave('published')} disabled={saving || !canPublish}>
+            {saving && <Loader2 className="h-4 w-4 animate-spin" />} {initialPost ? 'Aggiorna' : 'Pubblica'}
           </Button>
         </div>
       </div>
-
-      {/* Sidebar */}
       <div className="lg:col-span-1 space-y-6">
-        {/* Publish checklist */}
         <Card className="sticky top-24">
-          <CardHeader>
-            <CardTitle>Checklist pubblicazione</CardTitle>
-          </CardHeader>
+          <CardHeader><CardTitle>Checklist pubblicazione</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
-              {isTitleOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
-              <span>Titolo</span>
+              {title.trim() ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />} Titolo
             </div>
             <div className="flex items-center gap-2">
-              {isContentOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
-              <span>Contenuto</span>
+              {editor?.getText().trim() ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />} Contenuto
             </div>
             <div className="flex items-center gap-2">
-              {isCategoryOK ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />}
-              <span>Categoria</span>
+              {categoryId ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <AlertCircle className="h-4 w-4 text-destructive" />} Categoria
             </div>
             <div className="flex items-start gap-2 text-muted-foreground">
-              <Info className="h-4 w-4 mt-0.5" />
-              <span>Per salvare la bozza sono richiesti titolo, contenuto e categoria.</span>
+              <Info className="h-4 w-4 mt-0.5" /> Per salvare: titolo, contenuto, categoria.
             </div>
           </CardContent>
         </Card>
-
         <PostSettingsSidebar
           categoryId={categoryId}
           setCategoryId={setCategoryId}
