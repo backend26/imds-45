@@ -46,7 +46,7 @@ const Index = () => {
     const fetchData = async () => {
       try {
         setLoadingPosts(true);
-        // Hero post
+        // Hero posts for carousel
         const { data: heroData } = await supabase
           .from('posts')
           .select(`
@@ -58,8 +58,7 @@ const Index = () => {
           .eq('is_hero', true)
           .not('published_at', 'is', null)
           .order('published_at', { ascending: false })
-          .limit(1) as { data: any[] | null };
-        setFeatured(heroData?.[0] || null);
+          .limit(5) as { data: any[] | null };
 
         // Build base posts query
         let query = supabase
@@ -90,6 +89,10 @@ const Index = () => {
           .limit(visibleArticles + 24) as { data: any[] | null };
 
         let list = postsData || [];
+
+        // Exclude hero articles from trending section to avoid duplicates
+        const heroIds = new Set((heroData || []).map((h: any) => h.id));
+        list = list.filter((p: any) => !heroIds.has(p.id));
 
         // Sport filter by category name
         if (selectedSport !== 'all') {
@@ -126,6 +129,26 @@ const Index = () => {
         }
 
         setPosts(list);
+        
+        // Map hero articles for HeroSection
+        const mappedHeroArticles = (heroData || []).map((post: any) => {
+          let image = '/assets/images/hero-juventus-champions.jpg';
+          if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
+            const coverImg = post.cover_images[0];
+            image = typeof coverImg === 'string' ? coverImg : coverImg?.url || image;
+          } else if (post.featured_image_url) {
+            image = post.featured_image_url;
+          }
+          
+          return {
+            id: post.id,
+            title: post.title,
+            excerpt: post.excerpt || '',
+            imageUrl: image,
+            category: post.categories?.name || 'News',
+          };
+        });
+        setFeatured(mappedHeroArticles);
       } catch (e) {
         console.error('Error fetching posts', e);
       } finally {
@@ -149,8 +172,8 @@ const Index = () => {
     }
   }, [animateCounter]);
 
-  const featuredArticle = featured || filteredArticles[0];
-  const regularArticles = filteredArticles.filter(a => a?.id !== featuredArticle?.id);
+  const featuredArticle = filteredArticles[0];
+  const regularArticles = filteredArticles;
 
   return (
     <div ref={pageRef} className={`min-h-screen transition-colors duration-300 ${darkMode ? "dark" : ""}`}>
@@ -160,7 +183,7 @@ const Index = () => {
       
       {/* Hero Section */}
       <div className="hero-section">
-        <HeroSection />
+        <HeroSection heroArticles={featured} />
       </div>
 
       {/* Main Content with Sidebar Layout */}

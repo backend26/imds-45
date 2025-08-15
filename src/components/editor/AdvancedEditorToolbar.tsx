@@ -194,14 +194,14 @@ export const AdvancedEditorToolbar: React.FC<AdvancedEditorToolbarProps> = ({
         {/* Tipografia Avanzata */}
         <Badge variant="outline" className="text-xs">Tipografia</Badge>
         <Select
-          value={editor.getAttributes('textStyle').fontFamily || ''}
-          onValueChange={(value) => editor.chain().focus().setFontFamily(value).run()}
+          value={editor.getAttributes('textStyle').fontFamily || '__default__'}
+          onValueChange={(value) => editor.chain().focus().setFontFamily(value === '__default__' ? '' : value).run()}
         >
           <SelectTrigger className="w-32 h-8">
             <SelectValue placeholder="Font" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Default</SelectItem>
+            <SelectItem value="__default__">Default</SelectItem>
             <SelectItem value="Inter">Inter</SelectItem>
             <SelectItem value="serif">Serif</SelectItem>
             <SelectItem value="monospace">Monospace</SelectItem>

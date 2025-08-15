@@ -173,14 +173,14 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
                   <div>
                     <Label className="text-sm font-medium mb-2 block">Categoria</Label>
                     <Select 
-                      value={filters.category} 
-                      onValueChange={(value) => handleFilterChange('category', value)}
+                      value={filters.category ?? "__all__"} 
+                      onValueChange={(value) => handleFilterChange('category', value === "__all__" ? undefined : value)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Tutte le categorie" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={undefined}>Tutte le categorie</SelectItem>
+                        <SelectItem value="__all__">Tutte le categorie</SelectItem>
                         {availableCategories.map(cat => (
                           <SelectItem key={cat.value} value={cat.value}>
                             {cat.label}

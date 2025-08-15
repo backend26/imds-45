@@ -22,6 +22,7 @@ import { CallToAction } from './extensions/CallToAction';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
 import { ContentModerationAlert } from './ContentModerationAlert';
+import { PublishSuccessModal } from './PublishSuccessModal';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -55,8 +56,10 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     (initialPost as any)?.status as 'draft' | 'published' | 'archived' || 'draft'
   );
   const [isHero, setIsHero] = useState<boolean>((initialPost as any)?.is_hero ?? false);
-  const [showPreview, setShowPreview] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [publishedPost, setPublishedPost] = useState<{ id: string; title: string } | null>(null);
 
   const lowlight = useMemo(() => createLowlight(), []);
 
@@ -65,6 +68,8 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       blockquote: false,
       codeBlock: false,
       horizontalRule: false,
+      underline: false, // Disabilita underline di default
+      link: false,      // Disabilita link di default
     }),
     Underline,
     TextStyle,
@@ -154,6 +159,19 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     }
   }, [user, toast]);
 
+  const resetEditor = () => {
+    setTitle('');
+    setExcerpt('');
+    setCategoryId('');
+    setTags([]);
+    setCoverImages([]);
+    setCommentsEnabled(true);
+    setCoAuthoringEnabled(false);
+    setIsHero(false);
+    setStatus('draft');
+    editor?.commands.clearContent();
+  };
+
   const handleSave = async (publishStatus: 'draft' | 'published') => {
     if (!user || !editor) return;
     if (!title.trim()) {
@@ -168,7 +186,14 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       toast({ title: "Errore di validazione", description: "Seleziona una categoria", variant: "destructive" });
       return;
     }
-    setSaving(true);
+
+    const isPublishAction = publishStatus === 'published';
+    if (isPublishAction) {
+      setPublishing(true);
+    } else {
+      setSaving(true);
+    }
+
     try {
       const sanitizedContent = DOMPurify.sanitize(editor.getHTML());
       const baseData = {
@@ -185,20 +210,32 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         status: publishStatus,
         updated_at: new Date().toISOString(),
       } as any;
+      
       const dataWithPublish = publishStatus === 'published'
         ? { ...baseData, published_at: new Date().toISOString() }
         : baseData;
+        
       const result = initialPost
         ? await supabase.from('posts').update(dataWithPublish).eq('id', initialPost.id).select().single()
         : await supabase.from('posts').insert({ ...dataWithPublish, created_at: new Date().toISOString() }).select().single();
+        
       if (result.error) throw result.error;
-      toast({ title: "Operazione riuscita", description: publishStatus === 'published' ? 'Articolo pubblicato' : 'Bozza salvata' });
+
+      if (publishStatus === 'published') {
+        setPublishedPost({ id: result.data.id, title: result.data.title });
+        setShowSuccessModal(true);
+        resetEditor();
+      } else {
+        toast({ title: "Operazione riuscita", description: 'Bozza salvata' });
+      }
+      
       setStatus(publishStatus);
     } catch (error) {
       console.error('Error saving post:', error);
-      toast({ title: "Save Error", description: "Failed to save post", variant: "destructive" });
+      toast({ title: "Errore", description: "Impossibile salvare l'articolo", variant: "destructive" });
     } finally {
       setSaving(false);
+      setPublishing(false);
     }
   };
 
@@ -231,33 +268,14 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         </Card>
         {/* Editor */}
         <Card>
-          <CardHeader><CardTitle>Content</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Contenuto</CardTitle></CardHeader>
           <CardContent>
             {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
-            <div className="flex justify-end mb-4">
-              <Button variant="outline" size="sm" onClick={() => setShowPreview(v => !v)}>
-                {showPreview ? 'Nascondi anteprima' : 'Mostra anteprima'}
-              </Button>
-            </div>
             <div className="border rounded-lg min-h-[400px] p-4">
               <EditorContent editor={editor} />
             </div>
-            {showPreview && (
-              <div className="border rounded-lg mt-4 p-4 prose max-w-none">
-                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(editor?.getHTML() || '') }} />
-              </div>
-            )}
           </CardContent>
         </Card>
-        {/* Azioni */}
-        <div className="flex gap-4">
-          <Button onClick={() => handleSave('draft')} disabled={saving || !canPublish} variant="outline">
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />} Salva Bozza
-          </Button>
-          <Button onClick={() => handleSave('published')} disabled={saving || !canPublish}>
-            {saving && <Loader2 className="h-4 w-4 animate-spin" />} {initialPost ? 'Aggiorna' : 'Pubblica'}
-          </Button>
-        </div>
       </div>
       <div className="lg:col-span-1 space-y-6">
         <Card className="sticky top-24">
@@ -291,7 +309,42 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           status={status}
           setStatus={setStatus}
         />
+        
+        {/* Azioni in fondo alla sidebar */}
+        <Card>
+          <CardHeader><CardTitle>Azioni</CardTitle></CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              onClick={() => handleSave('draft')} 
+              disabled={saving || publishing || !canPublish} 
+              variant="outline"
+              className="w-full"
+            >
+              {saving && <Loader2 className="h-4 w-4 animate-spin mr-2" />} 
+              Salva Bozza
+            </Button>
+            <Button 
+              onClick={() => handleSave('published')} 
+              disabled={saving || publishing || !canPublish}
+              className="w-full bg-gradient-primary hover:bg-gradient-hover"
+            >
+              {publishing && <Loader2 className="h-4 w-4 animate-spin mr-2" />} 
+              {initialPost ? 'Aggiorna' : 'Pubblica'}
+            </Button>
+          </CardContent>
+        </Card>
       </div>
+
+      {/* Modal di successo pubblicazione */}
+      {publishedPost && (
+        <PublishSuccessModal
+          isOpen={showSuccessModal}
+          onClose={() => setShowSuccessModal(false)}
+          postId={publishedPost.id}
+          postTitle={publishedPost.title}
+          onCreateNew={resetEditor}
+        />
+      )}
     </div>
   );
 };

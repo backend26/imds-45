@@ -8,19 +8,34 @@ import { Enhanced3DFootball } from "./Enhanced3DFootball";
 import { heroArticles } from "@/data/articles";
 import { getImageUrl } from "@/config/images";
 
-export const HeroSection = () => {
+interface HeroArticle {
+  id: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  category: string;
+}
+
+interface HeroSectionProps {
+  heroArticles?: HeroArticle[];
+}
+
+export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // Use database articles if available, fallback to static ones
+  const displayArticles = dbHeroArticles && dbHeroArticles.length > 0 ? dbHeroArticles : heroArticles;
 
   useEffect(() => {
     if (!isAutoPlaying) return;
 
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroArticles.length);
+      setCurrentSlide((prev) => (prev + 1) % displayArticles.length);
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, displayArticles.length]);
 
   const goToSlide = (index: number) => {
     setCurrentSlide(index);
@@ -28,16 +43,16 @@ export const HeroSection = () => {
   };
 
   const goToPrevious = () => {
-    setCurrentSlide((prev) => (prev - 1 + heroArticles.length) % heroArticles.length);
+    setCurrentSlide((prev) => (prev - 1 + displayArticles.length) % displayArticles.length);
     setIsAutoPlaying(false);
   };
 
   const goToNext = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroArticles.length);
+    setCurrentSlide((prev) => (prev + 1) % displayArticles.length);
     setIsAutoPlaying(false);
   };
 
-  const currentArticle = heroArticles[currentSlide];
+  const currentArticle = displayArticles[currentSlide];
 
   return (
     <section className="relative h-[60vh] md:h-[70vh] overflow-hidden group">
@@ -105,7 +120,7 @@ export const HeroSection = () => {
         <div className="container mx-auto flex items-center justify-between">
           {/* Slide Indicators */}
           <div className="flex space-x-3">
-            {heroArticles.map((_, index) => (
+            {displayArticles.map((_, index) => (
               <button
                 key={index}
                 onClick={() => goToSlide(index)}
