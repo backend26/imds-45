@@ -25,12 +25,12 @@ interface HeaderProps {
 }
 
 export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Prima Pagina");
   const [isScrolled, setIsScrolled] = useState(false);
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {

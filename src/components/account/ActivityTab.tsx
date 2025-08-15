@@ -49,7 +49,7 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
       const { data, error } = await supabase
         .from('posts')
         .select('*')
-        .eq('author_id', profile.id)
+        .eq('author_id', user.id) // Fixed: using user.id instead of profile.id
         .order('created_at', { ascending: false });
 
       if (error) throw error;

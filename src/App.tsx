@@ -33,6 +33,7 @@ import ChiSiamo from "./pages/ChiSiamo";
 import Contatti from "./pages/Contatti";
 import ResetPassword from "./pages/ResetPassword";
 import Post from "./pages/Post";
+import Search from "./pages/Search";
 import SystemDashboard from "./pages/SystemDashboard";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => (
             <Route path="/f1" element={<F1Page />} />
             <Route path="/nfl" element={<NFLPage />} />
             <Route path="/basket" element={<BasketPage />} />
+            <Route path="/search" element={<Search />} />
             
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />

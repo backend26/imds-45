@@ -10,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchFilters {
   category?: string;
@@ -53,6 +54,7 @@ interface SearchSystemProps {
 }
 
 export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({
@@ -63,9 +65,10 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
   });
   const [recentSearches, setRecentSearches] = useState(mockRecentSearches);
   const [searchResults, setSearchResults] = useState<{ id: string; title: string; excerpt: string; category: string; readTime: string }[]>([]);
+  const [userResults, setUserResults] = useState<{ user_id: string; username: string; display_name: string; profile_picture_url?: string }[]>([]);
   const [showFilters, setShowFilters] = useState(false);
 
-  const handleSearch = (searchQuery: string = query) => {
+  const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery.trim()) return;
 
     setRecentSearches(prev => {
@@ -73,24 +76,33 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
       return [searchQuery, ...filtered].slice(0, 5);
     });
 
-    supabase
+    // Search posts
+    const { data: posts } = await supabase
       .from('posts')
       .select('id,title,excerpt,published_at,created_at')
       .or(`title.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`)
       .not('published_at', 'is', null)
       .order('published_at', { ascending: false })
-      .limit(20)
-      .then(({ data }) => {
-        const results = (data || []).map((p) => ({
-          id: p.id as unknown as string,
-          title: (p as any).title,
-          excerpt: (p as any).excerpt || '',
-          category: 'News',
-          readTime: '3 min',
-        }));
-        setSearchResults(results);
-        onSearch?.(searchQuery, filters);
-      });
+      .limit(20);
+
+    // Search users 
+    const { data: users } = await supabase
+      .from('public_profiles')
+      .select('user_id,username,display_name,profile_picture_url')
+      .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
+      .limit(10);
+
+    const results = (posts || []).map((p) => ({
+      id: p.id as unknown as string,
+      title: (p as any).title,
+      excerpt: (p as any).excerpt || '',
+      category: 'News',
+      readTime: '3 min',
+    }));
+
+    setSearchResults(results);
+    setUserResults(users || []);
+    onSearch?.(searchQuery, filters);
   };
 
   const clearRecentSearches = () => setRecentSearches([]);
@@ -234,27 +246,57 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
             )}
 
             <ScrollArea className="h-96">
-              {query && searchResults.length > 0 ? (
+              {query && (searchResults.length > 0 || userResults.length > 0) ? (
                 <div className="space-y-4">
-                  <h3 className="font-medium text-sm text-muted-foreground">
-                    Risultati per "{query}" ({searchResults.length})
-                  </h3>
-                  {searchResults.map((article) => (
-                    <div key={article.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer">
-                      <h4 className="font-medium mb-1">{article.title}</h4>
-                      <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                        {article.excerpt}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {article.category}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground">
-                          {article.readTime}
-                        </span>
-                      </div>
+                  {userResults.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">
+                        Utenti ({userResults.length})
+                      </h3>
+                      {userResults.map((user) => (
+                        <div 
+                          key={user.user_id} 
+                          className="border rounded-lg p-3 hover:bg-muted/50 cursor-pointer flex items-center gap-3"
+                          onClick={() => {
+                            navigate(`/@${user.username}`);
+                            setIsOpen(false);
+                          }}
+                        >
+                          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium">
+                            {user.display_name?.charAt(0).toUpperCase() || user.username?.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="font-medium text-sm">{user.display_name || user.username}</div>
+                            <div className="text-xs text-muted-foreground">@{user.username}</div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
+                  
+                  {searchResults.length > 0 && (
+                    <div>
+                      <h3 className="font-medium text-sm text-muted-foreground mb-2">
+                        Articoli ({searchResults.length})
+                      </h3>
+                      {searchResults.map((article) => (
+                        <div key={article.id} className="border rounded-lg p-4 hover:bg-muted/50 cursor-pointer">
+                          <h4 className="font-medium mb-1">{article.title}</h4>
+                          <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
+                            {article.excerpt}
+                          </p>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              {article.category}
+                            </Badge>
+                            <span className="text-xs text-muted-foreground">
+                              {article.readTime}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               ) : query ? (
                 <div className="text-center py-8">

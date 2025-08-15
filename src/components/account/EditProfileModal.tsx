@@ -72,12 +72,18 @@ export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditPro
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUsername(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 30) {
+                  setUsername(value);
+                }
+              }}
               placeholder="Inserisci il tuo nome utente"
               className="w-full"
+              maxLength={30}
             />
             <p className="text-sm text-muted-foreground">
-              Il nome utente verrà mostrato pubblicamente sui tuoi contenuti
+              {username.length}/30 caratteri. Il nome utente verrà mostrato pubblicamente sui tuoi contenuti
             </p>
           </div>
 
