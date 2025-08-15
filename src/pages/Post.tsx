@@ -12,6 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import DOMPurify from 'dompurify';
+import { getCoverImageFromPost } from '@/utils/getCoverImageFromPost';
 
 interface Post {
   id: string;
@@ -121,13 +122,13 @@ const PostPage = () => {
       let isBookmarked = false;
 
       if (user) {
-        // Check if user liked this post
-        const { data: likeData } = await supabase
-          .from('post_likes')
-          .select('id')
-          .eq('post_id', postId)
-          .eq('user_id', user.id)
-          .maybeSingle();
+      // Check if user liked this post
+      const { data: likeData } = await supabase
+        .from('post_likes')
+        .select('user_id')
+        .eq('post_id', postId)
+        .eq('user_id', user.id)
+        .maybeSingle();
 
         isLiked = !!likeData;
 
@@ -434,22 +435,28 @@ const PostPage = () => {
           </div>
 
           {/* Cover image */}
-          {post.cover_images && Array.isArray(post.cover_images) && post.cover_images.length > 0 && (
-            <div className="mb-8">
-              <img
-                src={post.cover_images[0].url || post.cover_images[0]}
-                alt={post.title}
-                className="w-full h-96 object-cover rounded-lg"
-              />
-            </div>
-          )}
+          {(() => {
+            const coverImage = getCoverImageFromPost(post);
+            return coverImage ? (
+              <div className="mb-8">
+                <img
+                  src={coverImage}
+                  alt={post.title}
+                  className="w-full h-96 object-cover rounded-lg"
+                />
+              </div>
+            ) : null;
+          })()}
         </header>
 
         {/* Content */}
-        <div className="prose prose-lg max-w-none">
+        <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:font-bold prose-p:leading-relaxed">
           <div
             dangerouslySetInnerHTML={{
-              __html: DOMPurify.sanitize(post.content)
+              __html: DOMPurify.sanitize(post.content, {
+                ADD_ATTR: ['style', 'class', 'data-alert-type', 'data-cta', 'data-cta-title', 'data-cta-content', 'data-cta-button'],
+                ALLOW_DATA_ATTR: true
+              })
             }}
           />
         </div>

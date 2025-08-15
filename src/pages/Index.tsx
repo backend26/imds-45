@@ -15,7 +15,8 @@ import { Icon } from "@/components/Icon";
 import { supabase } from "@/integrations/supabase/client";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
-import { getTimeAgo, getCoverImageFromPost } from "@/utils/dateUtils";
+import { getTimeAgo } from "@/utils/dateUtils";
+import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 const Index = () => {

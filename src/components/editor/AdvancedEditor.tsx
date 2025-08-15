@@ -442,7 +442,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             <div className="border rounded-lg min-h-[400px] p-4 bg-card">
               <EditorContent 
                 editor={editor} 
-                className="focus:outline-none min-h-[400px] editor-content prose prose-lg max-w-none" 
+                className="focus:outline-none min-h-[400px] editor-content prose prose-lg max-w-none dark:prose-invert" 
                 style={{ fontSize: '16px', lineHeight: '1.7' }}
               />
             </div>
