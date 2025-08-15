@@ -1,18 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Header } from '@/components/Header';
+import { Footer } from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
-import { Heart, MessageCircle, Share2, Bookmark, Clock, User, ArrowLeft, CalendarDays } from 'lucide-react';
-import { SocialInteractions } from '@/components/posts/SocialInteractions';
+import { Heart, MessageCircle, Share2, Bookmark, Clock, User, ArrowLeft, Star, Flag } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import DOMPurify from 'dompurify';
 import { getCoverImageFromPost } from '@/utils/getCoverImageFromPost';
+import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
+import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
+import { PostReportModal } from '@/components/posts/PostReportModal';
+import { EnhancedCommentSystem } from '@/components/comments/EnhancedCommentSystem';
 
 interface Post {
   id: string;
@@ -50,14 +54,15 @@ const PostPage = () => {
   const { toast } = useToast();
   
   const [post, setPost] = useState<Post | null>(null);
-  const [stats, setStats] = useState<PostStats>({
-    likes: 0,
-    comments: 0,
-    isLiked: false,
-    isBookmarked: false
-  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && true);
+  });
+
+  // Use enhanced post interactions hook
+  const interactions = useEnhancedPostInteractions(postId || '');
 
   const fetchPost = async () => {
     if (!postId) return;
@@ -102,157 +107,18 @@ const PostPage = () => {
     }
   };
 
-  const fetchStats = async () => {
-    if (!postId) return;
-
-    try {
-      // Get likes count
-      const { count: likesCount } = await supabase
-        .from('post_likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId);
-
-      // Get comments count
-      const { count: commentsCount } = await supabase
-        .from('comments')
-        .select('*', { count: 'exact', head: true })
-        .eq('post_id', postId);
-
-      let isLiked = false;
-      let isBookmarked = false;
-
-      if (user) {
-      // Check if user liked this post
-      const { data: likeData } = await supabase
-        .from('post_likes')
-        .select('user_id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-        isLiked = !!likeData;
-
-        // Check if user bookmarked this post
-        const { data: bookmarkData } = await supabase
-          .from('bookmarked_posts')
-          .select('post_id')
-          .eq('post_id', postId)
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        isBookmarked = !!bookmarkData;
-      }
-
-      setStats({
-        likes: likesCount || 0,
-        comments: commentsCount || 0,
-        isLiked,
-        isBookmarked
-      });
-    } catch (err) {
-      console.error('Error fetching stats:', err);
+  const toggleTheme = () => {
+    const newTheme = !darkMode;
+    setDarkMode(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    
+    if (newTheme) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
     }
   };
 
-  const handleLike = async () => {
-    if (!user || !postId) {
-      toast({
-        title: "Accesso richiesto",
-        description: "Devi effettuare l'accesso per mettere mi piace",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      if (stats.isLiked) {
-        // Remove like
-        await supabase
-          .from('post_likes')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        setStats(prev => ({
-          ...prev,
-          likes: prev.likes - 1,
-          isLiked: false
-        }));
-      } else {
-        // Add like
-        await supabase
-          .from('post_likes')
-          .insert({ post_id: postId, user_id: user.id });
-
-        setStats(prev => ({
-          ...prev,
-          likes: prev.likes + 1,
-          isLiked: true
-        }));
-      }
-    } catch (err) {
-      console.error('Error handling like:', err);
-      toast({
-        title: "Errore",
-        description: "Impossibile aggiornare il mi piace",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleBookmark = async () => {
-    if (!user || !postId) {
-      toast({
-        title: "Accesso richiesto",
-        description: "Devi effettuare l'accesso per salvare l'articolo",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    try {
-      if (stats.isBookmarked) {
-        // Remove bookmark
-        await supabase
-          .from('bookmarked_posts')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', user.id);
-
-        setStats(prev => ({
-          ...prev,
-          isBookmarked: false
-        }));
-        
-        toast({
-          title: "Rimosso dai salvati",
-          description: "Articolo rimosso dai tuoi salvati",
-        });
-      } else {
-        // Add bookmark
-        await supabase
-          .from('bookmarked_posts')
-          .insert({ post_id: postId, user_id: user.id });
-
-        setStats(prev => ({
-          ...prev,
-          isBookmarked: true
-        }));
-
-        toast({
-          title: "Salvato",
-          description: "Articolo aggiunto ai tuoi salvati",
-        });
-      }
-    } catch (err) {
-      console.error('Error handling bookmark:', err);
-      toast({
-        title: "Errore",
-        description: "Impossibile salvare l'articolo",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleShare = async () => {
     if (navigator.share && post) {
@@ -293,18 +159,27 @@ const PostPage = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchPost(), fetchStats()]);
+      await fetchPost();
       setLoading(false);
     };
 
     loadData();
   }, [postId, user]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect(() => {
+    // Apply theme on mount
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header darkMode={false} toggleTheme={() => {}} />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="animate-pulse">
             <div className="h-8 bg-muted rounded w-3/4 mb-4"></div>
             <div className="h-64 bg-muted rounded mb-6"></div>
@@ -321,7 +196,7 @@ const PostPage = () => {
   if (error || !post) {
     return (
       <div className="min-h-screen bg-background">
-        <Header darkMode={false} toggleTheme={() => {}} />
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Card>
             <CardContent className="text-center py-12">
@@ -344,9 +219,12 @@ const PostPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header darkMode={false} toggleTheme={() => {}} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       
-      <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Article Column */}
+          <article className="lg:col-span-2">
         {/* Header */}
         <header className="mb-8">
           <Button
@@ -407,16 +285,17 @@ const PostPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleLike}
-                className={stats.isLiked ? 'text-red-600 border-red-600' : ''}
+                onClick={interactions.toggleLike}
+                disabled={interactions.isLoading}
+                className={interactions.isLiked ? 'text-red-600 border-red-600' : ''}
               >
-                <Heart className={`w-4 h-4 mr-1 ${stats.isLiked ? 'fill-current' : ''}`} />
-                {stats.likes}
+                <Heart className={`w-4 h-4 mr-1 ${interactions.isLiked ? 'fill-current' : ''}`} />
+                {interactions.likesCount}
               </Button>
               
               <Button variant="outline" size="sm">
                 <MessageCircle className="w-4 h-4 mr-1" />
-                {stats.comments}
+                {interactions.commentsCount}
               </Button>
               
               <Button variant="outline" size="sm" onClick={handleShare}>
@@ -426,11 +305,30 @@ const PostPage = () => {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleBookmark}
-                className={stats.isBookmarked ? 'text-yellow-600 border-yellow-600' : ''}
+                onClick={interactions.toggleBookmark}
+                disabled={interactions.isLoading}
+                className={interactions.isBookmarked ? 'text-yellow-600 border-yellow-600' : ''}
               >
-                <Bookmark className={`w-4 h-4 ${stats.isBookmarked ? 'fill-current' : ''}`} />
+                <Bookmark className={`w-4 h-4 ${interactions.isBookmarked ? 'fill-current' : ''}`} />
               </Button>
+
+              <div className="flex items-center gap-1 ml-2">
+                {interactions.averageRating > 0 && (
+                  <div className="flex items-center gap-1">
+                    <Star className="w-4 h-4 fill-current text-yellow-500" />
+                    <span className="text-sm font-medium">{interactions.averageRating}</span>
+                    <span className="text-xs text-muted-foreground">
+                      ({interactions.totalRatings})
+                    </span>
+                  </div>
+                )}
+                
+                <PostReportModal
+                  postId={postId!}
+                  onReport={interactions.reportPost}
+                  isLoading={interactions.isLoading}
+                />
+              </div>
             </div>
           </div>
 
@@ -461,19 +359,40 @@ const PostPage = () => {
           />
         </div>
 
-        {/* Tags */}
-        {post.tags && post.tags.length > 0 && (
-          <div className="mt-8 pt-8 border-t border-border">
-            <div className="flex flex-wrap gap-2">
-              {post.tags.map((tag, index) => (
-                <Badge key={index} variant="outline">
-                  #{tag}
-                </Badge>
-              ))}
+            {/* Tags */}
+            {post.tags && post.tags.length > 0 && (
+              <div className="mt-8 pt-8 border-t border-border">
+                <div className="flex flex-wrap gap-2">
+                  {post.tags.map((tag, index) => (
+                    <Badge key={index} variant="outline">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Rating System */}
+            <div className="mt-8 pt-8 border-t border-border">
+              <PostRatingSystem
+                postId={postId!}
+                currentRating={interactions.userRating}
+                onRatingChange={interactions.setRating}
+                isLoading={interactions.isLoading}
+              />
             </div>
-          </div>
-        )}
-      </article>
+          </article>
+
+          {/* Comments Sidebar */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-24">
+              <EnhancedCommentSystem postId={postId!} />
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <Footer />
     </div>
   );
 };

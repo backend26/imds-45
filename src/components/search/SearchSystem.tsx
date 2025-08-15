@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Search, X, Clock, TrendingUp, Filter } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -123,11 +124,17 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
     <>
       <Button
         variant="ghost"
-        size="icon"
+        size="sm"
         onClick={() => setIsOpen(true)}
-        className="relative"
+        className={cn(
+          "relative flex items-center gap-2 px-3 py-2",
+          "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+          "bg-background/50 border border-border/30 backdrop-blur-sm",
+          "shadow-lg hover:shadow-xl"
+        )}
       >
-        <Search className="h-5 w-5" />
+        <Search className="h-4 w-4" />
+        <span className="hidden sm:inline text-sm">Cerca...</span>
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

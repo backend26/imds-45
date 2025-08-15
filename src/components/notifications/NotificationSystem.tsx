@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Bell, X, Check, MessageCircle, Heart, UserPlus, AtSign } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -149,12 +150,21 @@ export const NotificationSystem = () => {
     <>
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
+          <Button 
+            variant="ghost" 
+            size="sm"
+            className={cn(
+              "relative hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+              "bg-background/50 border border-border/30 backdrop-blur-sm",
+              "shadow-lg hover:shadow-xl",
+              "h-8 sm:h-9 w-8 sm:w-9 p-0"
+            )}
+          >
+            <Bell className="h-4 w-4" />
             {unreadCount > 0 && (
               <Badge 
                 variant="destructive" 
-                className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs animate-pulse"
               >
                 {unreadCount > 99 ? '99+' : unreadCount}
               </Badge>

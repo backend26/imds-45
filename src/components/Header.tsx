@@ -109,8 +109,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           {/* Right Actions - Mobile Optimized */}
           <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
             <SearchSystem onSearch={(query, filters) => {
-              // Handle search navigation if needed
-              console.log('Search:', query, filters);
+              // Navigate to search results
+              const searchParams = new URLSearchParams();
+              searchParams.set('q', query);
+              if (filters.category) searchParams.set('category', filters.category);
+              if (filters.sortBy) searchParams.set('sort', filters.sortBy);
+              if (filters.tags.length > 0) searchParams.set('tags', filters.tags.join(','));
+              navigate(`/search?${searchParams.toString()}`);
             }} />
             
             <Button 
