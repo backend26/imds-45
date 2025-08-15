@@ -16,8 +16,8 @@ declare module '@tiptap/core' {
 export const CallToAction = Node.create<CallToActionOptions>({
   name: 'callToAction',
   group: 'block',
-  content: 'inline*',
-  atom: false,
+  content: 'text*',
+  atom: true,
 
   addOptions() {
     return {
@@ -33,6 +33,7 @@ export const CallToAction = Node.create<CallToActionOptions>({
 
   renderHTML({ HTMLAttributes }) {
     const title = HTMLAttributes['data-cta-title'] || '';
+    const content = HTMLAttributes['data-cta-content'] || 'Inserisci il testo del tuo call to action qui...';
     const buttonText = HTMLAttributes['data-cta-button'] || 'Scopri di più';
     
     return [
@@ -40,6 +41,7 @@ export const CallToAction = Node.create<CallToActionOptions>({
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { 
         'data-cta': '',
         'data-cta-title': title,
+        'data-cta-content': content,
         'data-cta-button': buttonText,
         contenteditable: 'false',
         role: 'region',
@@ -48,12 +50,14 @@ export const CallToAction = Node.create<CallToActionOptions>({
       [
         'div',
         { class: 'cta-content' },
-        title ? ['h3', { class: 'text-lg font-bold mb-2' }, title] : null,
-        ['div', { class: 'cta-text mb-4', contenteditable: 'true' }, 0],
-        ['button', { 
-          class: 'bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors',
-          contenteditable: 'false'
-        }, buttonText]
+        title ? ['h3', { class: 'text-xl font-bold mb-3 text-center' }, title] : null,
+        ['p', { class: 'cta-text mb-6 text-center text-muted-foreground' }, content],
+        ['div', { class: 'text-center' },
+          ['button', { 
+            class: 'bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors shadow-lg',
+            contenteditable: 'false'
+          }, buttonText]
+        ]
       ].filter(Boolean)
     ];
   },
@@ -69,9 +73,9 @@ export const CallToAction = Node.create<CallToActionOptions>({
             type: this.name,
             attrs: {
               'data-cta-title': options.title?.trim() || '',
+              'data-cta-content': content,
               'data-cta-button': options.buttonText?.trim() || 'Scopri di più',
             },
-            content: [{ type: 'text', text: content }],
           });
         },
     };

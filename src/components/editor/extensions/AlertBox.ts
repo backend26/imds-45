@@ -30,8 +30,7 @@ export const AlertBox = Node.create<AlertBoxOptions>({
   addOptions() {
     return {
       HTMLAttributes: {
-        class:
-          'my-4 p-4 rounded-md border text-sm',
+        class: 'my-4 p-4 rounded-lg border text-sm shadow-sm',
       },
     };
   },
@@ -47,28 +46,40 @@ export const AlertBox = Node.create<AlertBoxOptions>({
   renderHTML({ HTMLAttributes }) {
     const alertType = HTMLAttributes['data-alert-type'] || HTMLAttributes.type || 'info';
     
-    // Determina icona e stile in base al tipo di alert
+    // Determina icona e stile in base al tipo di alert con design migliorato
     const alertConfig = (() => {
       switch (alertType) {
         case 'warning':
           return {
             icon: '⚠️',
-            class: 'bg-amber-50 border-l-4 border-amber-400 text-amber-800 dark:bg-amber-900/20 dark:border-l-amber-600 dark:text-amber-200'
+            bgClass: 'bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-950/20 dark:to-amber-900/10',
+            borderClass: 'border-l-4 border-amber-500 dark:border-amber-400',
+            textClass: 'text-amber-900 dark:text-amber-200',
+            iconClass: 'text-amber-600 dark:text-amber-400'
           };
         case 'error':
           return {
             icon: '❌',
-            class: 'bg-red-50 border-l-4 border-red-400 text-red-800 dark:bg-red-900/20 dark:border-l-red-600 dark:text-red-200'
+            bgClass: 'bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-950/20 dark:to-red-900/10',
+            borderClass: 'border-l-4 border-red-500 dark:border-red-400',
+            textClass: 'text-red-900 dark:text-red-200',
+            iconClass: 'text-red-600 dark:text-red-400'
           };
         case 'success':
           return {
             icon: '✅',
-            class: 'bg-green-50 border-l-4 border-green-400 text-green-800 dark:bg-green-900/20 dark:border-l-green-600 dark:text-green-200'
+            bgClass: 'bg-gradient-to-r from-green-50 to-green-100/50 dark:from-green-950/20 dark:to-green-900/10',
+            borderClass: 'border-l-4 border-green-500 dark:border-green-400',
+            textClass: 'text-green-900 dark:text-green-200',
+            iconClass: 'text-green-600 dark:text-green-400'
           };
         default:
           return {
             icon: 'ℹ️',
-            class: 'bg-blue-50 border-l-4 border-blue-400 text-blue-800 dark:bg-blue-900/20 dark:border-l-blue-600 dark:text-blue-200'
+            bgClass: 'bg-gradient-to-r from-blue-50 to-blue-100/50 dark:from-blue-950/20 dark:to-blue-900/10',
+            borderClass: 'border-l-4 border-blue-500 dark:border-blue-400',
+            textClass: 'text-blue-900 dark:text-blue-200',
+            iconClass: 'text-blue-600 dark:text-blue-400'
           };
       }
     })();
@@ -81,7 +92,7 @@ export const AlertBox = Node.create<AlertBoxOptions>({
         {
           'data-type': 'alert-box',
           'data-alert-type': alertType,
-          class: `${this.options.HTMLAttributes.class} ${alertConfig.class}`,
+          class: `${this.options.HTMLAttributes.class} ${alertConfig.bgClass} ${alertConfig.borderClass} ${alertConfig.textClass}`,
           contenteditable: 'false',
           role: 'alert',
           'aria-live': 'polite',
@@ -92,12 +103,15 @@ export const AlertBox = Node.create<AlertBoxOptions>({
         { class: 'flex items-start gap-3' },
         [
           'span',
-          { class: 'text-lg flex-shrink-0 mt-0.5', contenteditable: 'false' },
+          { 
+            class: `text-lg flex-shrink-0 mt-0.5 ${alertConfig.iconClass}`, 
+            contenteditable: 'false'
+          },
           alertConfig.icon
         ],
         [
           'div',
-          { class: 'flex-1', contenteditable: 'true' },
+          { class: 'flex-1 font-medium', contenteditable: 'true' },
           0
         ]
       ]
