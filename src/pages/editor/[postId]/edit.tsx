@@ -18,6 +18,24 @@ function EditPostPageContent() {
   const { toast } = useToast();
   const [post, setPost] = useState<Post | null>(null);
   const [postLoading, setPostLoading] = useState(true);
+  const [darkMode, setDarkMode] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     const title = post ? `Modifica: ${post.title} | Editor - Malati dello Sport` : 'Modifica Articolo | Editor - Malati dello Sport';
@@ -105,7 +123,7 @@ function EditPostPageContent() {
   if (postLoading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header darkMode={false} toggleTheme={() => {}} />
+        <Header darkMode={darkMode} toggleTheme={toggleTheme} />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <Skeleton className="h-8 w-48 mb-6" />
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -127,12 +145,12 @@ function EditPostPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header darkMode={false} toggleTheme={() => {}} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Edit Post</h1>
+          <h1 className="text-3xl font-bold text-foreground">Modifica Articolo</h1>
           <p className="text-muted-foreground mt-2">
-            Update your article
+            Aggiorna il tuo articolo
             {profile && ` | ${profile.display_name || profile.username}`}
           </p>
         </div>

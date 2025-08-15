@@ -15,7 +15,7 @@ import { Icon } from "@/components/Icon";
 import { supabase } from "@/integrations/supabase/client";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
-import { getTimeAgo } from "@/utils/dateUtils";
+import { getTimeAgo, getCoverImageFromPost } from "@/utils/dateUtils";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -130,21 +130,13 @@ const Index = () => {
 
         setPosts(list);
         
-        // Map hero articles for HeroSection
+        // Map hero articles for HeroSection using getCoverImageFromPost
         const mappedHeroArticles = (heroData || []).map((post: any) => {
-          let image = '/assets/images/hero-juventus-champions.jpg';
-          if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
-            const coverImg = post.cover_images[0];
-            image = typeof coverImg === 'string' ? coverImg : coverImg?.url || image;
-          } else if (post.featured_image_url) {
-            image = post.featured_image_url;
-          }
-          
           return {
             id: post.id,
             title: post.title,
             excerpt: post.excerpt || '',
-            imageUrl: image,
+            imageUrl: getCoverImageFromPost(post),
             category: post.categories?.name || 'News',
           };
         });
@@ -276,17 +268,8 @@ const Index = () => {
 };
 
 function mapPostToCard(post: any) {
-  // Handle cover image from either cover_images array or featured_image_url
-  let image = '/assets/images/hero-juventus-champions.jpg'; // fallback
-  
-  if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
-    // Select random cover image for variety
-    const randomIndex = Math.floor(Math.random() * post.cover_images.length);
-    const coverImg = post.cover_images[randomIndex];
-    image = typeof coverImg === 'string' ? coverImg : coverImg?.url || image;
-  } else if (post.featured_image_url) {
-    image = post.featured_image_url;
-  }
+  // Use the utility function for consistent image handling
+  const image = getCoverImageFromPost(post);
   
   const date = post.published_at || post.created_at;
   

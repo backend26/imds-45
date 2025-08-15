@@ -78,14 +78,14 @@ export const PostSettingsSidebar: React.FC<Props> = ({
     <div className="space-y-6">
       {/* Post Status */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Post Status</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Stato Articolo</CardTitle></CardHeader>
         <CardContent>
           <Select value={status} onValueChange={(v: 'draft' | 'published' | 'archived') => setStatus(v)}>
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="draft">Draft</SelectItem>
-              <SelectItem value="published">Published</SelectItem>
-              <SelectItem value="archived">Archived</SelectItem>
+              <SelectItem value="draft">Bozza</SelectItem>
+              <SelectItem value="published">Pubblicato</SelectItem>
+              <SelectItem value="archived">Archiviato</SelectItem>
             </SelectContent>
           </Select>
         </CardContent>
@@ -93,7 +93,7 @@ export const PostSettingsSidebar: React.FC<Props> = ({
 
       {/* Category */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Category</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Categoria</CardTitle></CardHeader>
         <CardContent>
           <Select
             // ✅ placeholder via undefined (mai stringa vuota)
@@ -101,10 +101,10 @@ export const PostSettingsSidebar: React.FC<Props> = ({
             onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}
             disabled={categoriesLoading}
           >
-            <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Seleziona una categoria" /></SelectTrigger>
             <SelectContent>
               {/* ✅ opzione “nessuna” con value NON vuoto */}
-              <SelectItem value="none">No category</SelectItem>
+              <SelectItem value="none">Nessuna categoria</SelectItem>
               {categories.map((c) => (
                 <SelectItem key={String(c.id)} value={String(c.id)}>
                   {c.name}
@@ -121,13 +121,13 @@ export const PostSettingsSidebar: React.FC<Props> = ({
         <CardContent className="space-y-3">
           <div className="flex gap-2">
             <Input
-              placeholder="Add a tag..."
+              placeholder="Aggiungi un tag..."
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
               onKeyDown={(e) => (e.key === 'Enter' || e.key === ',') ? (e.preventDefault(), addTag()) : undefined}
               onBlur={addTag}
             />
-            <Button type="button" size="sm" disabled={!tagInput.trim()} onClick={addTag}>Add</Button>
+            <Button type="button" size="sm" disabled={!tagInput.trim()} onClick={addTag}>Aggiungi</Button>
           </div>
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
@@ -146,14 +146,14 @@ export const PostSettingsSidebar: React.FC<Props> = ({
 
       {/* Settings */}
       <Card>
-        <CardHeader><CardTitle className="text-lg">Settings</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-lg">Impostazioni</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="comments-enabled" className="text-sm font-medium">Enable Comments</Label>
+            <Label htmlFor="comments-enabled" className="text-sm font-medium">Abilita Commenti</Label>
             <Switch id="comments-enabled" checked={commentsEnabled} onCheckedChange={setCommentsEnabled} />
           </div>
           <div className="flex items-center justify-between">
-            <Label htmlFor="co-authoring-enabled" className="text-sm font-medium">Enable Co-authoring</Label>
+            <Label htmlFor="co-authoring-enabled" className="text-sm font-medium">Abilita Co-autoring</Label>
             <Switch id="co-authoring-enabled" checked={coAuthoringEnabled} onCheckedChange={setCoAuthoringEnabled} />
           </div>
           <div className="flex items-center justify-between">

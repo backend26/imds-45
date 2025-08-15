@@ -6,6 +6,24 @@ import { useEditorCheck } from '@/hooks/use-role-check-cached';
 
 function NewPostPageContent() {
   const { profile } = useEditorCheck();
+  const [darkMode, setDarkMode] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
+    }
+    return false;
+  });
+
+  const toggleTheme = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     document.title = 'Nuovo Articolo | Editor - Malati dello Sport';
@@ -29,7 +47,7 @@ function NewPostPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header darkMode={false} toggleTheme={() => {}} />
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-foreground">Crea Nuovo Articolo</h1>

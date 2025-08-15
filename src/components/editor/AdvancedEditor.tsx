@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
@@ -60,6 +60,110 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [publishing, setPublishing] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [publishedPost, setPublishedPost] = useState<{ id: string; title: string } | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Auto-save and data protection
+  useEffect(() => {
+    const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
+    
+    // Restore from localStorage on mount
+    if (!initialPost) {
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          const shouldRestore = confirm('È stata trovata una bozza salvata. Vuoi ripristinarla?');
+          if (shouldRestore) {
+            setTitle(data.title || '');
+            setExcerpt(data.excerpt || '');
+            setCategoryId(data.categoryId || '');
+            setTags(data.tags || []);
+            setCoverImages(data.coverImages || []);
+            setCommentsEnabled(data.commentsEnabled ?? true);
+            setCoAuthoringEnabled(data.coAuthoringEnabled ?? false);
+            setIsHero(data.isHero ?? false);
+            setStatus(data.status || 'draft');
+            if (data.content) {
+              // Will set content when editor is ready
+              setTimeout(() => {
+                if (editor) {
+                  editor.commands.setContent(data.content);
+                }
+              }, 100);
+            }
+          }
+        } catch (e) {
+          console.error('Error restoring draft:', e);
+        }
+      }
+    }
+
+    // Auto-save every 5 seconds
+    const interval = setInterval(() => {
+      if (hasUnsavedChanges && (title || excerpt || editor?.getText())) {
+        const data = {
+          title,
+          excerpt,
+          categoryId,
+          tags,
+          coverImages,
+          commentsEnabled,
+          coAuthoringEnabled,
+          isHero,
+          status,
+          content: editor?.getHTML() || '',
+          timestamp: Date.now()
+        };
+        localStorage.setItem(storageKey, JSON.stringify(data));
+        setHasUnsavedChanges(false);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, hasUnsavedChanges, initialPost]);
+
+  // Mark as changed when form data changes
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status]);
+
+  // Warn before page unload
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && hasUnsavedChanges) {
+        const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
+        const data = {
+          title,
+          excerpt,
+          categoryId,
+          tags,
+          coverImages,
+          commentsEnabled,
+          coAuthoringEnabled,
+          isHero,
+          status,
+          content: editor?.getHTML() || '',
+          timestamp: Date.now()
+        };
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [hasUnsavedChanges, title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, initialPost]);
 
   const lowlight = useMemo(() => createLowlight(), []);
 
@@ -169,22 +273,39 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     setCoAuthoringEnabled(false);
     setIsHero(false);
     setStatus('draft');
+    setHasUnsavedChanges(false);
     editor?.commands.clearContent();
+    
+    // Clear localStorage
+    const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
+    localStorage.removeItem(storageKey);
   };
 
   const handleSave = async (publishStatus: 'draft' | 'published') => {
     if (!user || !editor) return;
-    if (!title.trim()) {
-      toast({ title: "Errore di validazione", description: "Il titolo è obbligatorio", variant: "destructive" });
-      return;
+    
+    // Validation for publishing
+    if (publishStatus === 'published') {
+      if (!title.trim()) {
+        toast({ title: "Errore di validazione", description: "Il titolo è obbligatorio per pubblicare", variant: "destructive" });
+        return;
+      }
+      if (!editor.getText().trim()) {
+        toast({ title: "Errore di validazione", description: "Il contenuto non può essere vuoto per pubblicare", variant: "destructive" });
+        return;
+      }
+      if (!categoryId) {
+        toast({ title: "Errore di validazione", description: "Seleziona una categoria per pubblicare", variant: "destructive" });
+        return;
+      }
     }
-    if (!editor.getText().trim()) {
-      toast({ title: "Errore di validazione", description: "Il contenuto non può essere vuoto", variant: "destructive" });
-      return;
-    }
-    if (!categoryId) {
-      toast({ title: "Errore di validazione", description: "Seleziona una categoria", variant: "destructive" });
-      return;
+    
+    // Lighter validation for drafts
+    if (publishStatus === 'draft') {
+      if (!title.trim() && !editor.getText().trim()) {
+        toast({ title: "Errore di validazione", description: "Inserisci almeno un titolo o del contenuto", variant: "destructive" });
+        return;
+      }
     }
 
     const isPublishAction = publishStatus === 'published';
@@ -224,9 +345,11 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       if (publishStatus === 'published') {
         setPublishedPost({ id: result.data.id, title: result.data.title });
         setShowSuccessModal(true);
+        setHasUnsavedChanges(false);
         resetEditor();
       } else {
         toast({ title: "Operazione riuscita", description: 'Bozza salvata' });
+        setHasUnsavedChanges(false);
       }
       
       setStatus(publishStatus);
@@ -240,6 +363,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   };
 
   const canPublish = !!title.trim() && !!editor?.getText().trim() && !!categoryId;
+  const canSaveDraft = !!title.trim() || !!editor?.getText().trim();
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -272,13 +396,28 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           <CardContent>
             {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
             <div className="border rounded-lg min-h-[400px] p-4">
-              <EditorContent editor={editor} />
+              <EditorContent editor={editor} className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px]" />
             </div>
           </CardContent>
         </Card>
       </div>
       <div className="lg:col-span-1 space-y-6">
-        <Card className="sticky top-24">
+        <PostSettingsSidebar
+          categoryId={categoryId}
+          setCategoryId={setCategoryId}
+          tags={tags}
+          setTags={setTags}
+          commentsEnabled={commentsEnabled}
+          setCommentsEnabled={setCommentsEnabled}
+          coAuthoringEnabled={coAuthoringEnabled}
+          setCoAuthoringEnabled={setCoAuthoringEnabled}
+          isHero={isHero}
+          setIsHero={setIsHero}
+          status={status}
+          setStatus={setStatus}
+        />
+        
+        <Card>
           <CardHeader><CardTitle>Checklist pubblicazione</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">
@@ -295,20 +434,6 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
             </div>
           </CardContent>
         </Card>
-        <PostSettingsSidebar
-          categoryId={categoryId}
-          setCategoryId={setCategoryId}
-          tags={tags}
-          setTags={setTags}
-          commentsEnabled={commentsEnabled}
-          setCommentsEnabled={setCommentsEnabled}
-          coAuthoringEnabled={coAuthoringEnabled}
-          setCoAuthoringEnabled={setCoAuthoringEnabled}
-          isHero={isHero}
-          setIsHero={setIsHero}
-          status={status}
-          setStatus={setStatus}
-        />
         
         {/* Azioni in fondo alla sidebar */}
         <Card>
@@ -316,7 +441,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           <CardContent className="space-y-3">
             <Button 
               onClick={() => handleSave('draft')} 
-              disabled={saving || publishing || !canPublish} 
+              disabled={saving || publishing || !canSaveDraft} 
               variant="outline"
               className="w-full"
             >

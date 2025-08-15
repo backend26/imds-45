@@ -86,6 +86,7 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
           <div className="flex flex-col sm:flex-row gap-4 items-start">
             <Button 
               size="lg" 
+              onClick={() => window.location.href = `/post/${currentArticle.id}`}
               className="bg-gradient-primary hover:bg-gradient-hover text-white font-semibold px-8 py-3 hover-lift"
             >
               Leggi l'Articolo
