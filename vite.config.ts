@@ -20,6 +20,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    sourcemap: mode === 'development',
+    sourcemap: true, // Enable sourcemaps for production debugging
   },
 }));

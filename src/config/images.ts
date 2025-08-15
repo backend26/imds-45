@@ -24,8 +24,18 @@ export const imagePlaceholders = {
 
 // Funzione per ottenere l'URL dell'immagine
 export const getImageUrl = (path: string): string => {
+  // Safety check
+  if (!path || typeof path !== 'string') {
+    return '/assets/images/derby-inter-milan.jpg'; // fallback
+  }
+  
+  // If it's already an absolute URL, return as-is
+  if (path.startsWith('http') || path.startsWith('//')) {
+    return path;
+  }
+  
   // In produzione, restituire il path diretto
-  if (process.env.NODE_ENV === 'production') {
+  if (import.meta.env.PROD) {
     return path;
   }
   
@@ -45,4 +55,4 @@ export const getImageUrl = (path: string): string => {
   };
   
   return pathMap[path] || path;
-}; 
+};

@@ -59,7 +59,9 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
       {/* Background Image with Parallax Effect */}
       <div 
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out scale-105 group-hover:scale-110"
-        style={{ backgroundImage: `url(${getImageUrl(currentArticle.imageUrl)})` }}
+        style={{ 
+          backgroundImage: `url(${getImageUrl(currentArticle?.imageUrl || '/assets/images/derby-inter-milan.jpg')})` 
+        }}
       />
       
       {/* Overlay Gradient */}
