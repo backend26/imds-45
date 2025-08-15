@@ -45,17 +45,31 @@ export const AlertBox = Node.create<AlertBoxOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    // Determina lo stile in base al tipo di alert
-    const typeClass = (() => {
-      switch (HTMLAttributes.type) {
+    const alertType = HTMLAttributes['data-alert-type'] || HTMLAttributes.type || 'info';
+    
+    // Determina icona e stile in base al tipo di alert
+    const alertConfig = (() => {
+      switch (alertType) {
         case 'warning':
-          return 'bg-yellow-50 border-l-yellow-400 text-yellow-800 dark:bg-yellow-900/20 dark:border-l-yellow-600 dark:text-yellow-200';
+          return {
+            icon: '⚠️',
+            class: 'bg-amber-50 border-l-4 border-amber-400 text-amber-800 dark:bg-amber-900/20 dark:border-l-amber-600 dark:text-amber-200'
+          };
         case 'error':
-          return 'bg-red-50 border-l-red-400 text-red-800 dark:bg-red-900/20 dark:border-l-red-600 dark:text-red-200';
+          return {
+            icon: '❌',
+            class: 'bg-red-50 border-l-4 border-red-400 text-red-800 dark:bg-red-900/20 dark:border-l-red-600 dark:text-red-200'
+          };
         case 'success':
-          return 'bg-green-50 border-l-green-400 text-green-800 dark:bg-green-900/20 dark:border-l-green-600 dark:text-green-200';
+          return {
+            icon: '✅',
+            class: 'bg-green-50 border-l-4 border-green-400 text-green-800 dark:bg-green-900/20 dark:border-l-green-600 dark:text-green-200'
+          };
         default:
-          return 'bg-blue-50 border-l-blue-400 text-blue-800 dark:bg-blue-900/20 dark:border-l-blue-600 dark:text-blue-200';
+          return {
+            icon: 'ℹ️',
+            class: 'bg-blue-50 border-l-4 border-blue-400 text-blue-800 dark:bg-blue-900/20 dark:border-l-blue-600 dark:text-blue-200'
+          };
       }
     })();
 
@@ -66,14 +80,27 @@ export const AlertBox = Node.create<AlertBoxOptions>({
         HTMLAttributes,
         {
           'data-type': 'alert-box',
-          'data-alert-type': HTMLAttributes.type || 'info',
-          class: `${this.options.HTMLAttributes.class} ${typeClass}`,
-          contenteditable: 'true',
+          'data-alert-type': alertType,
+          class: `${this.options.HTMLAttributes.class} ${alertConfig.class}`,
+          contenteditable: 'false',
           role: 'alert',
           'aria-live': 'polite',
         }
       ),
-      0
+      [
+        'div',
+        { class: 'flex items-start gap-3' },
+        [
+          'span',
+          { class: 'text-lg flex-shrink-0 mt-0.5', contenteditable: 'false' },
+          alertConfig.icon
+        ],
+        [
+          'div',
+          { class: 'flex-1', contenteditable: 'true' },
+          0
+        ]
+      ]
     ];
   },
 

@@ -9,6 +9,7 @@ import Underline from '@tiptap/extension-underline';
 import Color from '@tiptap/extension-color';
 import { TextStyle } from '@tiptap/extension-text-style';
 import FontFamily from '@tiptap/extension-font-family';
+import FontSize from '@tiptap/extension-font-size';
 import Highlight from '@tiptap/extension-highlight';
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import Blockquote from '@tiptap/extension-blockquote';
@@ -101,11 +102,20 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       horizontalRule: false,
       underline: false, // Disabilita underline di default
       link: false,      // Disabilita link di default
+      heading: {
+        levels: [1, 2, 3, 4, 5, 6],
+        HTMLAttributes: {
+          class: 'font-bold',
+        },
+      },
     }),
     Underline,
     TextStyle,
     Color,
     FontFamily,
+    FontSize.configure({
+      types: ['textStyle'],
+    }),
     Highlight.configure({ multicolor: true }),
     CodeBlockLowlight.configure({
       lowlight,
@@ -336,6 +346,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         category_id: categoryId || null,
         tags,
         cover_images: coverImages || null,
+        featured_image_url: null, // Always null, we use cover_images
         comments_enabled: commentsEnabled,
         co_authoring_enabled: coAuthoringEnabled,
         is_hero: isHero,

@@ -6,7 +6,7 @@ import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
-import { getCoverImageFromPost } from "@/utils/dateUtils";
+import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
 import { gsap } from "gsap";
 import { usePostInteractions } from "@/hooks/use-post-interactions";
 import { SocialShareModal } from "@/components/posts/SocialShareModal";

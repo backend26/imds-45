@@ -16,7 +16,7 @@ declare module '@tiptap/core' {
 export const CallToAction = Node.create<CallToActionOptions>({
   name: 'callToAction',
   group: 'block',
-  content: 'block*',
+  content: 'inline*',
   atom: false,
 
   addOptions() {
@@ -32,17 +32,29 @@ export const CallToAction = Node.create<CallToActionOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
+    const title = HTMLAttributes['data-cta-title'] || '';
+    const buttonText = HTMLAttributes['data-cta-button'] || 'Scopri di più';
+    
     return [
       'div',
       mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { 
         'data-cta': '',
-        'data-cta-title': HTMLAttributes.title || '',
-        'data-cta-button': HTMLAttributes.buttonText || '',
-        contenteditable: 'true',
+        'data-cta-title': title,
+        'data-cta-button': buttonText,
+        contenteditable: 'false',
         role: 'region',
         'aria-label': 'Call to Action'
       }),
-      0
+      [
+        'div',
+        { class: 'cta-content' },
+        title ? ['h3', { class: 'text-lg font-bold mb-2' }, title] : null,
+        ['div', { class: 'cta-text mb-4', contenteditable: 'true' }, 0],
+        ['button', { 
+          class: 'bg-primary text-primary-foreground px-4 py-2 rounded-md font-medium hover:bg-primary/90 transition-colors',
+          contenteditable: 'false'
+        }, buttonText]
+      ].filter(Boolean)
     ];
   },
 
@@ -51,14 +63,15 @@ export const CallToAction = Node.create<CallToActionOptions>({
       setCallToAction:
         (options) =>
         ({ commands }) => {
-          const attrs = {
-            title: options.title?.trim() || '',
-            buttonText: options.buttonText?.trim() || '',
-          };
+          const content = options.content?.trim() || 'Inserisci il testo del tuo call to action qui...';
+          
           return commands.insertContent({
             type: this.name,
-            attrs,
-            content: [{ type: 'text', text: options.content?.trim() || '' }],
+            attrs: {
+              'data-cta-title': options.title?.trim() || '',
+              'data-cta-button': options.buttonText?.trim() || 'Scopri di più',
+            },
+            content: [{ type: 'text', text: content }],
           });
         },
     };
