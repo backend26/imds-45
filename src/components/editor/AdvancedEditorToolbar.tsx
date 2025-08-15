@@ -210,7 +210,9 @@ export const AdvancedEditorToolbar: React.FC<AdvancedEditorToolbarProps> = ({
         </Select>
 
         <ToolbarButton
-          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+          onClick={() => {
+            editor.chain().focus().unsetAllMarks().clearNodes().run();
+          }}
           title="Rimuovi Formattazione"
         >
           <FileText className="h-4 w-4" />

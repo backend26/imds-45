@@ -3,6 +3,7 @@ import { AdvancedEditor } from '@/components/editor/AdvancedEditor';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useEditorCheck } from '@/hooks/use-role-check-cached';
+import { DisableBeforeUnload } from '@/components/DisableBeforeUnload';
 
 function NewPostPageContent() {
   const { profile } = useEditorCheck();
@@ -47,6 +48,7 @@ function NewPostPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <DisableBeforeUnload />
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

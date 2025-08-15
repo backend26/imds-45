@@ -75,14 +75,27 @@ export const getRandomCoverImage = (): string => {
 };
 
 export const getCoverImageFromPost = (post: any): string => {
-  // Priority: cover_images string > featured_image_url > random fallback
-  if (post.cover_images && typeof post.cover_images === 'string') {
+  console.log('getCoverImageFromPost called with:', { 
+    id: post?.id, 
+    cover_images: post?.cover_images, 
+    featured_image_url: post?.featured_image_url 
+  });
+  
+  if (!post) return '';
+  
+  // Check for direct cover_images field (single string now)
+  if (post.cover_images && typeof post.cover_images === 'string' && post.cover_images.trim()) {
+    console.log('Using cover_images:', post.cover_images);
     return post.cover_images;
   }
   
-  if (post.featured_image_url) {
+  // Fallback to featured_image_url
+  if (post.featured_image_url && post.featured_image_url.trim()) {
+    console.log('Using featured_image_url:', post.featured_image_url);
     return post.featured_image_url;
   }
   
+  console.log('No valid image found, using random fallback');
+  // Return random fallback if no specific image
   return getRandomCoverImage();
 };

@@ -132,8 +132,16 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     content: initialPost?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 text-foreground',
+        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 text-foreground editor-content',
       },
+    },
+    onBeforeCreate: ({ editor }) => {
+      // Prevent page reloads by disabling default beforeunload
+      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+        e.preventDefault();
+        return;
+      };
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     },
   });
 

@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useEditorCheck } from '@/hooks/use-role-check';
+import { DisableBeforeUnload } from '@/components/DisableBeforeUnload';
 import type { Database } from '@/integrations/supabase/types';
 
 type Post = Database['public']['Tables']['posts']['Row'];
@@ -145,6 +146,7 @@ function EditPostPageContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      <DisableBeforeUnload />
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">

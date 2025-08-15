@@ -452,4 +452,35 @@
       background-position: -200% 0;
     }
   }
+
+  /* Editor specific styles */
+  .editor-content {
+    color: hsl(var(--foreground)) !important;
+  }
+
+  .editor-content * {
+    color: inherit !important;
+  }
+
+  /* Ensure default editor text is black in light mode and white in dark mode */
+  :root:not(.dark) .editor-content {
+    color: hsl(0 0% 5%) !important;
+  }
+
+  .dark .editor-content {
+    color: hsl(0 0% 96%) !important;
+  }
+
+  /* Remove page reload prompts */
+  body {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+
+  /* Prevent beforeunload events from showing prompts */
+  .editor-no-prompt {
+    pointer-events: auto;
+  }
 }
