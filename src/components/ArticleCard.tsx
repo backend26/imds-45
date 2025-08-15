@@ -168,7 +168,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         <div 
           className={cn(
             "bg-cover bg-center relative overflow-hidden",
-            featured ? "aspect-[21/9]" : "aspect-[4/3]"
+            featured ? "aspect-[16/9] sm:aspect-[21/9]" : "aspect-[16/9] sm:aspect-[4/3]"
           )}
           style={{ 
             backgroundImage: isInView ? `url(${getImageUrl(coverImage)})` : 'none',
@@ -272,26 +272,26 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
           {/* Image overlay content - only for featured articles */}
           {featured && (
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-6">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex flex-col justify-end p-3 sm:p-4 lg:p-6">
               <div className="z-10">
                 <h3 
                   id={`article-title-${title.replace(/\s+/g, '-').toLowerCase()}`}
-                  className="text-white font-bold leading-tight mb-3 text-2xl md:text-3xl lg:text-4xl"
+                  className="text-white font-bold leading-tight mb-2 sm:mb-3 text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl"
                 >
                   {title}
                 </h3>
                 
-                <p className="text-white/95 text-base md:text-lg mb-4 line-clamp-3 leading-relaxed">
+                <p className="text-white/95 text-sm sm:text-base md:text-lg mb-3 sm:mb-4 line-clamp-2 sm:line-clamp-3 leading-relaxed">
                   {excerpt}
                 </p>
 
-                <div className="flex items-center space-x-4 text-white/80 text-sm md:text-base">
+                <div className="flex items-center space-x-2 sm:space-x-4 text-white/80 text-xs sm:text-sm md:text-base">
                   <div className="flex items-center space-x-1">
-                    <Icon name="user" className="h-4 w-4" />
-                    <span className="font-medium">{author}</span>
+                    <Icon name="user" className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="font-medium truncate">{author}</span>
                   </div>
-                  <span aria-hidden="true">•</span>
-                  <span>{timeAgo || publishedAt}</span>
+                  <span aria-hidden="true" className="hidden sm:inline">•</span>
+                  <span className="truncate">{timeAgo || publishedAt}</span>
                 </div>
               </div>
             </div>
@@ -301,10 +301,10 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
 
       {/* Content for non-featured articles */}
       {!featured && (
-        <CardContent className="p-4">
+        <CardContent className="p-3 sm:p-4">
           <h3 
             id={`article-title-${title.replace(/\s+/g, '-').toLowerCase()}`}
-            className="font-bold text-base md:text-lg mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-tight"
+            className="font-bold text-sm sm:text-base md:text-lg mb-2 sm:mb-3 line-clamp-2 group-hover:text-primary transition-colors leading-tight"
           >
             {title}
           </h3>
@@ -321,23 +321,23 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               )}
           
           {/* Author and metadata */}
-          <div className="flex items-center space-x-3 text-xs text-muted-foreground mb-4">
-            <div className="flex items-center space-x-1">
-              <Icon name="user" className="h-3 w-3" />
-              <span className="font-medium">{author}</span>
+          <div className="flex items-center space-x-2 sm:space-x-3 text-xs text-muted-foreground mb-3 sm:mb-4">
+            <div className="flex items-center space-x-1 min-w-0 flex-1">
+              <Icon name="user" className="h-3 w-3 flex-shrink-0" />
+              <span className="font-medium truncate">{author}</span>
             </div>
-            <span aria-hidden="true">•</span>
-            <span>{timeAgo || publishedAt}</span>
+            <span aria-hidden="true" className="hidden sm:inline">•</span>
+            <span className="text-xs truncate">{timeAgo || publishedAt}</span>
           </div>
 
-          {/* Interaction buttons */}
+          {/* Interaction buttons - Mobile Optimized */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-1 sm:space-x-2">
             <Button
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 px-2 hover:bg-primary/10 transition-all duration-200",
+                "h-7 sm:h-8 px-1 sm:px-2 hover:bg-primary/10 transition-all duration-200",
                 isLiked ? "text-primary" : "hover:text-primary"
               )}
               onClick={handleLike}
@@ -346,7 +346,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               aria-pressed={isLiked}
             >
               <Icon name="like" className={cn(
-                "h-4 w-4 mr-1 transition-all duration-200",
+                "h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1 transition-all duration-200",
                 isLiked ? "text-primary" : "",
                 isLikeAnimating ? "animate-like-burst" : ""
               )} />
@@ -356,16 +356,16 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              className="h-8 px-2 hover:bg-primary/10 hover:text-primary"
+              className="h-7 sm:h-8 px-1 sm:px-2 hover:bg-primary/10 hover:text-primary"
               onClick={handleShare}
               aria-label={`${comments} commenti`}
             >
-              <Icon name="comment" className="h-4 w-4 mr-1" />
+              <Icon name="comment" className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
               <span className="text-xs font-medium">{commentsCount}</span>
             </Button>
           </div>
 
-          <div className="flex items-center space-x-1">
+          <div className="flex items-center space-x-0.5 sm:space-x-1">
             <SocialShareModal
               postId={id || ''}
               postTitle={title}
@@ -375,7 +375,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               variant="ghost"
               size="sm"
               className={cn(
-                "h-8 w-8 p-0 hover:bg-primary/10 transition-all duration-200",
+                "h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-primary/10 transition-all duration-200",
                 isBookmarked ? "text-primary" : "hover:text-primary"
               )}
               onClick={handleBookmark}
@@ -384,7 +384,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               aria-pressed={isBookmarked}
             >
               <Icon name="bookmark" className={cn(
-                "h-4 w-4 transition-all duration-200",
+                "h-3 w-3 sm:h-4 sm:w-4 transition-all duration-200",
                 isBookmarked ? "text-primary" : "",
                 isSaveAnimating ? "animate-save-fold" : ""
               )} />

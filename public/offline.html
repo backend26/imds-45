@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Offline - I Malati dello Sport</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 40px;
+            background: #ff3036;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            box-shadow: 0 10px 30px rgba(255, 48, 54, 0.3);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #ff3036, #ff6b6f);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        p {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .status {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 48, 54, 0.1);
+            border: 2px solid #ff3036;
+            border-radius: 50px;
+            padding: 15px 25px;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .offline-indicator {
+            width: 12px;
+            height: 12px;
+            background: #ff3036;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        
+        .retry-btn {
+            background: linear-gradient(135deg, #ff3036, #ff6b6f);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(255, 48, 54, 0.4);
+        }
+        
+        .features {
+            margin-top: 40px;
+            text-align: left;
+        }
+        
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border-left: 4px solid #ff3036;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: #ff3036;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+        
+        .network-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .online { 
+            background: #22c55e; 
+            color: white; 
+        }
+        
+        .offline { 
+            background: #ef4444; 
+            color: white; 
+        }
+        
+        @media (max-width: 768px) {
+            h1 { font-size: 2rem; }
+            p { font-size: 1rem; }
+            .logo { width: 80px; height: 80px; font-size: 32px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="network-status" id="networkStatus">🔴 Offline</div>
+    
+    <div class="container">
+        <div class="logo">🏆</div>
+        
+        <h1>Sei Offline</h1>
+        
+        <p>Non sei connesso a Internet, ma puoi ancora navigare tra i contenuti che hai già visitato.</p>
+        
+        <div class="status">
+            <div class="offline-indicator"></div>
+            Modalità Offline Attiva
+        </div>
+        
+        <button class="retry-btn" onclick="checkConnection()">
+            🔄 Riprova Connessione
+        </button>
+        
+        <div class="features">
+            <div class="feature">
+                <div class="feature-icon">📖</div>
+                <div>
+                    <strong>Contenuti Salvati</strong><br>
+                    <small>Accedi agli articoli già letti</small>
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">⭐</div>
+                <div>
+                    <strong>Preferiti Disponibili</strong><br>
+                    <small>I tuoi articoli salvati sono sempre accessibili</small>
+                </div>
+            </div>
+            
+            <div class="feature">
+                <div class="feature-icon">🔄</div>
+                <div>
+                    <strong>Sincronizzazione Automatica</strong><br>
+                    <small>I dati si sincronizzeranno quando torni online</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check network status
+        function updateNetworkStatus() {
+            const status = document.getElementById('networkStatus');
+            if (navigator.onLine) {
+                status.textContent = '🟢 Online';
+                status.className = 'network-status online';
+            } else {
+                status.textContent = '🔴 Offline';
+                status.className = 'network-status offline';
+            }
+        }
+
+        function checkConnection() {
+            if (navigator.onLine) {
+                window.location.href = '/';
+            } else {
+                alert('Ancora offline. Controlla la tua connessione Internet.');
+            }
+        }
+
+        // Listen for network changes
+        window.addEventListener('online', updateNetworkStatus);
+        window.addEventListener('offline', updateNetworkStatus);
+        
+        // Initial check
+        updateNetworkStatus();
+        
+        // Auto-redirect when back online
+        window.addEventListener('online', () => {
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+        });
+    </script>
+</body>
+</html>

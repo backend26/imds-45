@@ -182,43 +182,45 @@ const Index = () => {
       
       {/* Hero Section */}
       <div className="hero-section">
-        <HeroSection heroArticles={featured} />
+        <HeroSection />
       </div>
 
       {/* Main Content with Sidebar Layout */}
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex gap-12">
-          <main className="flex-1 max-w-6xl">
+      <div className="container mx-auto px-3 sm:px-4 lg:px-6 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 xl:gap-12">
+          <main className="flex-1 min-w-0">
             {/* Trending Section */}
-        <section className="mb-12">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center space-x-3">
+        <section className="mb-8 sm:mb-10 lg:mb-12">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0 mb-4 sm:mb-6">
+            <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="flex items-center space-x-2">
-                <Icon name="fire" className="h-6 w-6 text-primary" />
-                <h2 className="text-2xl font-bold">Trending Now</h2>
+                <Icon name="fire" className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
+                <h2 className="text-xl sm:text-2xl font-bold">Trending Now</h2>
               </div>
-              <Badge className="bg-gradient-primary text-white animate-scale-in">
+              <Badge className="bg-gradient-primary text-white animate-scale-in text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 <span id="trending-counter">+2.4</span>% oggi
               </Badge>
             </div>
           </div>
 
-          <SportFilters
-            selectedSport={selectedSport}
-            onSportChange={setSelectedSport}
-          />
+          <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
+            <SportFilters
+              selectedSport={selectedSport}
+              onSportChange={setSelectedSport}
+            />
 
-          {/* Advanced Sorting Controls */}
-          <SortingControls 
-            selectedCategory={selectedCategory}
-            sortBy={sortBy}
-            period={period}
-            categories={categories}
-            onCategoryChange={setSelectedCategory}
-            onSortChange={setSortBy}
-            onPeriodChange={setPeriod}
-          />
+            {/* Advanced Sorting Controls */}
+            <SortingControls 
+              selectedCategory={selectedCategory}
+              sortBy={sortBy}
+              period={period}
+              categories={categories}
+              onCategoryChange={setSelectedCategory}
+              onSortChange={setSortBy}
+              onPeriodChange={setPeriod}
+            />
+          </div>
 
           {/* Featured Article - Full Width */}
           {featuredArticle && (
@@ -232,8 +234,8 @@ const Index = () => {
             </div>
           )}
 
-          {/* Regular Articles Grid - Uniform Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Regular Articles Grid - Responsive */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {regularArticles.slice(0, Math.max(0, visibleArticles - 1)).map((article: any) => (
               <div key={article.id} className="article-card h-full">
                 <ArticleCard
@@ -247,11 +249,11 @@ const Index = () => {
 
           {/* Load More Button */}
           {visibleArticles < (regularArticles.length + 1) && (
-            <div className="text-center mt-8">
+            <div className="text-center mt-6 sm:mt-8">
               <Button 
                 variant="outline" 
                 size="lg"
-                className="hover:bg-primary hover:text-primary-foreground transition-colors px-8"
+                className="hover:bg-primary hover:text-primary-foreground transition-colors px-6 sm:px-8 w-full sm:w-auto"
                 onClick={() => setVisibleArticles(prev => prev + 6)}
               >
                 Carica Altri Articoli
@@ -261,8 +263,8 @@ const Index = () => {
         </section>
           </main>
           
-          {/* Sidebar */}
-          <div className="sidebar">
+          {/* Sidebar - Hidden on Mobile */}
+          <div className="hidden lg:block sidebar w-80 xl:w-96 flex-shrink-0">
             <Sidebar />
           </div>
         </div>

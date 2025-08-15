@@ -289,7 +289,7 @@ export default function PublicProfile() {
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Banner Section */}
-          <div className="relative h-48 md:h-64 rounded-lg overflow-hidden mb-6">
+          <div className="relative h-32 sm:h-48 md:h-64 rounded-lg overflow-hidden mb-6">
             {profile.banner_url ? (
               <img 
                 src={profile.banner_url} 
@@ -301,10 +301,10 @@ export default function PublicProfile() {
             )}
             
             {/* Avatar */}
-            <div className="absolute -bottom-16 left-6">
-              <Avatar className="h-32 w-32 border-4 border-background">
+            <div className="absolute -bottom-12 sm:-bottom-16 left-4 sm:left-6">
+              <Avatar className="h-24 w-24 sm:h-32 sm:w-32 border-4 border-background">
                 <AvatarImage src={profile.profile_picture_url || undefined} />
-                <AvatarFallback className="text-2xl">
+                <AvatarFallback className="text-lg sm:text-2xl">
                   {(profile.display_name || profile.username)?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
@@ -312,15 +312,15 @@ export default function PublicProfile() {
           </div>
 
           {/* Profile Info */}
-          <div className="ml-6 mt-16 mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-foreground">
+          <div className="ml-4 sm:ml-6 mt-12 sm:mt-16 mb-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                 {profile.display_name || profile.username}
               </h1>
-              <Badge variant="secondary">@{profile.username}</Badge>
+              <Badge variant="secondary" className="w-fit">@{profile.username}</Badge>
             </div>
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
                 <span><strong className="text-foreground">{stats?.posts_count ?? 0}</strong> post</span>
                 <span><strong className="text-foreground">{followerCount}</strong> follower</span>
                 <span><strong className="text-foreground">{followingCount}</strong> seguiti</span>
@@ -328,7 +328,7 @@ export default function PublicProfile() {
                 <span><strong className="text-foreground">{stats?.comments_received ?? 0}</strong> commenti</span>
               </div>
               {user?.id !== profile.user_id && (
-                <Button size="sm" onClick={handleToggleFollow} disabled={followLoading} variant={isFollowing ? 'secondary' : 'default'}>
+                <Button size="sm" onClick={handleToggleFollow} disabled={followLoading} variant={isFollowing ? 'secondary' : 'default'} className="w-fit">
                   {isFollowing ? 'Non seguire' : 'Segui'}
                 </Button>
               )}
@@ -340,11 +340,11 @@ export default function PublicProfile() {
               </p>
             )}
 
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+            <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 text-sm text-muted-foreground">
               {getPrivacySetting('email') && profile.email && (
                 <div className="flex items-center gap-1">
                   <Mail className="h-4 w-4" />
-                  <span>{profile.email}</span>
+                  <span className="break-all">{profile.email}</span>
                 </div>
               )}
               
@@ -375,7 +375,7 @@ export default function PublicProfile() {
           {getPrivacySetting('posts') && userPosts.length > 0 && (
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-6">Articoli Recenti</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 {userPosts.map((post) => (
                   <Card key={post.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                     {post.banner_url && (
@@ -387,14 +387,14 @@ export default function PublicProfile() {
                         />
                       </div>
                     )}
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2">
+                    <CardContent className="p-3 sm:p-4">
+                      <h3 className="font-semibold text-foreground mb-2 line-clamp-2 text-sm sm:text-base">
                         {post.title}
                       </h3>
-                      <p className="text-sm text-muted-foreground line-clamp-3">
+                      <p className="text-xs sm:text-sm text-muted-foreground line-clamp-3">
                         {post.excerpt}
                       </p>
-                      <div className="mt-3 text-xs text-muted-foreground">
+                      <div className="mt-2 sm:mt-3 text-xs text-muted-foreground">
                         {format(new Date(post.created_at), 'dd MMM yyyy', { locale: it })}
                       </div>
                     </CardContent>

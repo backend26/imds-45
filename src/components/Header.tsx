@@ -3,10 +3,12 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Moon, Sun, Search, Menu, X, Bell, LogOut } from "lucide-react";
+import { User, Moon, Sun, Search, Menu, X, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
+import { NotificationSystem } from "@/components/notifications/NotificationSystem";
+import { SearchSystem } from "@/components/search/SearchSystem";
 
 const sports = [
   { name: "Prima Pagina", href: "/" },
@@ -77,8 +79,8 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-2">
+          {/* Desktop Navigation - Responsive */}
+          <nav className="hidden lg:flex items-center space-x-2">
             {sports.map((sport) => (
               <Link
                 key={sport.name}
@@ -88,7 +90,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                   variant={location.pathname === sport.href ? "default" : "ghost"}
                   size="sm"
                   className={cn(
-                    "nav-item-hover transition-all duration-300 relative overflow-hidden group",
+                    "nav-item-hover transition-all duration-300 relative overflow-hidden group text-xs lg:text-sm px-2 lg:px-3",
                     location.pathname === sport.href 
                       ? "bg-gradient-primary text-white shadow-lg hover:shadow-xl" 
                       : "hover:bg-secondary/50 hover:text-primary hover:scale-105",
@@ -104,21 +106,12 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             ))}
           </nav>
 
-          {/* Right Actions */}
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={cn(
-                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 flex items-center space-x-2",
-                "bg-background/50 border border-border/30 backdrop-blur-sm",
-                "shadow-lg hover:shadow-xl",
-                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-              )}
-            >
-              <Search className="h-4 w-4 icon-shadow" />
-              <span className="hidden sm:inline text-sm font-medium">Cerca...</span>
-            </Button>
+          {/* Right Actions - Mobile Optimized */}
+          <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
+            <SearchSystem onSearch={(query, filters) => {
+              // Handle search navigation if needed
+              console.log('Search:', query, filters);
+            }} />
             
             <Button 
               variant="ghost" 
@@ -128,25 +121,14 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
                 "bg-background/50 border border-border/30 backdrop-blur-sm",
                 "shadow-lg hover:shadow-xl",
+                "h-8 sm:h-9 w-8 sm:w-9 p-0",
                 !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
               )}
             >
-              {darkMode ? <Sun className="h-4 w-4 icon-shadow" /> : <Moon className="h-4 w-4 icon-shadow" />}
+              {darkMode ? <Sun className="h-3 w-3 sm:h-4 sm:w-4 icon-shadow" /> : <Moon className="h-3 w-3 sm:h-4 sm:w-4 icon-shadow" />}
             </Button>
 
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className={cn(
-                "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105 relative",
-                "bg-background/50 border border-border/30 backdrop-blur-sm",
-                "shadow-lg hover:shadow-xl",
-                !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
-              )}
-            >
-              <Bell className="h-4 w-4 icon-shadow" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full animate-pulse shadow-lg" />
-            </Button>
+            <NotificationSystem />
 
             {user ? (
               <DropdownMenu>
@@ -208,7 +190,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             <Button
               variant="ghost"
               size="sm"
-              className="md:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200"
+              className="lg:hidden hover:bg-secondary/50 hover:text-primary transition-all duration-200 h-8 sm:h-9 w-8 sm:w-9 p-0 ml-1 sm:ml-2"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
             >
               {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
@@ -216,10 +198,10 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile/Tablet Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden border-t border-border/50 py-4 animate-slide-up">
-            <nav className="flex flex-col space-y-2">
+          <div className="lg:hidden border-t border-border/50 py-4 animate-slide-up">
+            <nav className="flex flex-col space-y-2 px-2">
               {sports.map((sport) => (
                 <Link
                   key={sport.name}
@@ -228,9 +210,9 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                 >
                   <Button
                     variant={location.pathname === sport.href ? "default" : "ghost"}
-                    size="sm"
+                    size="default"
                     className={cn(
-                      "justify-start transition-all duration-300 w-full",
+                      "justify-start transition-all duration-300 w-full h-12 text-base font-medium",
                       location.pathname === sport.href 
                         ? "bg-gradient-primary text-white shadow-lg" 
                         : "hover:bg-secondary/50 hover:text-primary"

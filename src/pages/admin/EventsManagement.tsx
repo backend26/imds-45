@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { EditorPermissionWrapper } from '@/components/editor/EditorPermissionWrapper';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import type { Database } from '@/integrations/supabase/types';
@@ -209,12 +210,14 @@ export const EventsManagement = () => {
     );
   }
 
-  return (
+  const EventsContent = () => (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Gestione Eventi Sportivi</h1>
-          <p className="text-muted-foreground">Crea e gestisci eventi sportivi per il calendario</p>
+          <p className="text-muted-foreground">
+            Crea e gestisci eventi sportivi per il calendario
+          </p>
         </div>
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogTrigger asChild>
@@ -491,5 +494,11 @@ export const EventsManagement = () => {
         )}
       </div>
     </div>
+  );
+
+  return (
+    <EditorPermissionWrapper fallbackMessage="Devi avere il ruolo di Editor o superiore per gestire gli eventi.">
+      <EventsContent />
+    </EditorPermissionWrapper>
   );
 };

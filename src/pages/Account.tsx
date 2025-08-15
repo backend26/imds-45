@@ -10,6 +10,7 @@ import { PublicProfileTab } from "@/components/account/PublicProfileTab";
 import { ActivityTab } from "@/components/account/ActivityTab";
 import { SecurityTab } from "@/components/account/SecurityTab";
 import { PrivacyTab } from "@/components/account/PrivacyTab";
+import { EnhancedSettings } from '@/components/account/EnhancedSettings';
 import { ErrorModal } from "@/components/ErrorModal";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { User, Activity, Shield, Edit, Eye } from "lucide-react";
@@ -121,6 +122,7 @@ export default function Account() {
 
                 <TabsContent value="security" className="space-y-6">
                   <SecurityTab onError={handleError} />
+                  <EnhancedSettings />
                 </TabsContent>
               </Tabs>
             </div>
