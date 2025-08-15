@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -13,7 +13,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Category = Database['public']['Tables']['categories']['Row'];
 
-interface PostSettingsSidebarProps {
+interface Props {
   categoryId: string;
   setCategoryId: (id: string) => void;
   tags: string[];
@@ -28,7 +28,7 @@ interface PostSettingsSidebarProps {
   setStatus: (status: 'draft' | 'published' | 'archived') => void;
 }
 
-export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
+export const PostSettingsSidebar: React.FC<Props> = ({
   categoryId,
   setCategoryId,
   tags,
@@ -47,66 +47,42 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [tagInput, setTagInput] = useState('');
 
-  // Fetch categories
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const { data, error } = await supabase
-          .from('categories')
-          .select('*')
-          .order('name');
-
-        if (error) {
-          throw error;
-        }
-
-        setCategories(data || []);
+        const { data, error } = await supabase.from('categories').select('*').order('name');
+        if (error) throw error;
+        setCategories((data || []).filter((c) => c.id != null && c.id !== ''));
       } catch (error) {
         console.error('Error fetching categories:', error);
-        toast({
-          title: "Error",
-          description: "Failed to load categories",
-          variant: "destructive",
-        });
+        toast({ title: "Error", description: "Failed to load categories", variant: "destructive" });
       } finally {
         setCategoriesLoading(false);
       }
     };
-
     fetchCategories();
   }, [toast]);
 
-  const handleTagInputKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' || e.key === ',') {
-      e.preventDefault();
-      addTag();
-    }
-  };
-
   const addTag = () => {
-    const newTag = tagInput.trim();
-    if (newTag && !tags.includes(newTag)) {
-      setTags([...tags, newTag]);
+    const trimmed = tagInput.trim();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
       setTagInput('');
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const removeTag = (toRemove: string) => {
+    setTags(tags.filter((t) => t !== toRemove));
   };
 
   return (
     <div className="space-y-6">
       {/* Post Status */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Post Status</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Post Status</CardTitle></CardHeader>
         <CardContent>
-          <Select value={status} onValueChange={(value: 'draft' | 'published' | 'archived') => setStatus(value)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
+          <Select value={status} onValueChange={(v: 'draft' | 'published' | 'archived') => setStatus(v)}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="draft">Draft</SelectItem>
               <SelectItem value="published">Published</SelectItem>
@@ -116,25 +92,21 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
         </CardContent>
       </Card>
 
-      {/* Category */}
+      {/* Category Select */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Category</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Category</CardTitle></CardHeader>
         <CardContent>
-          <Select 
-            value={categoryId} 
+          <Select
+            value={categoryId || undefined}
             onValueChange={(value) => setCategoryId(value === 'none' ? '' : value)}
             disabled={categoriesLoading}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Select a category" />
-            </SelectTrigger>
+            <SelectTrigger><SelectValue placeholder="Select a category" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="none">No category</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
-                  {category.name}
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>
+                  {c.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -142,42 +114,28 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
         </CardContent>
       </Card>
 
-      {/* Tags */}
+      {/* Tags Input */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Tags</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Tags</CardTitle></CardHeader>
         <CardContent className="space-y-3">
           <div className="flex gap-2">
             <Input
               placeholder="Add a tag..."
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={handleTagInputKeyDown}
+              onKeyDown={(e) => e.key === 'Enter' || e.key === ',' ? (e.preventDefault(), addTag()) : undefined}
               onBlur={addTag}
             />
-            <Button 
-              type="button" 
-              onClick={addTag}
-              size="sm"
-              disabled={!tagInput.trim()}
-            >
+            <Button type="button" size="sm" disabled={!tagInput.trim()} onClick={addTag}>
               Add
             </Button>
           </div>
-          
           {tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {tags.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="flex items-center gap-1">
+              {tags.map((tag) => (
+                <Badge key={tag} variant="secondary" className="flex items-center gap-1">
                   {tag}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-auto p-0 w-4 h-4"
-                    onClick={() => removeTag(tag)}
-                  >
+                  <Button type="button" variant="ghost" size="sm" className="h-4 w-4 p-0" onClick={() => removeTag(tag)}>
                     <X className="h-3 w-3" />
                   </Button>
                 </Badge>
@@ -187,43 +145,21 @@ export const PostSettingsSidebar: React.FC<PostSettingsSidebarProps> = ({
         </CardContent>
       </Card>
 
-      {/* Post Settings */}
+      {/* Switches: Comments, Co-authoring, Hero */}
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Settings</CardTitle>
-        </CardHeader>
+        <CardHeader><CardTitle className="text-lg">Settings</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
-            <Label htmlFor="comments-enabled" className="text-sm font-medium">
-              Enable Comments
-            </Label>
-            <Switch
-              id="comments-enabled"
-              checked={commentsEnabled}
-              onCheckedChange={setCommentsEnabled}
-            />
+            <Label htmlFor="comments-enabled" className="text-sm font-medium">Enable Comments</Label>
+            <Switch id="comments-enabled" checked={commentsEnabled} onCheckedChange={setCommentsEnabled} />
           </div>
-          
           <div className="flex items-center justify-between">
-            <Label htmlFor="co-authoring-enabled" className="text-sm font-medium">
-              Enable Co-authoring
-            </Label>
-            <Switch
-              id="co-authoring-enabled"
-              checked={coAuthoringEnabled}
-              onCheckedChange={setCoAuthoringEnabled}
-            />
+            <Label htmlFor="co-authoring-enabled" className="text-sm font-medium">Enable Co-authoring</Label>
+            <Switch id="co-authoring-enabled" checked={coAuthoringEnabled} onCheckedChange={setCoAuthoringEnabled} />
           </div>
-
           <div className="flex items-center justify-between">
-            <Label htmlFor="is-hero" className="text-sm font-medium">
-              Articolo Hero
-            </Label>
-            <Switch
-              id="is-hero"
-              checked={isHero}
-              onCheckedChange={setIsHero}
-            />
+            <Label htmlFor="is-hero" className="text-sm font-medium">Articolo Hero</Label>
+            <Switch id="is-hero" checked={isHero} onCheckedChange={setIsHero} />
           </div>
         </CardContent>
       </Card>
