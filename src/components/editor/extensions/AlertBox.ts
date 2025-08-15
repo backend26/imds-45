@@ -7,7 +7,13 @@ export interface AlertBoxOptions {
 declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     alertBox: {
-      setAlertBox: (options: { type: 'warning' | 'info' | 'success' | 'error'; content: string }) => ReturnType;
+      /**
+       * Inserisce un blocco Alert Box
+       */
+      setAlertBox: (options: {
+        type?: 'info' | 'warning' | 'error' | 'success';
+        content?: string;
+      }) => ReturnType;
     };
   }
 }
@@ -15,27 +21,17 @@ declare module '@tiptap/core' {
 export const AlertBox = Node.create<AlertBoxOptions>({
   name: 'alertBox',
 
-  addOptions() {
-    return {
-      HTMLAttributes: {},
-    };
-  },
-
   group: 'block',
 
   content: 'inline*',
 
-  addAttributes() {
+  atom: true,
+
+  addOptions() {
     return {
-      type: {
-        default: 'info',
-        parseHTML: element => element.getAttribute('data-type'),
-        renderHTML: attributes => {
-          if (!attributes.type) {
-            return {};
-          }
-          return { 'data-type': attributes.type };
-        },
+      HTMLAttributes: {
+        class:
+          'my-4 p-4 rounded-md border text-sm',
       },
     };
   },
@@ -43,48 +39,41 @@ export const AlertBox = Node.create<AlertBoxOptions>({
   parseHTML() {
     return [
       {
-        tag: 'div[data-alert-box]',
+        tag: 'div[data-type="alert-box"]',
       },
     ];
   },
 
-  renderHTML({ node, HTMLAttributes }) {
-    const type = node.attrs.type || 'info';
-    const icons = {
-      warning: '⚠️',
-      info: 'ℹ️', 
-      success: '✅',
-      error: '❌'
-    };
-    
-    const colors = {
-      warning: 'bg-yellow-100 border-yellow-300 text-yellow-800',
-      info: 'bg-blue-100 border-blue-300 text-blue-800',
-      success: 'bg-green-100 border-green-300 text-green-800',
-      error: 'bg-red-100 border-red-300 text-red-800'
-    };
+  renderHTML({ HTMLAttributes }) {
+    // Determina lo stile in base al tipo di alert
+    const typeClass = (() => {
+      switch (HTMLAttributes.type) {
+        case 'warning':
+          return 'bg-yellow-50 border-yellow-400 text-yellow-800';
+        case 'error':
+          return 'bg-red-50 border-red-400 text-red-800';
+        case 'success':
+          return 'bg-green-50 border-green-400 text-green-800';
+        default:
+          return 'bg-blue-50 border-blue-400 text-blue-800';
+      }
+    })();
 
     return [
       'div',
       mergeAttributes(
-        {
-          'data-alert-box': '',
-          'data-type': type,
-          class: `alert-box flex items-start gap-3 p-4 border-l-4 rounded-r-lg my-4 ${colors[type as keyof typeof colors]}`,
-        },
         this.options.HTMLAttributes,
-        HTMLAttributes
+        HTMLAttributes,
+        {
+          'data-type': 'alert-box',
+          class: `${this.options.HTMLAttributes.class} ${typeClass}`,
+        }
       ),
       [
-        'span',
-        { class: 'text-xl flex-shrink-0 mt-0.5' },
-        icons[type as keyof typeof icons]
+        'p',
+        {},
+        HTMLAttributes.content || 'Testo dell’avviso...',
       ],
-      [
-        'div',
-        { class: 'flex-1' },
-        0
-      ]
     ];
   },
 
@@ -93,10 +82,14 @@ export const AlertBox = Node.create<AlertBoxOptions>({
       setAlertBox:
         (options) =>
         ({ commands }) => {
+          const attrs = {
+            type: options.type || 'info',
+            content: options.content?.trim() || '',
+          };
+
           return commands.insertContent({
             type: this.name,
-            attrs: { type: options.type },
-            content: [{ type: 'text', text: options.content }],
+            attrs,
           });
         },
     };
