@@ -16,8 +16,8 @@ declare module '@tiptap/core' {
 export const CallToAction = Node.create<CallToActionOptions>({
   name: 'callToAction',
   group: 'block',
-  content: 'text*',
-  atom: true,
+  content: 'inline*',
+  atom: false,
 
   addOptions() {
     return {
@@ -43,15 +43,14 @@ export const CallToAction = Node.create<CallToActionOptions>({
         'data-cta-title': title,
         'data-cta-content': content,
         'data-cta-button': buttonText,
-        contenteditable: 'false',
         role: 'region',
         'aria-label': 'Call to Action'
       }),
       [
         'div',
-        { class: 'cta-content' },
-        title ? ['h3', { class: 'text-xl font-bold mb-3 text-center' }, title] : null,
-        ['p', { class: 'cta-text mb-6 text-center text-muted-foreground' }, content],
+        { class: 'cta-content space-y-4' },
+        title ? ['h3', { class: 'text-xl font-bold text-center', contenteditable: 'true' }, title] : null,
+        ['div', { class: 'cta-text text-center text-muted-foreground', contenteditable: 'true' }, 0],
         ['div', { class: 'text-center' },
           ['button', { 
             class: 'bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors shadow-lg',

@@ -6,7 +6,7 @@ export const getCoverImageFromPost = (post: any): string => {
       return '';
     }
 
-    // PRIORITY 1: Check cover_images field (current format)
+    // PRIORITY 1: Check cover_images field (current format) - ONLY source now
     if (post.cover_images) {
       // If it's a string URL, return it directly
       if (typeof post.cover_images === 'string' && post.cover_images.startsWith('http')) {
@@ -21,7 +21,10 @@ export const getCoverImageFromPost = (post: any): string => {
             return parsed[0];
           }
         } catch (e) {
-          // Silent fail for JSON parsing
+          // If parsing fails, treat as direct URL
+          if (post.cover_images.startsWith('http')) {
+            return post.cover_images;
+          }
         }
       }
       
@@ -31,12 +34,11 @@ export const getCoverImageFromPost = (post: any): string => {
       }
     }
 
-    // PRIORITY 2: Fallback to featured_image_url (legacy)
+    // LEGACY FALLBACKS: Only for backward compatibility
     if (post.featured_image_url && typeof post.featured_image_url === 'string' && post.featured_image_url.startsWith('http')) {
       return post.featured_image_url;
     }
 
-    // PRIORITY 3: Fallback to imageUrl property (for compatibility)
     if (post.imageUrl && typeof post.imageUrl === 'string') {
       return post.imageUrl;
     }

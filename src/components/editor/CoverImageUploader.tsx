@@ -57,7 +57,8 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
       const imageUrl = await uploadImage(files[0]);
       
       if (imageUrl) {
-        onChange(imageUrl);
+        // Store as JSON array for consistency with database schema
+        onChange(JSON.stringify([imageUrl]));
         toast({
           title: "Successo",
           description: "Immagine di copertina caricata",
@@ -93,6 +94,18 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
   const removeImage = useCallback(() => {
     onChange('');
   }, [onChange]);
+
+  // Parse images for display - handles both JSON array and direct URL
+  const currentImage = (() => {
+    if (!images) return '';
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed[0] : images;
+    } catch {
+      // If parsing fails, treat as direct URL
+      return images;
+    }
+  })();
 
   return (
     <div className="space-y-4">
@@ -134,13 +147,13 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
       </Card>
 
       {/* Current Cover Image */}
-      {images && (
+      {currentImage && (
         <div className="relative group">
           <Card className="overflow-hidden">
             <CardContent className="p-0">
               <div className="aspect-video relative">
                 <img
-                  src={images}
+                  src={currentImage}
                   alt="Immagine di copertina"
                   className="w-full h-full object-cover"
                 />

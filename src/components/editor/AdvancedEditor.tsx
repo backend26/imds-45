@@ -18,7 +18,7 @@ import Superscript from '@tiptap/extension-superscript';
 import Subscript from '@tiptap/extension-subscript';
 import { createLowlight } from 'lowlight';
 import { AdvancedEditorToolbar } from './AdvancedEditorToolbar';
-import { AlertBox } from './extensions/AlertBox';
+import { AlertBox } from './extensions/AlertBoxReact';
 import { CallToAction } from './extensions/CallToAction';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
@@ -345,7 +345,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         author_id: user.id,
         category_id: categoryId || null,
         tags,
-        cover_images: coverImages.length > 0 ? coverImages[0] : null,
+        cover_images: coverImages || null,
         featured_image_url: null, // Always null - unified on cover_images
         comments_enabled: commentsEnabled,
         co_authoring_enabled: coAuthoringEnabled,
