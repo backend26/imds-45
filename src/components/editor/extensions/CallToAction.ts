@@ -16,8 +16,8 @@ declare module '@tiptap/core' {
 export const CallToAction = Node.create<CallToActionOptions>({
   name: 'callToAction',
   group: 'block',
-  content: 'inline*',
-  atom: true,
+  content: 'block*',
+  atom: false,
 
   addOptions() {
     return {
@@ -32,29 +32,13 @@ export const CallToAction = Node.create<CallToActionOptions>({
   },
 
   renderHTML({ HTMLAttributes }) {
-    const title = HTMLAttributes.title || '';
-    const buttonText = HTMLAttributes.buttonText || '';
-
     return [
       'div',
-      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { 'data-cta': '' }),
-      [
-        'div',
-        { class: 'space-y-4' },
-        title ? ['h3', { class: 'text-xl font-bold text-primary' }, title] : null,
-        ['div', { class: 'text-muted-foreground' }, 0],
-        buttonText
-          ? [
-              'button',
-              {
-                class:
-                  'mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:bg-primary/90 transition-colors',
-                type: 'button',
-              },
-              buttonText,
-            ]
-          : null,
-      ].filter(Boolean),
+      mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, { 
+        'data-cta': '', 
+        contenteditable: 'true'
+      }),
+      0
     ];
   },
 

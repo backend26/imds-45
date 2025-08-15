@@ -75,27 +75,41 @@ export const getRandomCoverImage = (): string => {
 };
 
 export const getCoverImageFromPost = (post: any): string => {
-  console.log('getCoverImageFromPost called with:', { 
-    id: post?.id, 
-    cover_images: post?.cover_images, 
-    featured_image_url: post?.featured_image_url 
-  });
-  
   if (!post) return '';
   
-  // Check for direct cover_images field (single string now)
-  if (post.cover_images && typeof post.cover_images === 'string' && post.cover_images.trim()) {
-    console.log('Using cover_images:', post.cover_images);
-    return post.cover_images;
+  // If it's the mock data format (imageUrl)
+  if (post.imageUrl) {
+    return post.imageUrl;
   }
   
-  // Fallback to featured_image_url
-  if (post.featured_image_url && post.featured_image_url.trim()) {
-    console.log('Using featured_image_url:', post.featured_image_url);
-    return post.featured_image_url;
+  // If it's the database format (cover_images) - simplified
+  if (post.cover_images) {
+    // Handle direct URL string (most common case)
+    if (typeof post.cover_images === 'string' && post.cover_images.trim()) {
+      // Check if it's a valid URL
+      if (post.cover_images.startsWith('http') || post.cover_images.startsWith('/')) {
+        return post.cover_images;
+      }
+    }
   }
   
-  console.log('No valid image found, using random fallback');
-  // Return random fallback if no specific image
-  return getRandomCoverImage();
+  // Category-based fallbacks (no random selection for hero/trending)
+  const categoryFallbacks: Record<string, string> = {
+    'calcio': '/assets/images/derby-inter-milan.jpg',
+    'f1': '/assets/images/verstappen-monza.jpg',
+    'tennis': '/assets/images/sinner-usopen.jpg',
+    'basket': '/assets/images/lakers-warriors.jpg',
+    'nfl': '/assets/images/chiefs-superbowl.jpg'
+  };
+  
+  if (post.category_id && categoryFallbacks[post.category_id.toLowerCase()]) {
+    return categoryFallbacks[post.category_id.toLowerCase()];
+  }
+  
+  if (post.category && categoryFallbacks[post.category.toLowerCase()]) {
+    return categoryFallbacks[post.category.toLowerCase()];
+  }
+  
+  // Final fallback
+  return '/assets/images/derby-inter-milan.jpg';
 };

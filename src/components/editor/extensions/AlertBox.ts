@@ -25,7 +25,7 @@ export const AlertBox = Node.create<AlertBoxOptions>({
 
   content: 'inline*',
 
-  atom: true,
+  atom: false,
 
   addOptions() {
     return {
@@ -49,13 +49,13 @@ export const AlertBox = Node.create<AlertBoxOptions>({
     const typeClass = (() => {
       switch (HTMLAttributes.type) {
         case 'warning':
-          return 'bg-yellow-50 border-yellow-400 text-yellow-800';
+          return 'bg-yellow-50 border-yellow-400 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-600 dark:text-yellow-200';
         case 'error':
-          return 'bg-red-50 border-red-400 text-red-800';
+          return 'bg-red-50 border-red-400 text-red-800 dark:bg-red-900/20 dark:border-red-600 dark:text-red-200';
         case 'success':
-          return 'bg-green-50 border-green-400 text-green-800';
+          return 'bg-green-50 border-green-400 text-green-800 dark:bg-green-900/20 dark:border-green-600 dark:text-green-200';
         default:
-          return 'bg-blue-50 border-blue-400 text-blue-800';
+          return 'bg-blue-50 border-blue-400 text-blue-800 dark:bg-blue-900/20 dark:border-blue-600 dark:text-blue-200';
       }
     })();
 
@@ -67,13 +67,10 @@ export const AlertBox = Node.create<AlertBoxOptions>({
         {
           'data-type': 'alert-box',
           class: `${this.options.HTMLAttributes.class} ${typeClass}`,
+          contenteditable: 'true',
         }
       ),
-      [
-        'p',
-        {},
-        HTMLAttributes.content || 'Testo dell’avviso...',
-      ],
+      0
     ];
   },
 
@@ -90,6 +87,7 @@ export const AlertBox = Node.create<AlertBoxOptions>({
           return commands.insertContent({
             type: this.name,
             attrs,
+            content: [{ type: 'text', text: options.content?.trim() || 'Testo dell\'avviso...' }],
           });
         },
     };

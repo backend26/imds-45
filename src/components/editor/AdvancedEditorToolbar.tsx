@@ -218,6 +218,30 @@ export const AdvancedEditorToolbar: React.FC<AdvancedEditorToolbarProps> = ({
           <FileText className="h-4 w-4" />
         </ToolbarButton>
 
+        <Separator orientation="vertical" className="h-6" />
+        
+        <Badge variant="outline" className="text-xs">Dimensione</Badge>
+        <Select
+          value="16"
+          onValueChange={(value) => {
+            const size = `${value}px`;
+            editor.chain().focus().setMark('textStyle', { fontSize: size }).run();
+          }}
+        >
+          <SelectTrigger className="w-20 h-8">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="12">12px</SelectItem>
+            <SelectItem value="14">14px</SelectItem>
+            <SelectItem value="16">16px</SelectItem>
+            <SelectItem value="18">18px</SelectItem>
+            <SelectItem value="20">20px</SelectItem>
+            <SelectItem value="24">24px</SelectItem>
+            <SelectItem value="32">32px</SelectItem>
+          </SelectContent>
+        </Select>
+
         <div className="flex gap-1">
           <ColorPicker 
             command={(color) => editor.chain().focus().setColor(color).run()}

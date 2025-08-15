@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
+import { useBlocker } from 'react-router-dom';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import Image from '@tiptap/extension-image';
@@ -61,6 +62,12 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [publishedPost, setPublishedPost] = useState<{ id: string; title: string } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // Block navigation when there are unsaved changes
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
+  );
 
   const lowlight = useMemo(() => createLowlight(), []);
 
@@ -132,20 +139,39 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     content: initialPost?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 text-foreground editor-content',
+        class: 'focus:outline-none min-h-[400px] p-4 text-foreground editor-content',
       },
     },
-    onBeforeCreate: ({ editor }) => {
-      // Prevent page reloads by disabling default beforeunload
-      const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-        e.preventDefault();
-        return;
-      };
-      window.removeEventListener('beforeunload', handleBeforeUnload);
+    onCreate: ({ editor }) => {
+      // Restore content from localStorage if available
+      const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
+      const saved = localStorage.getItem(storageKey);
+      if (saved && !initialPost) {
+        try {
+          const data = JSON.parse(saved);
+          if (data.content && !editor.getHTML().includes('<p>')) {
+            editor.commands.setContent(data.content);
+            setTitle(data.title || '');
+            setExcerpt(data.excerpt || '');
+            setCategoryId(data.categoryId || '');
+            setTags(data.tags || []);
+            setCoverImages(data.coverImages || '');
+            setCommentsEnabled(data.commentsEnabled ?? true);
+            setCoAuthoringEnabled(data.coAuthoringEnabled ?? false);
+            setIsHero(data.isHero ?? false);
+            setStatus(data.status || 'draft');
+          }
+        } catch (error) {
+          console.error('Failed to restore editor content:', error);
+        }
+      }
+    },
+    onUpdate: () => {
+      setHasUnsavedChanges(true);
     },
   });
 
-  // Set up auto-save after editor is initialized
+  // Set up auto-save and cleanup
   useEffect(() => {
     if (!editor) return;
     
@@ -171,6 +197,24 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
       }
     }, 30000); // Every 30 seconds
 
+    // Clear old auto-saves (older than 24 hours)
+    const cleanupOldSaves = () => {
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('editor:')) {
+          try {
+            const data = JSON.parse(localStorage.getItem(key) || '{}');
+            const age = Date.now() - (data.timestamp || 0);
+            if (age > 24 * 60 * 60 * 1000) { // 24 hours
+              localStorage.removeItem(key);
+            }
+          } catch (error) {
+            localStorage.removeItem(key); // Remove corrupted data
+          }
+        }
+      });
+    };
+
+    cleanupOldSaves();
     return () => clearInterval(interval);
   }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, initialPost, editor]);
 
@@ -251,12 +295,14 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
 
     try {
       const sanitizedContent = DOMPurify.sanitize(editor.getHTML());
+      
+      // Base data for both drafts and published posts
       const baseData = {
         title: title.trim(),
         content: sanitizedContent,
         excerpt: excerpt.trim(),
         author_id: user.id,
-        category_id: categoryId,
+        category_id: categoryId || null,
         tags,
         cover_images: coverImages,
         comments_enabled: commentsEnabled,
@@ -266,13 +312,17 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         updated_at: new Date().toISOString(),
       } as any;
       
-      const dataWithPublish = publishStatus === 'published'
-        ? { ...baseData, published_at: new Date().toISOString() }
-        : baseData;
+      // Only set published_at when actually publishing
+      if (publishStatus === 'published') {
+        baseData.published_at = new Date().toISOString();
+      } else {
+        // For drafts, ensure published_at is null
+        baseData.published_at = null;
+      }
         
       const result = initialPost
-        ? await supabase.from('posts').update(dataWithPublish).eq('id', initialPost.id).select().single()
-        : await supabase.from('posts').insert({ ...dataWithPublish, created_at: new Date().toISOString() }).select().single();
+        ? await supabase.from('posts').update(baseData).eq('id', initialPost.id).select().single()
+        : await supabase.from('posts').insert({ ...baseData, created_at: new Date().toISOString() }).select().single();
         
       if (result.error) throw result.error;
 
@@ -330,7 +380,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           <CardContent>
             {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
             <div className="border rounded-lg min-h-[400px] p-4">
-              <EditorContent editor={editor} className="prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px]" />
+              <EditorContent editor={editor} className="focus:outline-none min-h-[400px] editor-content" />
             </div>
           </CardContent>
         </Card>
