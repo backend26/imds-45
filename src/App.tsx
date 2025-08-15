@@ -7,7 +7,9 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
 import { ThemeManager } from "@/components/ThemeManager";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import AdminDashboard from "./pages/admin/Dashboard";
+import { EventsManagement } from "./pages/admin/EventsManagement";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -27,6 +29,9 @@ import NotFound from "./pages/NotFound";
 import NewPostPage from "./pages/editor/new";
 import EditPostPage from "./pages/editor/[postId]/edit";
 import AdminGuide from "./pages/AdminGuide";
+import ChiSiamo from "./pages/ChiSiamo";
+import Contatti from "./pages/Contatti";
+import ResetPassword from "./pages/ResetPassword";
 import Post from "./pages/Post";
 
 const queryClient = new QueryClient();
@@ -50,8 +55,12 @@ const App = () => (
             <Route path="/editor/new" element={<NewPostPage />} />
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />
             <Route path="/post/:postId" element={<Post />} />
-            <Route path="/admin/dashboard" element={<AdminDashboard />} />
-            <Route path="/admin/guide" element={<AdminGuide />} />
+            <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><AdminDashboard /></ProtectedRoute>} />
+            <Route path="/admin/guide" element={<ProtectedRoute allowedRoles={['administrator']}><AdminGuide /></ProtectedRoute>} />
+            <Route path="/admin/events" element={<ProtectedRoute allowedRoles={['administrator', 'editor']}><EventsManagement /></ProtectedRoute>} />
+            <Route path="/chi-siamo" element={<ChiSiamo />} />
+            <Route path="/contatti" element={<Contatti />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/cookie-policy" element={<CookiePolicy />} />
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-and-conditions" element={<TermsAndConditions />} />

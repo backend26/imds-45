@@ -8,6 +8,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { supabase } from "@/integrations/supabase/client";
 import { useEffect } from "react";
 
 export default function Login() {
@@ -68,7 +69,27 @@ export default function Login() {
     setIsLoading(true);
 
     try {
-      const { error } = await signIn(email, password);
+      let loginEmail = email;
+      
+      // Se l'input non contiene @, è un username - ottieni l'email
+      if (!email.includes('@')) {
+        const { data: emailFromUsername, error: emailError } = await supabase
+          .rpc('get_email_by_username', { username_input: email });
+        
+        if (emailError || !emailFromUsername) {
+          toast({
+            title: "Username non trovato",
+            description: "L'username inserito non esiste",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        
+        loginEmail = emailFromUsername;
+      }
+
+      const { error } = await signIn(loginEmail, password);
       
       if (error) {
         toast({
@@ -125,14 +146,15 @@ export default function Login() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email o Username</Label>
                   <Input
                     id="email"
-                    type="email"
+                    type="text"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     className="mt-1"
+                    placeholder="mario@example.com o mario_123"
                   />
                 </div>
                 <div>
@@ -155,14 +177,24 @@ export default function Login() {
                 </Button>
               </form>
               
-              <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">Non hai un account? </span>
-                <Link 
-                  to="/registrati" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  Registrati
-                </Link>
+              <div className="mt-6 text-center text-sm space-y-2">
+                <div>
+                  <Link 
+                    to="/reset-password" 
+                    className="text-primary hover:underline text-sm"
+                  >
+                    Password dimenticata?
+                  </Link>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Non hai un account? </span>
+                  <Link 
+                    to="/registrati" 
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Registrati
+                  </Link>
+                </div>
               </div>
             </CardContent>
           </Card>

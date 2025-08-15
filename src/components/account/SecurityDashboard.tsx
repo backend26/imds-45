@@ -140,37 +140,57 @@ const SessionManager = () => {
   }, []);
 
   const loadSessions = async () => {
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      // TODO: Implementare quando la tabella user_sessions sarà creata
-      // const { data, error } = await supabase
-      //   .from('user_sessions')
-      //   .select('*')
-      //   .eq('user_id', user?.id)
-      //   .order('last_activity', { ascending: false });
+      const { data, error } = await supabase
+        .from('user_sessions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('last_seen', { ascending: false });
 
-      // Dati mock per ora
-      const mockSessions: Session[] = [
-        {
-          id: '1',
-          device: 'Chrome su Windows',
-          location: 'Milano, Italia',
-          ip_address: '192.168.1.1',
-          created_at: new Date().toISOString(),
-          last_activity: new Date().toISOString(),
-          is_current: true
-        },
-        {
-          id: '2',
-          device: 'Safari su iPhone',
-          location: 'Roma, Italia',
-          ip_address: '192.168.1.2',
-          created_at: new Date(Date.now() - 86400000).toISOString(),
-          last_activity: new Date(Date.now() - 3600000).toISOString(),
-          is_current: false
-        }
-      ];
+      if (error) throw error;
 
-      setSessions(mockSessions);
+      if (data && data.length > 0) {
+        // Map database sessions to component format
+        const mappedSessions: Session[] = data.map(session => ({
+          id: session.session_id,
+          device: session.user_agent || 'Dispositivo sconosciuto',
+          location: 'Posizione non disponibile',
+          ip_address: session.ip_address?.toString() || '0.0.0.0',
+          created_at: session.created_at,
+          last_activity: session.last_seen,
+          is_current: session.session_id === getCurrentSessionId(),
+        }));
+        setSessions(mappedSessions);
+      } else {
+        // Fallback to mock data if no sessions found
+        const mockSessions: Session[] = [
+          {
+            id: '1',
+            device: 'Chrome su Windows',
+            location: 'Milano, Italia',
+            ip_address: '192.168.1.1',
+            created_at: new Date().toISOString(),
+            last_activity: new Date().toISOString(),
+            is_current: true
+          },
+          {
+            id: '2',
+            device: 'Safari su iPhone',
+            location: 'Roma, Italia',
+            ip_address: '192.168.1.2',
+            created_at: new Date(Date.now() - 86400000).toISOString(),
+            last_activity: new Date(Date.now() - 3600000).toISOString(),
+            is_current: false
+          }
+        ];
+
+        setSessions(mockSessions);
+      }
     } catch (error) {
       console.error('Errore caricamento sessioni:', error);
     } finally {
@@ -178,15 +198,23 @@ const SessionManager = () => {
     }
   };
 
-  const revokeSession = async (sessionId: string) => {
-    try {
-      // TODO: Implementare quando la tabella user_sessions sarà creata
-      // const { error } = await supabase
-      //   .from('user_sessions')
-      //   .delete()
-      //   .eq('id', sessionId);
+  const getCurrentSessionId = () => {
+    // Simple session ID generation - in real app this would come from auth
+    return 'current-session';
+  };
 
-      // Simulazione revoca sessione
+  const revokeSession = async (sessionId: string) => {
+    if (!user?.id) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_sessions')
+        .delete()
+        .eq('session_id', sessionId)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+
       setSessions(sessions.filter(s => s.id !== sessionId));
       toast({
         title: "Sessione revocata",

@@ -248,12 +248,16 @@ export default function Register() {
         return;
       }
 
-      // Step 1: Registra l'utente con Supabase Auth
+      // Registra l'utente con Supabase Auth e metadati per il trigger
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            username: username,
+            display_name: displayName || username
+          }
         }
       });
 
@@ -265,26 +269,6 @@ export default function Register() {
         });
         setIsLoading(false);
         return;
-      }
-
-      // Step 2: Crea il profilo usando la Edge Function
-      if (authData.user) {
-        const { data: functionData, error: functionError } = await supabase.functions.invoke('handle-signup', {
-          body: {
-            userId: authData.user.id,
-            username: username,
-            displayName: displayName || username
-          }
-        });
-
-        if (functionError) {
-          console.error('Profile creation error:', functionError);
-          toast({
-            title: "Avviso",
-            description: "Account creato ma potrebbero esserci problemi con il profilo. Contatta il supporto se necessario.",
-            variant: "destructive",
-          });
-        }
       }
 
       toast({

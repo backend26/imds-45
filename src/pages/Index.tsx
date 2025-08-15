@@ -14,6 +14,8 @@ import { TrendingUp, Filter } from "lucide-react";
 import { Icon } from "@/components/Icon";
 import { supabase } from "@/integrations/supabase/client";
 import { useGSAPAnimations } from "@/hooks/use-gsap-animations";
+import { useCardAnimations } from "@/hooks/use-card-animations";
+import { useInteractiveAnimations } from "@/hooks/use-interactive-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 import { getTimeAgo } from "@/utils/dateUtils";
 import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
@@ -30,7 +32,9 @@ const Index = () => {
   const [posts, setPosts] = useState<any[]>([]);
   const [featured, setFeatured] = useState<any | null>(null);
   const [loadingPosts, setLoadingPosts] = useState(false);
-  const { pageRef, animateCardHover, animateIconClick, animateCounter } = useGSAPAnimations();
+  const { pageRef } = useGSAPAnimations();
+  const { animateCardHover } = useCardAnimations();
+  const { animateIconClick, animateCounter } = useInteractiveAnimations();
   useLiquidAnimation();
 
   const toggleTheme = () => {

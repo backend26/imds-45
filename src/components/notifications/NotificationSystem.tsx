@@ -146,20 +146,21 @@ export const NotificationSystem = () => {
   if (!user) return null;
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          {unreadCount > 0 && (
-            <Badge 
-              variant="destructive" 
-              className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
-            >
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
-          )}
-        </Button>
-      </PopoverTrigger>
+    <>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="ghost" size="icon" className="relative">
+            <Bell className="h-5 w-5" />
+            {unreadCount > 0 && (
+              <Badge 
+                variant="destructive" 
+                className="absolute -top-1 -right-1 h-5 w-5 p-0 flex items-center justify-center text-xs"
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
       
       <PopoverContent className="w-80 p-0" align="end">
         <div className="p-4 border-b">
@@ -237,7 +238,22 @@ export const NotificationSystem = () => {
             </div>
           )}
         </ScrollArea>
+        
+        <div className="p-3 border-t">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="w-full text-xs"
+            onClick={() => {
+              setOpen(false);
+              // Open preferences modal (we'll import this)
+            }}
+          >
+            Gestisci Preferenze
+          </Button>
+        </div>
       </PopoverContent>
     </Popover>
+    </>
   );
 };

@@ -1,10 +1,11 @@
 import { Separator } from "@/components/ui/separator";
 import { Facebook, Twitter, Instagram, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const quickLinks = [
-    { name: "Chi Siamo", href: "#" },
-    { name: "Contatti", href: "#" },
+    { name: "Chi Siamo", href: "/chi-siamo" },
+    { name: "Contatti", href: "/contatti" },
     { name: "Privacy Policy", href: "/privacy-policy" },
     { name: "Termini e Condizioni", href: "/terms-and-conditions" },
     { name: "Cookie Policy", href: "/cookie-policy" },
@@ -39,12 +40,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {quickLinks.map((link) => (
                 <li key={link.name}>
-                  <a 
-                    href={link.href} 
+                  <Link 
+                    to={link.href} 
                     className="text-sm text-muted-foreground hover:text-primary transition-colors"
                   >
                     {link.name}
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>

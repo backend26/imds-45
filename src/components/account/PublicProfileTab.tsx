@@ -32,6 +32,17 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
   const [bio, setBio] = useState('');
   const [location, setLocation] = useState('');
   const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
+  const [favoriteTeam, setFavoriteTeam] = useState('');
+  const [socialLinks, setSocialLinks] = useState({
+    website: '',
+    twitter: '',
+    instagram: '',
+    youtube: '',
+    tiktok: '',
+    facebook: '',
+    linkedin: ''
+  });
+  const [preferredSports, setPreferredSports] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,7 +54,7 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
 
@@ -54,6 +65,17 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
           setBio(profileData.bio || '');
           setLocation(profileData.location || '');
           setBirthDate(profileData.birth_date ? new Date(profileData.birth_date) : undefined);
+          setFavoriteTeam((profileData as any).favorite_team || '');
+          setSocialLinks((profileData as any).social_links || {
+            website: '',
+            twitter: '',
+            instagram: '',
+            youtube: '',
+            tiktok: '',
+            facebook: '',
+            linkedin: ''
+          });
+          setPreferredSports(profileData.preferred_sports || []);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -79,6 +101,9 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
           bio: bio.trim() || null,
           location: location.trim() || null,
           birth_date: birthDate?.toISOString().split('T')[0] || null,
+          favorite_team: favoriteTeam.trim() || null,
+          social_links: socialLinks,
+          preferred_sports: preferredSports,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -212,6 +237,63 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
                 />
               </PopoverContent>
             </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="favoriteTeam">Squadra del Cuore</Label>
+            <Input
+              id="favoriteTeam"
+              type="text"
+              value={favoriteTeam}
+              onChange={(e) => setFavoriteTeam(e.target.value)}
+              placeholder="Juventus, Milan, Inter..."
+              disabled={isSaving}
+            />
+          </div>
+
+          <div className="space-y-4">
+            <Label>Link Social</Label>
+            <div className="grid grid-cols-1 gap-3">
+              {Object.entries(socialLinks).map(([platform, url]) => (
+                <div key={platform} className="space-y-2">
+                  <Label htmlFor={platform} className="text-sm font-medium capitalize">
+                    {platform === 'website' ? 'Sito Web' : platform}
+                  </Label>
+                  <Input
+                    id={platform}
+                    type="url"
+                    value={url}
+                    onChange={(e) => setSocialLinks(prev => ({ ...prev, [platform]: e.target.value }))}
+                    placeholder={`https://${platform === 'website' ? 'tuosito.com' : `${platform}.com/username`}`}
+                    disabled={isSaving}
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Sport Seguiti</Label>
+            <div className="grid grid-cols-2 gap-2">
+              {['Calcio', 'Tennis', 'Formula 1', 'NBA', 'NFL', 'Basket', 'Pallavolo', 'Rugby'].map((sport) => (
+                <label key={sport} className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={preferredSports.includes(sport)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setPreferredSports(prev => [...prev, sport]);
+                      } else {
+                        setPreferredSports(prev => prev.filter(s => s !== sport));
+                      }
+                    }}
+                    className="rounded border-input"
+                    disabled={isSaving}
+                  />
+                  <span className="text-sm">{sport}</span>
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="flex gap-3">

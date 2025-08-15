@@ -274,6 +274,174 @@ export type Database = {
         }
         Relationships: []
       }
+      login_sessions: {
+        Row: {
+          device_fingerprint: string | null
+          id: string
+          ip_address: unknown | null
+          is_new_location: boolean | null
+          is_suspicious: boolean | null
+          location_data: Json | null
+          logged_in_at: string | null
+          logged_out_at: string | null
+          login_method: string | null
+          session_duration: unknown | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_new_location?: boolean | null
+          is_suspicious?: boolean | null
+          location_data?: Json | null
+          logged_in_at?: string | null
+          logged_out_at?: string | null
+          login_method?: string | null
+          session_duration?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          device_fingerprint?: string | null
+          id?: string
+          ip_address?: unknown | null
+          is_new_location?: boolean | null
+          is_suspicious?: boolean | null
+          location_data?: Json | null
+          logged_in_at?: string | null
+          logged_out_at?: string | null
+          login_method?: string | null
+          session_duration?: unknown | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "login_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "login_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      notification_preferences: {
+        Row: {
+          badges_earned: boolean | null
+          comments_on_posts: boolean | null
+          content_moderation: boolean | null
+          created_at: string | null
+          email_digest_frequency: string | null
+          email_enabled: boolean | null
+          enabled: boolean | null
+          event_reminders: boolean | null
+          favorite_team_updates: boolean | null
+          featured_posts: boolean | null
+          likes_on_comments: boolean | null
+          likes_on_posts: boolean | null
+          live_events: boolean | null
+          mentions: boolean | null
+          new_followers: boolean | null
+          posts_by_sport: Json | null
+          posts_from_all_authors: boolean | null
+          posts_from_followed_authors: boolean | null
+          push_enabled: boolean | null
+          quiet_hours_end: string | null
+          quiet_hours_start: string | null
+          rating_milestones: boolean | null
+          replies_to_comments: boolean | null
+          score_updates: boolean | null
+          system_announcements: boolean | null
+          trending_posts: boolean | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          badges_earned?: boolean | null
+          comments_on_posts?: boolean | null
+          content_moderation?: boolean | null
+          created_at?: string | null
+          email_digest_frequency?: string | null
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          event_reminders?: boolean | null
+          favorite_team_updates?: boolean | null
+          featured_posts?: boolean | null
+          likes_on_comments?: boolean | null
+          likes_on_posts?: boolean | null
+          live_events?: boolean | null
+          mentions?: boolean | null
+          new_followers?: boolean | null
+          posts_by_sport?: Json | null
+          posts_from_all_authors?: boolean | null
+          posts_from_followed_authors?: boolean | null
+          push_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          rating_milestones?: boolean | null
+          replies_to_comments?: boolean | null
+          score_updates?: boolean | null
+          system_announcements?: boolean | null
+          trending_posts?: boolean | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          badges_earned?: boolean | null
+          comments_on_posts?: boolean | null
+          content_moderation?: boolean | null
+          created_at?: string | null
+          email_digest_frequency?: string | null
+          email_enabled?: boolean | null
+          enabled?: boolean | null
+          event_reminders?: boolean | null
+          favorite_team_updates?: boolean | null
+          featured_posts?: boolean | null
+          likes_on_comments?: boolean | null
+          likes_on_posts?: boolean | null
+          live_events?: boolean | null
+          mentions?: boolean | null
+          new_followers?: boolean | null
+          posts_by_sport?: Json | null
+          posts_from_all_authors?: boolean | null
+          posts_from_followed_authors?: boolean | null
+          push_enabled?: boolean | null
+          quiet_hours_end?: string | null
+          quiet_hours_start?: string | null
+          rating_milestones?: boolean | null
+          replies_to_comments?: boolean | null
+          score_updates?: boolean | null
+          system_announcements?: boolean | null
+          trending_posts?: boolean | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           actor_id: string
@@ -593,6 +761,7 @@ export type Database = {
           cookie_consent_date: string | null
           created_at: string
           display_name: string
+          favorite_team: string | null
           id: string
           is_banned: boolean | null
           last_login: string | null
@@ -603,6 +772,7 @@ export type Database = {
           privacy_settings: Json | null
           profile_picture_url: string | null
           role: Database["public"]["Enums"]["app_role"]
+          social_links: Json
           tfa_enabled: boolean | null
           tfa_secret: string | null
           theme_preference: string | null
@@ -619,6 +789,7 @@ export type Database = {
           cookie_consent_date?: string | null
           created_at?: string
           display_name: string
+          favorite_team?: string | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -629,6 +800,7 @@ export type Database = {
           privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          social_links?: Json
           tfa_enabled?: boolean | null
           tfa_secret?: string | null
           theme_preference?: string | null
@@ -645,6 +817,7 @@ export type Database = {
           cookie_consent_date?: string | null
           created_at?: string
           display_name?: string
+          favorite_team?: string | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -655,6 +828,7 @@ export type Database = {
           privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"]
+          social_links?: Json
           tfa_enabled?: boolean | null
           tfa_secret?: string | null
           theme_preference?: string | null
@@ -664,27 +838,279 @@ export type Database = {
         }
         Relationships: []
       }
+      search_analytics: {
+        Row: {
+          clicked_result_id: string | null
+          created_at: string | null
+          filters: Json | null
+          id: string
+          query: string
+          results_count: number | null
+          user_id: string | null
+        }
+        Insert: {
+          clicked_result_id?: string | null
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          query: string
+          results_count?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          clicked_result_id?: string | null
+          created_at?: string | null
+          filters?: Json | null
+          id?: string
+          query?: string
+          results_count?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "search_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "search_analytics_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      sports_events: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          end_datetime: string | null
+          event_type: string
+          external_id: string | null
+          id: string
+          live_score: Json | null
+          location: string | null
+          priority: number | null
+          sport_category: string
+          start_datetime: string
+          status: string | null
+          streaming_url: string | null
+          teams: Json | null
+          ticket_url: string | null
+          timezone: string | null
+          title: string
+          updated_at: string | null
+          venue: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          event_type?: string
+          external_id?: string | null
+          id?: string
+          live_score?: Json | null
+          location?: string | null
+          priority?: number | null
+          sport_category: string
+          start_datetime: string
+          status?: string | null
+          streaming_url?: string | null
+          teams?: Json | null
+          ticket_url?: string | null
+          timezone?: string | null
+          title: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          end_datetime?: string | null
+          event_type?: string
+          external_id?: string | null
+          id?: string
+          live_score?: Json | null
+          location?: string | null
+          priority?: number | null
+          sport_category?: string
+          start_datetime?: string
+          status?: string | null
+          streaming_url?: string | null
+          teams?: Json | null
+          ticket_url?: string | null
+          timezone?: string | null
+          title?: string
+          updated_at?: string | null
+          venue?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sports_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "sports_events_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      trending_topics: {
+        Row: {
+          created_at: string | null
+          id: string
+          mention_count: number | null
+          period: string | null
+          score: number | null
+          sport_category: string | null
+          topic: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mention_count?: number | null
+          period?: string | null
+          score?: number | null
+          sport_category?: string | null
+          topic: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mention_count?: number | null
+          period?: string | null
+          score?: number | null
+          sport_category?: string | null
+          topic?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      user_activity: {
+        Row: {
+          activity_type: string
+          created_at: string | null
+          id: string
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string | null
+          id?: string
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "user_activity_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          created_at: string
+          display_settings: Json | null
+          id: string
+          notification_settings: Json | null
+          privacy_settings: Json | null
+          reading_preferences: Json | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_settings?: Json | null
+          id?: string
+          notification_settings?: Json | null
+          privacy_settings?: Json | null
+          reading_preferences?: Json | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_settings?: Json | null
+          id?: string
+          notification_settings?: Json | null
+          privacy_settings?: Json | null
+          reading_preferences?: Json | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_sessions: {
         Row: {
           created_at: string
+          device_info: Json | null
           ip_address: unknown | null
+          is_suspicious: boolean | null
           last_seen: string
+          location_info: Json | null
+          security_score: number | null
           session_id: string
           user_agent: string | null
           user_id: string
         }
         Insert: {
           created_at?: string
+          device_info?: Json | null
           ip_address?: unknown | null
+          is_suspicious?: boolean | null
           last_seen?: string
+          location_info?: Json | null
+          security_score?: number | null
           session_id: string
           user_agent?: string | null
           user_id: string
         }
         Update: {
           created_at?: string
+          device_info?: Json | null
           ip_address?: unknown | null
+          is_suspicious?: boolean | null
           last_seen?: string
+          location_info?: Json | null
+          security_score?: number | null
           session_id?: string
           user_agent?: string | null
           user_id?: string
@@ -771,6 +1197,10 @@ export type Database = {
       }
     }
     Functions: {
+      calculate_session_security_score: {
+        Args: { p_ip_address: unknown; p_user_agent: string; p_user_id: string }
+        Returns: number
+      }
       check_email_exists: {
         Args: { email_check: string }
         Returns: boolean
@@ -802,6 +1232,10 @@ export type Database = {
       }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
+        Returns: string
+      }
+      get_email_by_username: {
+        Args: { username_input: string }
         Returns: string
       }
       get_post_metrics: {
@@ -853,6 +1287,10 @@ export type Database = {
       safe_purge_user_content: {
         Args: { target_user_id: string }
         Returns: undefined
+      }
+      validate_password_strength: {
+        Args: { password: string }
+        Returns: boolean
       }
     }
     Enums: {

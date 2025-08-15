@@ -209,7 +209,10 @@ export const SocialInteractions: React.FC<SocialInteractionsProps> = ({
         variant="ghost"
         size="sm"
         className="flex items-center gap-2 text-muted-foreground"
-        onClick={() => {/* TODO: Scroll to comments */}}
+        onClick={() => {
+          const commentsSection = document.getElementById('comments-section');
+          commentsSection?.scrollIntoView({ behavior: 'smooth' });
+        }}
       >
         <MessageCircle className="h-4 w-4" />
         <Badge variant="secondary" className="text-xs">
