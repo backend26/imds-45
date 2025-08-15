@@ -13,8 +13,9 @@ interface HorizontalArticleCardProps {
   imageUrl: string;
   category: string;
   publishedAt: string;
+  timeAgo?: string;
   author: string;
-  readTime: string;
+  readTime?: string;
   likes: number;
   comments: number;
   className?: string;
@@ -26,6 +27,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
   imageUrl,
   category,
   publishedAt,
+  timeAgo,
   author,
   readTime,
   likes,
@@ -124,12 +126,7 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
                   <span className="font-medium">{author}</span>
                 </div>
                 <span aria-hidden="true">•</span>
-                <span>{publishedAt}</span>
-                <span aria-hidden="true">•</span>
-                <div className="flex items-center space-x-1">
-                  <Icon name="clock" className="h-3 w-3" />
-                  <span className="font-medium">{readTime}</span>
-                </div>
+                <span>{timeAgo || publishedAt}</span>
               </div>
             </div>
 

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -795,9 +795,9 @@ export type Database = {
       get_author_stats: {
         Args: { author_uuid: string }
         Returns: {
-          posts_count: number
-          likes_received: number
           comments_received: number
+          likes_received: number
+          posts_count: number
         }[]
       }
       get_current_user_role: {
@@ -807,34 +807,34 @@ export type Database = {
       get_post_metrics: {
         Args: { post_ids: string[] }
         Returns: {
-          post_id: string
-          like_count: number
           comment_count: number
+          like_count: number
+          post_id: string
         }[]
       }
       get_public_profile_by_user_id: {
         Args: { p_user_id: string }
         Returns: {
+          banner_url: string
+          bio: string
+          birth_date: string
+          created_at: string
+          display_name: string
           id: string
+          location: string
+          preferred_sports: string[]
+          privacy_settings: Json
+          profile_picture_url: string
+          role: Database["public"]["Enums"]["app_role"]
           user_id: string
           username: string
-          display_name: string
-          bio: string
-          profile_picture_url: string
-          banner_url: string
-          role: Database["public"]["Enums"]["app_role"]
-          preferred_sports: string[]
-          created_at: string
-          location: string
-          birth_date: string
-          privacy_settings: Json
         }[]
       }
       initialize_admin: {
         Args: {
+          admin_display_name?: string
           admin_user_id: string
           admin_username?: string
-          admin_display_name?: string
         }
         Returns: boolean
       }

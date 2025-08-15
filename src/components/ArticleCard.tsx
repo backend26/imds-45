@@ -7,6 +7,9 @@ import { cn } from "@/lib/utils";
 import { useLazyImage } from "@/hooks/use-lazy-image";
 import { getImageUrl } from "@/config/images";
 import { gsap } from "gsap";
+import { usePostInteractions } from "@/hooks/use-post-interactions";
+import { SocialShareModal } from "@/components/posts/SocialShareModal";
+import { PostReportModal } from "@/components/posts/PostReportModal";
 
 interface ArticleCardProps {
   id?: string;
@@ -15,8 +18,9 @@ interface ArticleCardProps {
   imageUrl: string;
   category: string;
   publishedAt: string;
+  timeAgo?: string;
   author: string;
-  readTime: string;
+  readTime?: string;
   likes: number;
   comments: number;
   featured?: boolean;
@@ -31,6 +35,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   imageUrl,
   category,
   publishedAt,
+  timeAgo,
   author,
   readTime,
   likes,
@@ -39,17 +44,30 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   className,
   onClick
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const { imgRef, isLoaded, isInView } = useLazyImage();
+  
+  const {
+    isLiked,
+    isBookmarked,
+    likesCount,
+    commentsCount,
+    toggleLike,
+    toggleBookmark,
+    reportPost,
+    isLoading
+  } = usePostInteractions(id || '', {
+    isLiked: false,
+    isBookmarked: false,
+    likesCount: likes,
+    commentsCount: comments
+  });
 
-  const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleLike = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setIsLiked(!isLiked);
     setIsLikeAnimating(true);
     
     // GSAP animation for like button
@@ -71,17 +89,17 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         ease: 'power2.out'
       });
     
+    await toggleLike();
     setTimeout(() => setIsLikeAnimating(false), 600);
   };
 
   const handleShare = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    // Handle share functionality
+    // Handled by SocialShareModal
   };
 
-  const handleBookmark = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleBookmark = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
-    setIsSaved(!isSaved);
     setIsSaveAnimating(true);
     
     // GSAP animation for bookmark button
@@ -103,6 +121,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
         ease: 'power2.out'
       });
     
+    await toggleBookmark();
     setTimeout(() => setIsSaveAnimating(false), 400);
   };
 
@@ -197,7 +216,8 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                     isLiked ? "text-red-400" : "hover:text-red-400"
                   )}
                   onClick={handleLike}
-                  aria-label={`${isLiked ? 'Rimuovi like' : 'Metti like'} - ${likes} like`}
+                  disabled={isLoading}
+                  aria-label={`${isLiked ? 'Rimuovi like' : 'Metti like'} - ${likesCount} like`}
                   aria-pressed={isLiked}
                 >
                                      <Icon 
@@ -225,19 +245,20 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                   size="sm"
                   className={cn(
                     "h-8 w-8 p-0 bg-black/20 hover:bg-black/40 text-white transition-all duration-200",
-                    isSaved ? "text-yellow-400" : "hover:text-yellow-400"
+                    isBookmarked ? "text-yellow-400" : "hover:text-yellow-400"
                   )}
                   onClick={handleBookmark}
-                  aria-label={`${isSaved ? 'Rimuovi dai salvati' : 'Salva articolo'}`}
-                  aria-pressed={isSaved}
+                  disabled={isLoading}
+                  aria-label={`${isBookmarked ? 'Rimuovi dai salvati' : 'Salva articolo'}`}
+                  aria-pressed={isBookmarked}
                 >
                                      <Icon 
                      name="bookmark" 
-                     className={cn(
-                       "h-4 w-4 transition-all duration-200",
-                       isSaved ? "text-yellow-400" : "text-white",
-                       isSaveAnimating ? "animate-save-fold" : ""
-                     )} 
+                      className={cn(
+                        "h-4 w-4 transition-all duration-200",
+                        isBookmarked ? "text-yellow-400" : "text-white",
+                        isSaveAnimating ? "animate-save-fold" : ""
+                      )}
                    />
                 </Button>
               </div>
@@ -260,17 +281,12 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                 </p>
 
                 <div className="flex items-center space-x-4 text-white/80 text-sm md:text-base">
-                                     <div className="flex items-center space-x-1">
-                     <Icon name="user" className="h-4 w-4" />
-                     <span className="font-medium">{author}</span>
-                   </div>
+                  <div className="flex items-center space-x-1">
+                    <Icon name="user" className="h-4 w-4" />
+                    <span className="font-medium">{author}</span>
+                  </div>
                   <span aria-hidden="true">•</span>
-                  <span>{publishedAt}</span>
-                  <span aria-hidden="true">•</span>
-                                     <div className="flex items-center space-x-1">
-                     <Icon name="clock" className="h-4 w-4" />
-                     <span className="font-medium">{readTime}</span>
-                   </div>
+                  <span>{timeAgo || publishedAt}</span>
                 </div>
               </div>
             </div>
@@ -298,12 +314,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               <span className="font-medium">{author}</span>
             </div>
             <span aria-hidden="true">•</span>
-            <span>{publishedAt}</span>
-            <span aria-hidden="true">•</span>
-            <div className="flex items-center space-x-1">
-              <Icon name="clock" className="h-3 w-3" />
-              <span className="font-medium">{readTime}</span>
-            </div>
+            <span>{timeAgo || publishedAt}</span>
           </div>
 
           {/* Interaction buttons */}
@@ -317,7 +328,8 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                 isLiked ? "text-primary" : "hover:text-primary"
               )}
               onClick={handleLike}
-              aria-label={`${isLiked ? 'Rimuovi like' : 'Metti like'} - ${likes} like`}
+              disabled={isLoading}
+              aria-label={`${isLiked ? 'Rimuovi like' : 'Metti like'} - ${likesCount} like`}
               aria-pressed={isLiked}
             >
               <Icon name="like" className={cn(
@@ -325,7 +337,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
                 isLiked ? "text-primary" : "",
                 isLikeAnimating ? "animate-like-burst" : ""
               )} />
-              <span className="text-xs font-medium">{likes}</span>
+              <span className="text-xs font-medium">{likesCount}</span>
             </Button>
             
             <Button
@@ -336,38 +348,40 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               aria-label={`${comments} commenti`}
             >
               <Icon name="comment" className="h-4 w-4 mr-1" />
-              <span className="text-xs font-medium">{comments}</span>
+              <span className="text-xs font-medium">{commentsCount}</span>
             </Button>
           </div>
 
           <div className="flex items-center space-x-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 hover:bg-primary/10 hover:text-primary transition-all duration-200"
-              onClick={handleShare}
-              aria-label="Condividi articolo"
-            >
-              <Icon name="share" className="h-4 w-4" />
-            </Button>
+            <SocialShareModal
+              postId={id || ''}
+              postTitle={title}
+            />
             
             <Button
               variant="ghost"
               size="sm"
               className={cn(
                 "h-8 w-8 p-0 hover:bg-primary/10 transition-all duration-200",
-                isSaved ? "text-primary" : "hover:text-primary"
+                isBookmarked ? "text-primary" : "hover:text-primary"
               )}
               onClick={handleBookmark}
-              aria-label={`${isSaved ? 'Rimuovi dai salvati' : 'Salva articolo'}`}
-              aria-pressed={isSaved}
+              disabled={isLoading}
+              aria-label={`${isBookmarked ? 'Rimuovi dai salvati' : 'Salva articolo'}`}
+              aria-pressed={isBookmarked}
             >
               <Icon name="bookmark" className={cn(
                 "h-4 w-4 transition-all duration-200",
-                isSaved ? "text-primary" : "",
+                isBookmarked ? "text-primary" : "",
                 isSaveAnimating ? "animate-save-fold" : ""
               )} />
             </Button>
+
+            <PostReportModal
+              postId={id || ''}
+              onReport={reportPost}
+              isLoading={isLoading}
+            />
             </div>
           </div>
         </CardContent>

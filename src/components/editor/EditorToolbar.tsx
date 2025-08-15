@@ -132,11 +132,18 @@ export const EditorToolbar: React.FC<EditorToolbarProps> = ({ editor, onImageUpl
       {/* Headings */}
       <div className="flex gap-1 border-r pr-2">
         <ToolbarButton
+          onClick={() => editor.chain().focus().setParagraph().run()}
+          isActive={editor.isActive('paragraph')}
+          title="Paragrafo normale"
+        >
+          <span className="text-xs font-bold">P</span>
+        </ToolbarButton>
+        <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           isActive={editor.isActive('heading', { level: 1 })}
           title="Titolo 1"
         >
-          <Type className="h-4 w-4" />
+          <span className="text-xs font-bold">H1</span>
         </ToolbarButton>
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
