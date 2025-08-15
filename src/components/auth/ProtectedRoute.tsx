@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useRoleCheck } from '@/hooks/use-role-check';
+import { useRoleCheckCached as useRoleCheck } from '@/hooks/use-role-check-cached';
 import { Database } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';

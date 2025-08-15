@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { AdvancedEditor } from '@/components/editor/AdvancedEditor';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useEditorCheck } from '@/hooks/use-role-check-cached';
+import { useEditorCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
 
 
 function NewPostPageContent() {
