@@ -75,16 +75,9 @@ export const getRandomCoverImage = (): string => {
 };
 
 export const getCoverImageFromPost = (post: any): string => {
-  // Priority: cover_images array > featured_image_url > random fallback
-  if (post.cover_images && Array.isArray(post.cover_images) && post.cover_images.length > 0) {
-    const coverImage = post.cover_images[0];
-    // Handle both string and object formats
-    if (typeof coverImage === 'string') {
-      return coverImage;
-    }
-    if (typeof coverImage === 'object' && coverImage !== null) {
-      return coverImage.thumbnail_url || coverImage.original_url || coverImage.url;
-    }
+  // Priority: cover_images string > featured_image_url > random fallback
+  if (post.cover_images && typeof post.cover_images === 'string') {
+    return post.cover_images;
   }
   
   if (post.featured_image_url) {

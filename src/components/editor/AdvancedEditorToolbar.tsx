@@ -209,6 +209,13 @@ export const AdvancedEditorToolbar: React.FC<AdvancedEditorToolbarProps> = ({
           </SelectContent>
         </Select>
 
+        <ToolbarButton
+          onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()}
+          title="Rimuovi Formattazione"
+        >
+          <FileText className="h-4 w-4" />
+        </ToolbarButton>
+
         <div className="flex gap-1">
           <ColorPicker 
             command={(color) => editor.chain().focus().setColor(color).run()}

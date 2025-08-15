@@ -7,16 +7,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-interface CoverImage {
-  id: string;
-  original_url: string;
-  thumbnail_url?: string;
-  alt_text?: string;
-}
-
 interface CoverImageUploaderProps {
-  images: CoverImage[];
-  onChange: (images: CoverImage[]) => void;
+  images: string;
+  onChange: (images: string) => void;
 }
 
 export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, onChange }) => {
@@ -33,9 +26,9 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${user.id}/${fileName}`;
 
-      // Upload to cover-images bucket
+      // Upload to post-media bucket
       const { error: uploadError } = await supabase.storage
-        .from('cover-images')
+        .from('post-media')
         .upload(filePath, file);
 
       if (uploadError) {
@@ -44,19 +37,10 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
 
       // Get public URL
       const { data } = supabase.storage
-        .from('cover-images')
+        .from('post-media')
         .getPublicUrl(filePath);
 
-      // TODO: In a real implementation, you'd call an edge function here
-      // to generate thumbnails. For now, we'll use the original image as thumbnail
-      const coverImage: CoverImage = {
-        id: fileName,
-        original_url: data.publicUrl,
-        thumbnail_url: data.publicUrl,
-        alt_text: file.name,
-      };
-
-      return coverImage;
+      return data.publicUrl;
     } catch (error) {
       console.error('Error uploading cover image:', error);
       throw error;
@@ -69,27 +53,27 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
     setUploading(true);
 
     try {
-      const uploadPromises = Array.from(files).map(uploadImage);
-      const uploadedImages = await Promise.all(uploadPromises);
-      const validImages = uploadedImages.filter(Boolean) as CoverImage[];
+      // Only upload first file (single image)
+      const imageUrl = await uploadImage(files[0]);
       
-      onChange([...images, ...validImages]);
-      
-      toast({
-        title: "Success",
-        description: `Uploaded ${validImages.length} cover image(s)`,
-      });
+      if (imageUrl) {
+        onChange(imageUrl);
+        toast({
+          title: "Successo",
+          description: "Immagine di copertina caricata",
+        });
+      }
     } catch (error) {
-      console.error('Error uploading images:', error);
+      console.error('Error uploading image:', error);
       toast({
-        title: "Upload Error",
-        description: "Failed to upload cover images",
+        title: "Errore di caricamento",
+        description: "Impossibile caricare l'immagine di copertina",
         variant: "destructive",
       });
     } finally {
       setUploading(false);
     }
-  }, [images, onChange, uploadImage, toast]);
+  }, [onChange, uploadImage, toast]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -106,9 +90,9 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
     }
   }, [handleFileUpload]);
 
-  const removeImage = useCallback((imageId: string) => {
-    onChange(images.filter(img => img.id !== imageId));
-  }, [images, onChange]);
+  const removeImage = useCallback(() => {
+    onChange('');
+  }, [onChange]);
 
   return (
     <div className="space-y-4">
@@ -134,48 +118,43 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
             <Upload className="h-8 w-8 text-muted-foreground mb-4" />
           )}
           <p className="text-sm text-muted-foreground mb-2">
-            {uploading ? 'Uploading images...' : 'Drop cover images here or click to upload'}
+            {uploading ? 'Caricamento immagine...' : 'Trascina qui l\'immagine di copertina o clicca per caricare'}
           </p>
           <p className="text-xs text-muted-foreground">
-            Supports JPG, PNG, WebP (max 10MB each)
+            Supporta JPG, PNG, WebP (max 10MB)
           </p>
           <input
             id="cover-image-upload"
             type="file"
             accept="image/*"
-            multiple
             onChange={handleFileInput}
             className="hidden"
           />
         </CardContent>
       </Card>
 
-      {/* Uploaded Images Grid */}
-      {images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          {images.map((image) => (
-            <div key={image.id} className="relative group">
-              <Card className="overflow-hidden">
-                <CardContent className="p-0">
-                  <div className="aspect-video relative">
-                    <img
-                      src={image.thumbnail_url || image.original_url}
-                      alt={image.alt_text || 'Cover image'}
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={() => removeImage(image.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ))}
+      {/* Current Cover Image */}
+      {images && (
+        <div className="relative group">
+          <Card className="overflow-hidden">
+            <CardContent className="p-0">
+              <div className="aspect-video relative">
+                <img
+                  src={images}
+                  alt="Immagine di copertina"
+                  className="w-full h-full object-cover"
+                />
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="absolute top-2 right-2 h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={removeImage}
+                >
+                  <X className="h-3 w-3" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       )}
     </div>

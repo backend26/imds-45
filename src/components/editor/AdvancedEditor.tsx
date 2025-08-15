@@ -51,7 +51,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [tags, setTags] = useState<string[]>(initialPost?.tags || []);
   const [commentsEnabled, setCommentsEnabled] = useState((initialPost as any)?.comments_enabled ?? true);
   const [coAuthoringEnabled, setCoAuthoringEnabled] = useState((initialPost as any)?.co_authoring_enabled ?? false);
-  const [coverImages, setCoverImages] = useState<any[]>((initialPost as any)?.cover_images || []);
+  const [coverImages, setCoverImages] = useState<string>((initialPost as any)?.cover_images || '');
   const [status, setStatus] = useState<'draft' | 'published' | 'archived'>(
     (initialPost as any)?.status as 'draft' | 'published' | 'archived' || 'draft'
   );
@@ -61,109 +61,6 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [publishedPost, setPublishedPost] = useState<{ id: string; title: string } | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-
-  // Auto-save and data protection
-  useEffect(() => {
-    const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
-    
-    // Restore from localStorage on mount
-    if (!initialPost) {
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        try {
-          const data = JSON.parse(saved);
-          const shouldRestore = confirm('È stata trovata una bozza salvata. Vuoi ripristinarla?');
-          if (shouldRestore) {
-            setTitle(data.title || '');
-            setExcerpt(data.excerpt || '');
-            setCategoryId(data.categoryId || '');
-            setTags(data.tags || []);
-            setCoverImages(data.coverImages || []);
-            setCommentsEnabled(data.commentsEnabled ?? true);
-            setCoAuthoringEnabled(data.coAuthoringEnabled ?? false);
-            setIsHero(data.isHero ?? false);
-            setStatus(data.status || 'draft');
-            if (data.content) {
-              // Will set content when editor is ready
-              setTimeout(() => {
-                if (editor) {
-                  editor.commands.setContent(data.content);
-                }
-              }, 100);
-            }
-          }
-        } catch (e) {
-          console.error('Error restoring draft:', e);
-        }
-      }
-    }
-
-    // Auto-save every 5 seconds
-    const interval = setInterval(() => {
-      if (hasUnsavedChanges && (title || excerpt || editor?.getText())) {
-        const data = {
-          title,
-          excerpt,
-          categoryId,
-          tags,
-          coverImages,
-          commentsEnabled,
-          coAuthoringEnabled,
-          isHero,
-          status,
-          content: editor?.getHTML() || '',
-          timestamp: Date.now()
-        };
-        localStorage.setItem(storageKey, JSON.stringify(data));
-        setHasUnsavedChanges(false);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, hasUnsavedChanges, initialPost]);
-
-  // Mark as changed when form data changes
-  useEffect(() => {
-    setHasUnsavedChanges(true);
-  }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status]);
-
-  // Warn before page unload
-  useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (hasUnsavedChanges) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    };
-    
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden' && hasUnsavedChanges) {
-        const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
-        const data = {
-          title,
-          excerpt,
-          categoryId,
-          tags,
-          coverImages,
-          commentsEnabled,
-          coAuthoringEnabled,
-          isHero,
-          status,
-          content: editor?.getHTML() || '',
-          timestamp: Date.now()
-        };
-        localStorage.setItem(storageKey, JSON.stringify(data));
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [hasUnsavedChanges, title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, initialPost]);
 
   const lowlight = useMemo(() => createLowlight(), []);
 
@@ -235,10 +132,39 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     content: initialPost?.content || '',
     editorProps: {
       attributes: {
-        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4',
+        class: 'prose prose-sm sm:prose-base lg:prose-lg xl:prose-2xl mx-auto focus:outline-none min-h-[400px] p-4 text-foreground',
       },
     },
   });
+
+  // Set up auto-save after editor is initialized
+  useEffect(() => {
+    if (!editor) return;
+    
+    const storageKey = initialPost ? `editor:edit:${initialPost.id}` : 'editor:new';
+    
+    // Silent auto-save without prompts
+    const interval = setInterval(() => {
+      if (title || excerpt || editor?.getText()) {
+        const data = {
+          title,
+          excerpt,
+          categoryId,
+          tags,
+          coverImages,
+          commentsEnabled,
+          coAuthoringEnabled,
+          isHero,
+          status,
+          content: editor?.getHTML() || '',
+          timestamp: Date.now()
+        };
+        localStorage.setItem(storageKey, JSON.stringify(data));
+      }
+    }, 30000); // Every 30 seconds
+
+    return () => clearInterval(interval);
+  }, [title, excerpt, categoryId, tags, coverImages, commentsEnabled, coAuthoringEnabled, isHero, status, initialPost, editor]);
 
   const handleImageUpload = useCallback(async (file: File) => {
     if (!user) return null;
@@ -268,7 +194,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
     setExcerpt('');
     setCategoryId('');
     setTags([]);
-    setCoverImages([]);
+    setCoverImages('');
     setCommentsEnabled(true);
     setCoAuthoringEnabled(false);
     setIsHero(false);
@@ -385,7 +311,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         </Card>
         {/* Cover */}
         <Card>
-          <CardHeader><CardTitle>Cover Images</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Immagine di Copertina</CardTitle></CardHeader>
           <CardContent>
             <CoverImageUploader images={coverImages} onChange={setCoverImages} />
           </CardContent>
