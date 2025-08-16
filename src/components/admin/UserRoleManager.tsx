@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
+import { invalidateRoleCache } from '@/hooks/use-role-check-cached';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -74,6 +75,9 @@ export default function UserRoleManager() {
 
       if (error) throw error;
 
+      // Invalidate role cache for this user
+      invalidateRoleCache(userId);
+      
       setUsers(users.map(user => 
         user.user_id === userId ? { ...user, role: newRole } : user
       ));

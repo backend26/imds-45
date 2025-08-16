@@ -25,7 +25,7 @@ const roleCache = new Map<string, {
   expiresAt: number;
 }>();
 
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+const CACHE_DURATION = 15 * 1000; // 15 seconds for real-time feel
 const DEBOUNCE_DELAY = 100; // 100ms debounce
 
 export const useRoleCheckCached = ({ allowedRoles, cacheKey }: UseRoleCheckOptions): RoleCheckResult => {
@@ -40,6 +40,7 @@ export const useRoleCheckCached = ({ allowedRoles, cacheKey }: UseRoleCheckOptio
   
   const debounceTimeoutRef = useRef<NodeJS.Timeout>();
   const mountedRef = useRef(true);
+  const realtimeChannelRef = useRef<any>(null);
 
   // Generate cache key based on user ID and allowed roles
   const finalCacheKey = cacheKey || `${user?.id || 'anonymous'}-${allowedRoles.join(',')}`;
@@ -176,13 +177,38 @@ export const useRoleCheckCached = ({ allowedRoles, cacheKey }: UseRoleCheckOptio
 
     debouncedCheckRole();
 
+    // Set up realtime subscription for profile changes
+    if (user?.id && !realtimeChannelRef.current) {
+      realtimeChannelRef.current = supabase
+        .channel(`profile_changes_${user.id}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `user_id=eq.${user.id}`
+        }, (payload) => {
+          console.log('🔄 Profile updated via Realtime:', payload);
+          // Invalidate cache for this user
+          invalidateRoleCache(user.id);
+          // Refetch role
+          if (mountedRef.current) {
+            debouncedCheckRole();
+          }
+        })
+        .subscribe();
+    }
+
     return () => {
       mountedRef.current = false;
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
       }
+      if (realtimeChannelRef.current) {
+        supabase.removeChannel(realtimeChannelRef.current);
+        realtimeChannelRef.current = null;
+      }
     };
-  }, [authLoading, debouncedCheckRole]);
+  }, [authLoading, debouncedCheckRole, user?.id]);
 
   useEffect(() => {
     return () => {
