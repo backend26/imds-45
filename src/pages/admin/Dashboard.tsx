@@ -960,10 +960,12 @@ function AdminDashboardContent() {
   );
 }
 
-export default function Dashboard() {
+const Dashboard = () => {
   return (
     <ProtectedRoute allowedRoles={['administrator']}>
       <AdminDashboardContent />
     </ProtectedRoute>
   );
-}
+};
+
+export default Dashboard;
