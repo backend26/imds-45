@@ -83,7 +83,8 @@ export const PopularAuthorsWidget = () => {
                 tfa_enabled: author.tfa_enabled,
                 tfa_secret: author.tfa_secret,
                 login_count: author.login_count,
-                last_login: author.last_login
+                last_login: author.last_login,
+                last_username_change: author.last_username_change
               },
               postsCount,
               totalLikes,

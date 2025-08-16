@@ -99,11 +99,12 @@ export const AvatarEditor = ({ imageUrl, onClose, onAvatarUpdated }: AvatarEdito
       
       // Genera un nome file unico
       const fileName = `avatar-${user.id}-${Date.now()}.jpg`;
+      const path = `${user.id}/${fileName}`;
       
-      // Upload su Supabase Storage
+      // Upload su Supabase Storage (cartella per utente)
       const { data: uploadData, error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(fileName, croppedImageBlob, {
+        .upload(path, croppedImageBlob, {
           contentType: 'image/jpeg',
           upsert: true
         });
@@ -115,9 +116,18 @@ export const AvatarEditor = ({ imageUrl, onClose, onAvatarUpdated }: AvatarEdito
       // Ottieni l'URL pubblico
       const { data: urlData } = supabase.storage
         .from('avatars')
-        .getPublicUrl(fileName);
+        .getPublicUrl(path);
 
-      // Aggiorna sia i metadati dell'utente che il profilo
+      // Aggiorna DB profili
+      const { error: profileUpdateError } = await supabase
+        .from('profiles')
+        .update({ profile_picture_url: urlData.publicUrl })
+        .eq('user_id', user.id);
+      if (profileUpdateError) {
+        throw new Error(`Errore aggiornamento profilo DB: ${profileUpdateError.message}`);
+      }
+
+      // Aggiorna anche i metadati dell'utente (comodo per UI che li usa)
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           ...user.user_metadata,

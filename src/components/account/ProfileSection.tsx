@@ -7,6 +7,7 @@ import { User, Calendar, MapPin, Edit, Upload } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AvatarEditor } from "./AvatarEditor";
 import { EditProfileModal } from "./EditProfileModal";
+import { BannerUploader } from "./BannerUploader";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
@@ -146,6 +147,17 @@ export const ProfileSection = () => {
           comments={user.user_metadata?.stats?.comments || 0} 
           posts={user.user_metadata?.stats?.posts || 0} 
         />
+
+        <div className="pt-2">
+          <BannerUploader
+            currentImageUrl={profile?.banner_url || undefined}
+            onImageUpdate={(imageUrl) => {
+              setProfile((prev) => prev ? ({ ...prev, banner_url: imageUrl } as any) : prev);
+              fetchProfile();
+            }}
+            disabled={false}
+          />
+        </div>
 
         <Button 
           variant="outline" 

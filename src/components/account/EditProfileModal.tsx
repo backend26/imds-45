@@ -21,6 +21,8 @@ interface EditProfileModalProps {
 export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditProfileModalProps) => {
   const { user } = useAuth();
   const [username, setUsername] = useState(profile?.username || '');
+  const [displayName, setDisplayName] = useState(profile?.display_name || '');
+  const [bio, setBio] = useState(profile?.bio || '');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +35,8 @@ export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditPro
         .from('profiles')
         .update({ 
           username: username.trim() || null,
+          display_name: displayName.trim() || null,
+          bio: bio.trim() || null,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id);
@@ -46,11 +50,11 @@ export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditPro
 
       onProfileUpdated();
       onClose();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating profile:', error);
       toast({
         title: "Errore",
-        description: "Impossibile aggiornare il profilo. Riprova più tardi.",
+        description: error.message || "Impossibile aggiornare il profilo. Riprova più tardi.",
         variant: "destructive",
       });
     } finally {
@@ -85,6 +89,32 @@ export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditPro
             <p className="text-sm text-muted-foreground">
               {username.length}/30 caratteri. Il nome utente verrà mostrato pubblicamente sui tuoi contenuti
             </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="display-name">Nome visualizzato</Label>
+            <Input
+              id="display-name"
+              type="text"
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Come comparirai pubblicamente"
+              className="w-full"
+              maxLength={60}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="bio">Biografia</Label>
+            <Textarea
+              id="bio"
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Raccontaci di te (max 300 caratteri)"
+              className="w-full"
+              maxLength={300}
+            />
+            <p className="text-sm text-muted-foreground">{bio.length}/300</p>
           </div>
 
           <div className="flex gap-2 pt-4">

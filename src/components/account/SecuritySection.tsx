@@ -20,6 +20,8 @@ export const SecuritySection = () => {
   });
   const [changingPassword, setChangingPassword] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const [email, setEmail] = useState(user?.email || '');
+  const [changingEmail, setChangingEmail] = useState(false);
 
   const handlePasswordChange = async () => {
     if (!passwordData.newPassword || !passwordData.confirmPassword) {
@@ -79,6 +81,33 @@ export const SecuritySection = () => {
     }
   };
 
+  const handleEmailChange = async () => {
+    if (!email) {
+      toast({ title: 'Errore', description: 'Inserisci una email valida', variant: 'destructive' });
+      return;
+    }
+    const basicPattern = /[^@\s]+@[^@\s]+\.[^@\s]+/;
+    if (!basicPattern.test(email)) {
+      toast({ title: 'Errore', description: 'Formato email non valido', variant: 'destructive' });
+      return;
+    }
+
+    setChangingEmail(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ email });
+      if (error) throw error;
+      toast({
+        title: 'Email aggiornata',
+        description: 'Controlla la casella per confermare il nuovo indirizzo',
+      });
+    } catch (error: any) {
+      console.error('Error changing email:', error);
+      toast({ title: 'Errore', description: error.message || 'Impossibile aggiornare l\'email', variant: 'destructive' });
+    } finally {
+      setChangingEmail(false);
+    }
+  };
+
   const handleAccountDeletion = async () => {
     if (!user) return;
 
@@ -116,6 +145,44 @@ export const SecuritySection = () => {
 
   return (
     <div className="space-y-6">
+      {/* Email Change */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            Cambia Email
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="email">Nuova Email</Label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nome@dominio.com"
+            />
+          </div>
+          <Button onClick={handleEmailChange} disabled={changingEmail || !email} className="w-full">
+            {changingEmail ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2" />
+                Aggiornando...
+              </>
+            ) : (
+              <>
+                <Shield className="h-4 w-4 mr-2" />
+                Cambia Email
+              </>
+            )}
+          </Button>
+          <div className="text-xs text-muted-foreground">
+            Ti invieremo un link di conferma al nuovo indirizzo
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Password Change */}
       <Card>
         <CardHeader>
