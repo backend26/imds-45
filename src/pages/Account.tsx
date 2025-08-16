@@ -12,10 +12,11 @@ import { PublicProfileTab } from "@/components/account/PublicProfileTab";
 import { ActivityTab } from "@/components/account/ActivityTab";
 import { SecurityTab } from "@/components/account/SecurityTab";
 import { PrivacyTab } from "@/components/account/PrivacyTab";
-import { EnhancedSettings } from '@/components/account/EnhancedSettings';
+
 import { ErrorModal } from "@/components/ErrorModal";
 import { useErrorHandler } from "@/hooks/use-error-handler";
 import { NotificationPreferencesButton } from "@/components/notifications/NotificationPreferencesButton";
+import { UserStats } from "@/components/account/UserStats";
 import { 
   User, 
   Activity, 
@@ -199,28 +200,7 @@ export default function Account() {
               </Card>
 
               {/* Account Stats */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Star className="h-5 w-5 text-primary" />
-                    Statistiche
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Post pubblicati</span>
-                    <Badge variant="secondary">0</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Like ricevuti</span>
-                    <Badge variant="secondary">0</Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm text-muted-foreground">Commenti</span>
-                    <Badge variant="secondary">0</Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              <UserStats />
             </div>
 
             {/* Colonna Destra - Tab Content */}
@@ -294,7 +274,6 @@ export default function Account() {
                       </div>
                     </div>
                     <SecurityTab onError={handleError} />
-                    <EnhancedSettings />
                   </div>
                 </TabsContent>
               </Tabs>

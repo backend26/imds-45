@@ -8,10 +8,8 @@ import { Home, Search, ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return document.documentElement.classList.contains('dark');
-    }
-    return true;
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && true); // Default to dark
   });
 
   const toggleTheme = () => {

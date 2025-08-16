@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { Shield, Key, Smartphone, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AccountDeletion } from './AccountDeletion';
 
 interface SecurityTabProps {
   onError: (error: any) => void;
@@ -253,6 +254,9 @@ export const SecurityTab = ({ onError }: SecurityTabProps) => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Account Deletion */}
+      <AccountDeletion />
     </div>
   );
 };
