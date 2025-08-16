@@ -1,22 +1,13 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Save, Edit3, ExternalLink } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, Shield, Eye } from 'lucide-react';
+import { EnhancedProfileForm } from './EnhancedProfileForm';
+import { PrivacySettingsForm } from './PrivacySettingsForm';
 import { AvatarUploader } from './AvatarUploader';
-import { BannerUploader } from './BannerUploader';
-import { format } from "date-fns";
-import { it } from "date-fns/locale";
-import { cn } from "@/lib/utils";
+import { IntelligentBanner } from './IntelligentBanner';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { useAuth } from '@/hooks/use-auth';
-import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -27,24 +18,7 @@ interface PublicProfileTabProps {
 export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [username, setUsername] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [bio, setBio] = useState('');
-  const [location, setLocation] = useState('');
-  const [birthDate, setBirthDate] = useState<Date | undefined>(undefined);
-  const [favoriteTeam, setFavoriteTeam] = useState('');
-  const [socialLinks, setSocialLinks] = useState({
-    website: '',
-    twitter: '',
-    instagram: '',
-    youtube: '',
-    tiktok: '',
-    facebook: '',
-    linkedin: ''
-  });
-  const [preferredSports, setPreferredSports] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
   const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
@@ -64,22 +38,6 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
 
         if (profileData) {
           setProfile(profileData);
-          setUsername(profileData.username || '');
-          setDisplayName((profileData as any).display_name || '');
-          setBio(profileData.bio || '');
-          setLocation(profileData.location || '');
-          setBirthDate(profileData.birth_date ? new Date(profileData.birth_date) : undefined);
-          setFavoriteTeam((profileData as any).favorite_team || '');
-          setSocialLinks((profileData as any).social_links || {
-            website: '',
-            twitter: '',
-            instagram: '',
-            youtube: '',
-            tiktok: '',
-            facebook: '',
-            linkedin: ''
-          });
-          setPreferredSports(profileData.preferred_sports || []);
           setProfilePictureUrl(profileData.profile_picture_url);
           setBannerUrl(profileData.banner_url);
         }
@@ -94,52 +52,36 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
     fetchProfile();
   }, [user, onError]);
 
-  const handleSave = async () => {
+  const refreshProfile = async () => {
     if (!user) return;
-
-    setIsSaving(true);
+    
     try {
-      const { error } = await supabase
+      const { data: profileData, error } = await supabase
         .from('profiles')
-        .update({ 
-          username: username.toLowerCase().trim() || null,
-          display_name: displayName.trim() || null,
-          bio: bio.trim() || null,
-          location: location.trim() || null,
-          birth_date: birthDate?.toISOString().split('T')[0] || null,
-          favorite_team: favoriteTeam.trim() || null,
-          social_links: socialLinks,
-          preferred_sports: preferredSports,
-          updated_at: new Date().toISOString()
-        })
-        .eq('user_id', user.id);
+        .select('*')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
-
-      toast({
-        title: "Profilo aggiornato",
-        description: "Le tue informazioni sono state aggiornate con successo",
-      });
-
+      
+      if (profileData) {
+        setProfile(profileData);
+        setProfilePictureUrl(profileData.profile_picture_url);
+        setBannerUrl(profileData.banner_url);
+      }
     } catch (error) {
-      console.error('Error updating profile:', error);
-      onError(error as Error);
-    } finally {
-      setIsSaving(false);
+      console.error('Error refreshing profile:', error);
     }
   };
+
 
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <Card>
-          <CardContent className="p-6">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
-              <p className="text-sm text-muted-foreground mt-2">Caricamento profilo...</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+          <p className="text-sm text-muted-foreground mt-2">Caricamento profilo...</p>
+        </div>
       </div>
     );
   }
@@ -149,204 +91,61 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
       {/* Image Upload Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
-          <Label className="text-base font-semibold mb-4 block">Foto Profilo</Label>
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <User className="h-5 w-5" />
+            Foto Profilo
+          </h3>
           <AvatarUploader
             currentImageUrl={profilePictureUrl || undefined}
-            onImageUpdate={(url) => setProfilePictureUrl(url)}
-            disabled={isSaving}
+            onImageUpdate={(url) => {
+              setProfilePictureUrl(url);
+              refreshProfile();
+            }}
+            disabled={false}
           />
         </div>
         <div>
-          <Label className="text-base font-semibold mb-4 block">Banner Profilo</Label>
-          <BannerUploader
+          <h3 className="text-base font-semibold mb-4 flex items-center gap-2">
+            <Eye className="h-5 w-5" />
+            Banner Profilo
+          </h3>
+          <IntelligentBanner
             currentImageUrl={bannerUrl || undefined}
-            onImageUpdate={(url) => setBannerUrl(url)}
-            disabled={isSaving}
+            profileImageUrl={profilePictureUrl || undefined}
+            onImageUpdate={(url) => {
+              setBannerUrl(url);
+              refreshProfile();
+            }}
+            height={120}
+            disabled={false}
           />
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Edit3 className="h-5 w-5" />
-            Informazioni Pubbliche
-          </CardTitle>
-          <CardDescription>
-            Queste informazioni saranno visibili sul tuo profilo pubblico secondo le tue impostazioni di privacy
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="username">Username (@nomeutente)</Label>
-            <Input
-              id="username"
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              placeholder="mario_123"
-              disabled={isSaving}
-            />
-            <p className="text-sm text-muted-foreground">
-              Solo lettere minuscole, numeri e underscore. Questo sarà il tuo URL unico.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="displayName">Nome Visualizzato</Label>
-            <Input
-              id="displayName"
-              type="text"
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Mario Rossi"
-              disabled={isSaving}
-            />
-            <p className="text-sm text-muted-foreground">
-              Il nome che apparirà sui tuoi contenuti e profilo pubblico.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Biografia</Label>
-            <Textarea
-              id="bio"
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Racconta qualcosa di te..."
-              disabled={isSaving}
-              className="min-h-[100px]"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="location">Posizione</Label>
-            <Input
-              id="location"
-              type="text"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="Milano, Italia"
-              disabled={isSaving}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Data di Nascita</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !birthDate && "text-muted-foreground"
-                  )}
-                  disabled={isSaving}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {birthDate ? (
-                    format(birthDate, "dd MMMM yyyy", { locale: it })
-                  ) : (
-                    <span>Seleziona una data</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={birthDate}
-                  onSelect={setBirthDate}
-                  disabled={(date) =>
-                    date > new Date() || date < new Date("1900-01-01")
-                  }
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="favoriteTeam">Squadra del Cuore</Label>
-            <Input
-              id="favoriteTeam"
-              type="text"
-              value={favoriteTeam}
-              onChange={(e) => setFavoriteTeam(e.target.value)}
-              placeholder="Juventus, Milan, Inter..."
-              disabled={isSaving}
-            />
-          </div>
-
-          <div className="space-y-4">
-            <Label>Link Social</Label>
-            <div className="grid grid-cols-1 gap-3">
-              {Object.entries(socialLinks).map(([platform, url]) => (
-                <div key={platform} className="space-y-2">
-                  <Label htmlFor={platform} className="text-sm font-medium capitalize">
-                    {platform === 'website' ? 'Sito Web' : platform}
-                  </Label>
-                  <Input
-                    id={platform}
-                    type="url"
-                    value={url}
-                    onChange={(e) => setSocialLinks(prev => ({ ...prev, [platform]: e.target.value }))}
-                    placeholder={`https://${platform === 'website' ? 'tuosito.com' : `${platform}.com/username`}`}
-                    disabled={isSaving}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Sport Seguiti</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {['Calcio', 'Tennis', 'Formula 1', 'NBA', 'NFL', 'Basket', 'Pallavolo', 'Rugby'].map((sport) => (
-                <label key={sport} className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    checked={preferredSports.includes(sport)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setPreferredSports(prev => [...prev, sport]);
-                      } else {
-                        setPreferredSports(prev => prev.filter(s => s !== sport));
-                      }
-                    }}
-                    className="rounded border-input"
-                    disabled={isSaving}
-                  />
-                  <span className="text-sm">{sport}</span>
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Button 
-              onClick={handleSave} 
-              className="flex-1"
-              disabled={isSaving}
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Salvando...' : 'Salva Modifiche'}
-            </Button>
-            
-            {profile?.username && (
-              <Button 
-                variant="outline" 
-                asChild
-                disabled={isSaving}
-              >
-                <Link to={`/@${profile.username}`} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Vedi Profilo
-                </Link>
-              </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+      {/* Enhanced Profile Management */}
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="profile" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Informazioni Profilo
+          </TabsTrigger>
+          <TabsTrigger value="privacy" className="flex items-center gap-2">
+            <Shield className="h-4 w-4" />
+            Privacy e Sicurezza
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="profile" className="mt-6">
+          <EnhancedProfileForm 
+            onError={onError}
+            onProfileUpdate={refreshProfile}
+          />
+        </TabsContent>
+        
+        <TabsContent value="privacy" className="mt-6">
+          <PrivacySettingsForm onError={onError} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

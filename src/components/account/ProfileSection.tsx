@@ -3,11 +3,11 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
-import { User, Calendar, MapPin, Edit, Upload } from "lucide-react";
+import { User, Calendar, MapPin, Edit, Upload, Heart, Globe } from "lucide-react";
 import { useState, useEffect } from "react";
 import { AvatarEditor } from "./AvatarEditor";
 import { EditProfileModal } from "./EditProfileModal";
-import { EnhancedBannerUploader } from "./EnhancedBannerUploader";
+import { IntelligentBanner } from "./IntelligentBanner";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "@/hooks/use-toast";
@@ -89,50 +89,52 @@ export const ProfileSection = () => {
 
   return (
     <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant overflow-hidden">
-      {/* Banner Section */}
+      {/* Intelligent Banner Section */}
       <div className="relative">
-        <EnhancedBannerUploader
+        <IntelligentBanner
           currentImageUrl={profile?.banner_url || undefined}
+          profileImageUrl={profile?.profile_picture_url || user.user_metadata?.profile_picture_url}
           onImageUpdate={(imageUrl) => {
             setProfile((prev) => prev ? ({ ...prev, banner_url: imageUrl } as any) : prev);
             fetchProfile();
           }}
+          height={80}
           disabled={false}
         />
         
-        {/* Avatar positioned over banner */}
-        <div className="absolute -bottom-12 left-6">
+        {/* Avatar positioned over banner - adjusted for smaller banner */}
+        <div className="absolute -bottom-8 left-6">
           <div className="relative">
-            <Avatar className="w-24 h-24 ring-4 ring-background shadow-elegant">
+            <Avatar className="w-16 h-16 ring-4 ring-background shadow-elegant">
               <AvatarImage 
                 src={profile?.profile_picture_url || user.user_metadata?.profile_picture_url} 
                 alt="Profile picture" 
               />
-              <AvatarFallback className="text-lg font-bold bg-gradient-primary text-white">
+              <AvatarFallback className="text-sm font-bold bg-gradient-primary text-white">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
             <Button
               size="sm"
-              className="absolute -bottom-2 -right-2 rounded-full w-8 h-8 p-0 shadow-lg"
+              className="absolute -bottom-1 -right-1 rounded-full w-6 h-6 p-0 shadow-lg"
               onClick={() => setShowAvatarEditor(true)}
             >
-              <Upload className="h-4 w-4" />
+              <Upload className="h-3 w-3" />
             </Button>
           </div>
         </div>
       </div>
 
-      {/* Profile Content with proper spacing for avatar */}
-      <CardHeader className="pt-16 pb-4">
+      {/* Profile Content with adjusted spacing for smaller banner */}
+      <CardHeader className="pt-12 pb-4">
         <div className="flex items-start justify-between">
-          <div className="space-y-1">
+          <div className="space-y-2">
             <h2 className="text-xl font-bold text-foreground">
               {profile?.display_name || profile?.username || 'Utente'}
             </h2>
             <p className="text-muted-foreground text-sm">{user.email}</p>
             {profile?.bio && (
-              <p className="text-sm text-muted-foreground mt-2 max-w-md">
+              <p className="text-sm text-muted-foreground mt-2 max-w-md line-clamp-3">
                 {profile.bio}
               </p>
             )}
@@ -147,21 +149,83 @@ export const ProfileSection = () => {
       </CardHeader>
       
       <CardContent className="space-y-4">
-        <div className="space-y-3 pt-4 border-t border-border/50">
-          <div className="flex items-center gap-2 text-sm">
-            <User className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Membro da:</span>
-            <span className="font-medium">
-              {new Date(profile?.created_at || user.created_at).toLocaleDateString('it-IT')}
-            </span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Profile Details */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm">
+              <User className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Membro da:</span>
+              <span className="font-medium">
+                {new Date(profile?.created_at || user.created_at).toLocaleDateString('it-IT')}
+              </span>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm">
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Ultimo accesso:</span>
+              <span className="font-medium">
+                {new Date(user.last_sign_in_at || user.created_at).toLocaleDateString('it-IT')}
+              </span>
+            </div>
+
+            {profile?.location && (
+              <div className="flex items-center gap-2 text-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{profile.location}</span>
+              </div>
+            )}
+
+            {(profile as any)?.favorite_team && (
+              <div className="flex items-center gap-2 text-sm">
+                <Heart className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium">{(profile as any).favorite_team}</span>
+              </div>
+            )}
           </div>
-          
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground" />
-            <span className="text-muted-foreground">Ultimo accesso:</span>
-            <span className="font-medium">
-              {new Date(user.last_sign_in_at || user.created_at).toLocaleDateString('it-IT')}
-            </span>
+
+          {/* Social Links */}
+          <div className="space-y-3">
+            {(profile as any)?.social_links && Object.entries((profile as any).social_links).some(([_, url]) => url) && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Globe className="h-4 w-4" />
+                  Link Social
+                </h4>
+                <div className="space-y-1">
+                  {Object.entries((profile as any).social_links).map(([platform, url]) => 
+                    url ? (
+                      <a 
+                        key={platform}
+                        href={url as string}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block text-sm text-primary hover:underline capitalize"
+                      >
+                        {platform}
+                      </a>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {profile?.preferred_sports && profile.preferred_sports.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="text-sm font-medium text-muted-foreground">Sport Seguiti</h4>
+                <div className="flex flex-wrap gap-1">
+                  {profile.preferred_sports.slice(0, 4).map((sport) => (
+                    <Badge key={sport} variant="secondary" className="text-xs">
+                      {sport}
+                    </Badge>
+                  ))}
+                  {profile.preferred_sports.length > 4 && (
+                    <Badge variant="outline" className="text-xs">
+                      +{profile.preferred_sports.length - 4}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
