@@ -36,12 +36,13 @@ export const BannerUploader = ({ currentImageUrl, onImageUpdate, disabled }: Pro
 
       // Create file name
       const fileExt = file.name.split('.').pop();
-      const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `banner-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile-images')
-        .upload(fileName, file, {
+        .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });

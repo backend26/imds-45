@@ -58,11 +58,12 @@ export const IntelligentBanner = ({
       }
 
       const fileExt = file.name.split('.').pop();
-      const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`;
+      const fileName = `banner-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       const { data, error } = await supabase.storage
         .from('profile-images')
-        .upload(fileName, file, {
+        .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });
