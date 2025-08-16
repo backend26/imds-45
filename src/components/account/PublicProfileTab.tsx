@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, Save, Edit3, ExternalLink } from 'lucide-react';
+import { AvatarUploader } from './AvatarUploader';
+import { BannerUploader } from './BannerUploader';
 import { format } from "date-fns";
 import { it } from "date-fns/locale";
 import { cn } from "@/lib/utils";
@@ -43,6 +45,8 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
     linkedin: ''
   });
   const [preferredSports, setPreferredSports] = useState<string[]>([]);
+  const [profilePictureUrl, setProfilePictureUrl] = useState<string | null>(null);
+  const [bannerUrl, setBannerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -76,6 +80,8 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
             linkedin: ''
           });
           setPreferredSports(profileData.preferred_sports || []);
+          setProfilePictureUrl(profileData.profile_picture_url);
+          setBannerUrl(profileData.banner_url);
         }
       } catch (error) {
         console.error('Error fetching profile:', error);
@@ -140,6 +146,26 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Image Upload Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          <Label className="text-base font-semibold mb-4 block">Foto Profilo</Label>
+          <AvatarUploader
+            currentImageUrl={profilePictureUrl || undefined}
+            onImageUpdate={(url) => setProfilePictureUrl(url)}
+            disabled={isSaving}
+          />
+        </div>
+        <div>
+          <Label className="text-base font-semibold mb-4 block">Banner Profilo</Label>
+          <BannerUploader
+            currentImageUrl={bannerUrl || undefined}
+            onImageUpdate={(url) => setBannerUrl(url)}
+            disabled={isSaving}
+          />
+        </div>
+      </div>
+
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">

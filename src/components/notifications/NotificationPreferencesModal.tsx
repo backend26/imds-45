@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Bell, Clock, Users, Zap, Trophy, Shield, Settings, Mail } from 'lucide-react';
+import { Bell, Clock, Users, Zap, Trophy, Settings, Mail, Heart, ThumbsUp, MessageSquare, Share, UserPlus, TrendingUp, Star, Calendar, Zap as Live, Target } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
@@ -139,12 +139,15 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="notification-preferences-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
             Preferenze Notifiche
           </DialogTitle>
+          <p id="notification-preferences-description" className="text-sm text-muted-foreground">
+            Gestisci tutte le tue preferenze di notifica in un unico posto
+          </p>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -234,16 +237,16 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { key: 'likes_on_posts' as const, label: 'Like sui tuoi post', icon: '❤️' },
-                { key: 'likes_on_comments' as const, label: 'Like sui tuoi commenti', icon: '👍' },
-                { key: 'comments_on_posts' as const, label: 'Commenti sui tuoi post', icon: '💬' },
-                { key: 'replies_to_comments' as const, label: 'Risposte ai tuoi commenti', icon: '↩️' },
-                { key: 'mentions' as const, label: 'Menzioni (@username)', icon: '📢' },
-                { key: 'new_followers' as const, label: 'Nuovi follower', icon: '👥' }
-              ].map(({ key, label, icon }) => (
+                { key: 'likes_on_posts' as const, label: 'Like sui tuoi post', icon: Heart },
+                { key: 'likes_on_comments' as const, label: 'Like sui tuoi commenti', icon: ThumbsUp },
+                { key: 'comments_on_posts' as const, label: 'Commenti sui tuoi post', icon: MessageSquare },
+                { key: 'replies_to_comments' as const, label: 'Risposte ai tuoi commenti', icon: Share },
+                { key: 'mentions' as const, label: 'Menzioni (@username)', icon: Target },
+                { key: 'new_followers' as const, label: 'Nuovi follower', icon: UserPlus }
+              ].map(({ key, label, icon: IconComponent }) => (
                 <div key={key} className="flex items-center justify-between">
                   <Label htmlFor={key} className="flex items-center gap-2">
-                    <span>{icon}</span>
+                    <IconComponent className="h-4 w-4" />
                     {label}
                   </Label>
                   <Switch
@@ -289,15 +292,15 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
                 <Label className="text-sm font-medium">Notifiche per Sport</Label>
                 <div className="grid grid-cols-2 gap-3">
                   {[
-                    { key: 'calcio', label: 'Calcio', icon: '⚽' },
-                    { key: 'tennis', label: 'Tennis', icon: '🎾' },
-                    { key: 'f1', label: 'Formula 1', icon: '🏎️' },
-                    { key: 'basket', label: 'Basket', icon: '🏀' },
-                    { key: 'nfl', label: 'NFL', icon: '🏈' }
-                  ].map(({ key, label, icon }) => (
+                    { key: 'calcio', label: 'Calcio', icon: Zap },
+                    { key: 'tennis', label: 'Tennis', icon: Target },
+                    { key: 'f1', label: 'Formula 1', icon: Zap },
+                    { key: 'basket', label: 'Basket', icon: Target },
+                    { key: 'nfl', label: 'NFL', icon: Zap }
+                  ].map(({ key, label, icon: IconComponent }) => (
                     <div key={key} className="flex items-center justify-between">
                       <Label className="flex items-center gap-2 text-sm">
-                        <span>{icon}</span>
+                        <IconComponent className="h-4 w-4" />
                         {label}
                       </Label>
                       <Switch
@@ -312,12 +315,12 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
               <Separator />
 
               {[
-                { key: 'trending_posts' as const, label: 'Post in tendenza', icon: '🔥' },
-                { key: 'featured_posts' as const, label: 'Post in evidenza', icon: '⭐' }
-              ].map(({ key, label, icon }) => (
+                { key: 'trending_posts' as const, label: 'Post in tendenza', icon: TrendingUp },
+                { key: 'featured_posts' as const, label: 'Post in evidenza', icon: Star }
+              ].map(({ key, label, icon: IconComponent }) => (
                 <div key={key} className="flex items-center justify-between">
                   <Label htmlFor={key} className="flex items-center gap-2">
-                    <span>{icon}</span>
+                    <IconComponent className="h-4 w-4" />
                     {label}
                   </Label>
                   <Switch
@@ -340,14 +343,14 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
             </CardHeader>
             <CardContent className="space-y-4">
               {[
-                { key: 'event_reminders' as const, label: 'Promemoria eventi', icon: '📅' },
-                { key: 'live_events' as const, label: 'Eventi live', icon: '🔴' },
-                { key: 'score_updates' as const, label: 'Aggiornamenti punteggi', icon: '⚡' },
-                { key: 'favorite_team_updates' as const, label: 'Aggiornamenti squadra del cuore', icon: '💙' }
-              ].map(({ key, label, icon }) => (
+                { key: 'event_reminders' as const, label: 'Promemoria eventi', icon: Calendar },
+                { key: 'live_events' as const, label: 'Eventi live', icon: Live },
+                { key: 'score_updates' as const, label: 'Aggiornamenti punteggi', icon: Zap },
+                { key: 'favorite_team_updates' as const, label: 'Aggiornamenti squadra del cuore', icon: Heart }
+              ].map(({ key, label, icon: IconComponent }) => (
                 <div key={key} className="flex items-center justify-between">
                   <Label htmlFor={key} className="flex items-center gap-2">
-                    <span>{icon}</span>
+                    <IconComponent className="h-4 w-4" />
                     {label}
                   </Label>
                   <Switch

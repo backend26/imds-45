@@ -228,21 +228,53 @@ export const ProfileCard = ({ onError }: ProfileCardProps) => {
 
       {/* Uploaders */}
       {showAvatarUploader && (
-        <AvatarUploader
-          currentImageUrl={profile?.profile_picture_url}
-          onClose={() => setShowAvatarUploader(false)}
-          onSuccess={fetchProfile}
-          onError={onError}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-md w-full">
+            <AvatarUploader
+              currentImageUrl={profile?.profile_picture_url || undefined}
+              onImageUpdate={(url) => {
+                if (profile) {
+                  setProfile({ ...profile, profile_picture_url: url });
+                }
+                setShowAvatarUploader(false);
+                fetchProfile();
+              }}
+              disabled={false}
+            />
+            <Button 
+              variant="outline" 
+              className="w-full mt-4"
+              onClick={() => setShowAvatarUploader(false)}
+            >
+              Chiudi
+            </Button>
+          </div>
+        </div>
       )}
 
       {showBannerUploader && (
-        <BannerUploader
-          currentImageUrl={profile?.banner_url}
-          onClose={() => setShowBannerUploader(false)}
-          onSuccess={fetchProfile}
-          onError={onError}
-        />
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="max-w-2xl w-full">
+            <BannerUploader
+              currentImageUrl={profile?.banner_url || undefined}
+              onImageUpdate={(url) => {
+                if (profile) {
+                  setProfile({ ...profile, banner_url: url });
+                }
+                setShowBannerUploader(false);
+                fetchProfile();
+              }}
+              disabled={false}
+            />
+            <Button 
+              variant="outline" 
+              className="w-full mt-4"
+              onClick={() => setShowBannerUploader(false)}
+            >
+              Chiudi
+            </Button>
+          </div>
+        </div>
       )}
     </Card>
   );

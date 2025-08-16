@@ -99,9 +99,16 @@ export default function Account() {
             </p>
           </div>
 
-          {/* Quick Actions Cards */}
+          {/* Quick Actions Cards - Functional Navigation */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => {
+                const element = document.getElementById('public-tab');
+                element?.click();
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -118,7 +125,14 @@ export default function Account() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => {
+                const element = document.getElementById('activity-tab');
+                element?.click();
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -135,7 +149,14 @@ export default function Account() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => {
+                const element = document.getElementById('security-tab');
+                element?.click();
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -152,7 +173,14 @@ export default function Account() {
               </CardContent>
             </Card>
 
-            <Card className="hover:shadow-lg transition-shadow cursor-pointer group">
+            <Card 
+              className="hover:shadow-lg transition-shadow cursor-pointer group"
+              onClick={() => {
+                const element = document.getElementById('privacy-tab');
+                element?.click();
+                element?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -207,19 +235,19 @@ export default function Account() {
             <div className="lg:col-span-3">
               <Tabs defaultValue="public" className="space-y-6">
                 <TabsList className="grid w-full grid-cols-4 bg-card/50 backdrop-blur-sm border border-border/50 h-auto p-1">
-                  <TabsTrigger value="public" className="flex items-center gap-2 py-3">
+                  <TabsTrigger id="public-tab" value="public" className="flex items-center gap-2 py-3">
                     <Edit className="h-4 w-4" />
                     <span className="hidden sm:inline">Profilo</span>
                   </TabsTrigger>
-                  <TabsTrigger value="activity" className="flex items-center gap-2 py-3">
+                  <TabsTrigger id="activity-tab" value="activity" className="flex items-center gap-2 py-3">
                     <Activity className="h-4 w-4" />
                     <span className="hidden sm:inline">Attività</span>
                   </TabsTrigger>
-                  <TabsTrigger value="privacy" className="flex items-center gap-2 py-3">
+                  <TabsTrigger id="privacy-tab" value="privacy" className="flex items-center gap-2 py-3">
                     <Eye className="h-4 w-4" />
                     <span className="hidden sm:inline">Privacy</span>
                   </TabsTrigger>
-                  <TabsTrigger value="security" className="flex items-center gap-2 py-3">
+                  <TabsTrigger id="security-tab" value="security" className="flex items-center gap-2 py-3">
                     <Shield className="h-4 w-4" />
                     <span className="hidden sm:inline">Sicurezza</span>
                   </TabsTrigger>
