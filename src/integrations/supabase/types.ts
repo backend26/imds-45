@@ -1188,40 +1188,34 @@ export type Database = {
           display_name: string | null
           id: string | null
           location: string | null
-          preferred_sports: string[] | null
           privacy_settings: Json | null
           profile_picture_url: string | null
-          role: Database["public"]["Enums"]["app_role"] | null
           user_id: string | null
           username: string | null
         }
         Insert: {
-          banner_url?: never
+          banner_url?: string | null
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
           location?: string | null
-          preferred_sports?: string[] | null
           privacy_settings?: Json | null
           profile_picture_url?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
           username?: string | null
         }
         Update: {
-          banner_url?: never
+          banner_url?: string | null
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null
           display_name?: string | null
           id?: string | null
           location?: string | null
-          preferred_sports?: string[] | null
           privacy_settings?: Json | null
           profile_picture_url?: string | null
-          role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
           username?: string | null
         }
