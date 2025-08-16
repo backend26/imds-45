@@ -1201,7 +1201,7 @@ export type Database = {
           id?: string | null
           location?: string | null
           preferred_sports?: string[] | null
-          privacy_settings?: Json | null
+          privacy_settings?: never
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
@@ -1216,7 +1216,7 @@ export type Database = {
           id?: string | null
           location?: string | null
           preferred_sports?: string[] | null
-          privacy_settings?: Json | null
+          privacy_settings?: never
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
