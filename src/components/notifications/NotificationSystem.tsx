@@ -10,6 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Database } from '@/integrations/supabase/types';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
+import { NotificationPreferencesButton } from './NotificationPreferencesButton';
 
 type Notification = Database['public']['Tables']['notifications']['Row'] & {
   actor: { username: string; profile_picture_url: string | null };
@@ -250,17 +251,13 @@ export const NotificationSystem = () => {
         </ScrollArea>
         
         <div className="p-3 border-t">
-          <Button 
+          <NotificationPreferencesButton 
             variant="outline" 
             size="sm" 
             className="w-full text-xs"
-            onClick={() => {
-              setOpen(false);
-              // Open preferences modal (we'll import this)
-            }}
           >
             Gestisci Preferenze
-          </Button>
+          </NotificationPreferencesButton>
         </div>
       </PopoverContent>
     </Popover>

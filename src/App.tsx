@@ -34,7 +34,6 @@ import Contatti from "./pages/Contatti";
 import ResetPassword from "./pages/ResetPassword";
 import Post from "./pages/Post";
 import Search from "./pages/Search";
-import SystemDashboard from "./pages/SystemDashboard";
 
 const queryClient = new QueryClient();
 
@@ -60,7 +59,6 @@ const App = () => (
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><AdminDashboard /></ProtectedRoute>} />
             <Route path="/admin/guide" element={<ProtectedRoute allowedRoles={['administrator']}><AdminGuide /></ProtectedRoute>} />
             <Route path="/admin/events" element={<ProtectedRoute allowedRoles={['administrator', 'editor']}><EventsManagement /></ProtectedRoute>} />
-            <Route path="/system-dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><SystemDashboard /></ProtectedRoute>} />
             <Route path="/chi-siamo" element={<ChiSiamo />} />
             <Route path="/contatti" element={<Contatti />} />
             <Route path="/reset-password" element={<ResetPassword />} />
