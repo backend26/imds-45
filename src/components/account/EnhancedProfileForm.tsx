@@ -119,6 +119,11 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
         throw new Error('Username può contenere solo lettere minuscole, numeri e underscore');
       }
 
+      // Validate display name length
+      if (displayName.length > 40) {
+        throw new Error('Il nome visualizzato deve essere massimo 40 caratteri');
+      }
+
       // Check username uniqueness if changed
       if (username && username !== profile?.username) {
         const { data: existingUser } = await supabase
@@ -233,7 +238,11 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="Mario Rossi"
                 disabled={isSaving}
+                maxLength={40}
               />
+              <p className="text-xs text-muted-foreground">
+                {displayName.length}/40 caratteri
+              </p>
             </div>
           </div>
 

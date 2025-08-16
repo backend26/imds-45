@@ -223,6 +223,16 @@ export default function Register() {
         return;
       }
 
+      if (displayName.length > 40) {
+        toast({
+          title: "Nome troppo lungo",
+          description: "Il nome visualizzato deve essere massimo 40 caratteri",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+
       // Controlli di unicità pre-submit
       const { data: usernameExists, error: usernameErr } = await supabase.rpc('check_username_exists', { username_check: username });
       if (usernameErr) {
@@ -356,7 +366,11 @@ export default function Register() {
                     placeholder="es: Mario Rossi"
                     className="mt-1"
                     required
+                    maxLength={40}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {displayName.length}/40 caratteri
+                  </p>
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>

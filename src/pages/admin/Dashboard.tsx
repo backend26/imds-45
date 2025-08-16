@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Switch } from '@/components/ui/switch';
+import UserRoleManager from '@/components/admin/UserRoleManager';
 import { 
   Users, 
   FileText, 
@@ -950,6 +951,10 @@ function AdminDashboardContent() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        <div className="mt-8">
+          <UserRoleManager />
+        </div>
       </div>
     </div>
   );
