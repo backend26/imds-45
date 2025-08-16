@@ -794,6 +794,7 @@ export type Database = {
           id: string
           is_banned: boolean | null
           last_login: string | null
+          last_username_change: string | null
           location: string | null
           login_count: number | null
           notification_preferences: Json | null
@@ -822,6 +823,7 @@ export type Database = {
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
+          last_username_change?: string | null
           location?: string | null
           login_count?: number | null
           notification_preferences?: Json | null
@@ -850,6 +852,7 @@ export type Database = {
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
+          last_username_change?: string | null
           location?: string | null
           login_count?: number | null
           notification_preferences?: Json | null
@@ -1201,7 +1204,7 @@ export type Database = {
           id?: string | null
           location?: string | null
           preferred_sports?: string[] | null
-          privacy_settings?: never
+          privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
@@ -1216,7 +1219,7 @@ export type Database = {
           id?: string | null
           location?: string | null
           preferred_sports?: string[] | null
-          privacy_settings?: never
+          privacy_settings?: Json | null
           profile_picture_url?: string | null
           role?: Database["public"]["Enums"]["app_role"] | null
           user_id?: string | null
@@ -1229,6 +1232,10 @@ export type Database = {
       calculate_session_security_score: {
         Args: { p_ip_address: unknown; p_user_agent: string; p_user_id: string }
         Returns: number
+      }
+      can_change_username: {
+        Args: { user_uuid: string }
+        Returns: boolean
       }
       check_email_exists: {
         Args: { email_check: string }
