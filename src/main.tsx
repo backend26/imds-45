@@ -1,9 +1,17 @@
 import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
+import { suppressResizeObserverErrors } from './utils/errorHandler'
+
+// Gestisci errori ResizeObserver
+suppressResizeObserverErrors();
 
 // Global error handling
 window.onerror = (message, source, lineno, colno, error) => {
+  // Sopprimi errori ResizeObserver
+  if (typeof message === 'string' && message.includes('ResizeObserver loop completed')) {
+    return true; // Previeni log dell'errore
+  }
   console.error('🚨 Global Error:', { message, source, lineno, colno, error });
   return false;
 };

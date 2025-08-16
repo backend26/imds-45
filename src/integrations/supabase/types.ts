@@ -1196,7 +1196,7 @@ export type Database = {
           username: string | null
         }
         Insert: {
-          banner_url?: string | null
+          banner_url?: never
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null
@@ -1211,7 +1211,7 @@ export type Database = {
           username?: string | null
         }
         Update: {
-          banner_url?: string | null
+          banner_url?: never
           bio?: string | null
           birth_date?: string | null
           created_at?: string | null

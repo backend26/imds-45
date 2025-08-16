@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CookieConsentBanner } from "@/components/ui/CookieConsentBanner";
+import { GlobalErrorHandler } from "@/components/error/GlobalErrorHandler";
 import { ThemeManager } from "@/components/ThemeManager";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -40,6 +41,7 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeManager />
+    <GlobalErrorHandler />
     <AuthProvider>
       <TooltipProvider>
         <Toaster />
