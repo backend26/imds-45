@@ -76,6 +76,7 @@ export const PopularAuthorsWidget = () => {
                 privacy_settings: author.privacy_settings,
                 social_links: author.social_links,
                 favorite_team: author.favorite_team,
+                favorite_teams: author.favorite_teams,
                 is_banned: author.is_banned,
                 accepted_terms_at: author.accepted_terms_at,
                 cookie_consent: author.cookie_consent,
