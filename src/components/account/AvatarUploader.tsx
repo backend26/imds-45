@@ -35,14 +35,15 @@ export const AvatarUploader = ({ currentImageUrl, onImageUpdate, disabled }: Pro
         throw new Error('Il file è troppo grande. Massimo 5MB consentito');
       }
 
-      // Create file name
+      // Create file name with user path
       const fileExt = file.name.split('.').pop();
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile-images')
-        .upload(fileName, file, {
+        .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false
         });

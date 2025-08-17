@@ -78,20 +78,38 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
           .from('profiles')
           .select('*')
           .eq('user_id', user.id)
-          .maybeSingle();
+          .single();
 
-        if (error) throw error;
-
-        if (profileData) {
+        if (error) {
+          if (error.code === 'PGRST116') {
+            // Profile doesn't exist, create it
+            const { data: newProfile, error: createError } = await supabase
+              .from('profiles')
+              .insert([{ 
+                user_id: user.id,
+                display_name: user.user_metadata?.display_name || user.email?.split('@')[0] || '',
+                username: user.user_metadata?.username || user.email?.split('@')[0].toLowerCase() || ''
+              }])
+              .select()
+              .single();
+            
+            if (createError) throw createError;
+            setProfile(newProfile);
+            setDisplayName(newProfile.display_name || '');
+            setUsername(newProfile.username || '');
+          } else {
+            throw error;
+          }
+        } else {
           setProfile(profileData);
           setUsername(profileData.username || '');
-          setDisplayName((profileData as any).display_name || '');
+          setDisplayName(profileData.display_name || '');
           setBio(profileData.bio || '');
           setLocation(profileData.location || '');
           setBirthDate(profileData.birth_date ? new Date(profileData.birth_date) : undefined);
-          setFavoriteTeam((profileData as any).favorite_team || '');
+          setFavoriteTeam(profileData.favorite_team || '');
           
-          const socialData = (profileData as any).social_links;
+          const socialData = profileData.social_links;
           if (socialData && typeof socialData === 'object') {
             setSocialLinks({ ...socialLinks, ...socialData });
           }
@@ -109,7 +127,8 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
     fetchProfile();
   }, [user, onError]);
 
-  const handleSave = async () => {
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!user) return;
 
     setIsSaving(true);
@@ -138,18 +157,23 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
         }
       }
 
+      const updateData = { 
+        username: username.toLowerCase().trim() || null,
+        display_name: displayName.trim() || null,
+        bio: bio.trim() || null,
+        location: location.trim() || null,
+        birth_date: birthDate?.toISOString().split('T')[0] || null,
+        favorite_team: favoriteTeam.trim() || null,
+        social_links: socialLinks as any,
+        preferred_sports: preferredSports,
+        updated_at: new Date().toISOString()
+      };
+
       const { error } = await supabase
         .from('profiles')
-        .update({ 
-          username: username.toLowerCase().trim() || null,
-          display_name: displayName.trim() || null,
-          bio: bio.trim() || null,
-          location: location.trim() || null,
-          birth_date: birthDate?.toISOString().split('T')[0] || null,
-          favorite_team: favoriteTeam.trim() || null,
-          social_links: socialLinks as any,
-          preferred_sports: preferredSports,
-          updated_at: new Date().toISOString()
+        .upsert({ 
+          user_id: user.id,
+          ...updateData
         })
         .eq('user_id', user.id);
 
@@ -299,16 +323,46 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={birthDate}
-                    onSelect={setBirthDate}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
-                    }
-                    initialFocus
-                    className="p-3 pointer-events-auto"
-                  />
+                  <div className="p-3">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newDate = new Date();
+                          newDate.setFullYear(newDate.getFullYear() - 25);
+                          setBirthDate(newDate);
+                        }}
+                      >
+                        25 anni fa
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const newDate = new Date();
+                          newDate.setFullYear(newDate.getFullYear() - 35);
+                          setBirthDate(newDate);
+                        }}
+                      >
+                        35 anni fa
+                      </Button>
+                    </div>
+                    <Calendar
+                      mode="single"
+                      selected={birthDate}
+                      onSelect={setBirthDate}
+                      disabled={(date) =>
+                        date > new Date() || date < new Date("1950-01-01")
+                      }
+                      defaultMonth={birthDate || new Date(new Date().getFullYear() - 25, 0)}
+                      initialFocus
+                      className="p-3 pointer-events-auto"
+                      captionLayout="dropdown"
+                      fromYear={1950}
+                      toYear={new Date().getFullYear()}
+                    />
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
@@ -394,16 +448,18 @@ export const EnhancedProfileForm = ({ onError, onProfileUpdate }: Props) => {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving}
-          className="min-w-[150px]"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Salvando...' : 'Salva Modifiche'}
-        </Button>
-      </div>
+      <form onSubmit={handleSave}>
+        <div className="flex justify-end">
+          <Button 
+            type="submit"
+            disabled={isSaving}
+            className="min-w-[150px]"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Salvando...' : 'Salva Modifiche'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

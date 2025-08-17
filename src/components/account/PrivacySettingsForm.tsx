@@ -80,7 +80,8 @@ export const PrivacySettingsForm = ({ onError }: Props) => {
     fetchSettings();
   }, [user, onError]);
 
-  const handleSave = async () => {
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!user) return;
 
     setIsSaving(true);
@@ -387,16 +388,18 @@ export const PrivacySettingsForm = ({ onError }: Props) => {
       </Card>
 
       {/* Save Button */}
-      <div className="flex justify-end">
-        <Button 
-          onClick={handleSave} 
-          disabled={isSaving}
-          className="min-w-[150px]"
-        >
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Salvando...' : 'Salva Impostazioni'}
-        </Button>
-      </div>
+      <form onSubmit={handleSave}>
+        <div className="flex justify-end">
+          <Button 
+            type="submit"
+            disabled={isSaving}
+            className="min-w-[150px]"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Salvando...' : 'Salva Impostazioni'}
+          </Button>
+        </div>
+      </form>
     </div>
   );
 };

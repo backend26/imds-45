@@ -114,7 +114,7 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bell className="h-5 w-5" />
@@ -139,7 +139,7 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto" aria-describedby="notification-preferences-description">
+      <DialogContent className="max-w-2xl max-h-[70vh] overflow-y-auto" aria-describedby="notification-preferences-description">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
@@ -150,7 +150,7 @@ export const NotificationPreferencesModal = ({ open, onOpenChange }: Props) => {
           </p>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* General Settings */}
           <Card>
             <CardHeader>

@@ -47,14 +47,15 @@ export const EnhancedBannerUploader = ({ currentImageUrl, onImageUpdate, disable
         processedFile = await compressImage(file);
       }
 
-      // Nome file unico
+      // Nome file unico con path utente
       const fileExt = processedFile.name.split('.').pop();
       const fileName = `banner-${user.id}-${Date.now()}.${fileExt}`;
+      const filePath = `${user.id}/${fileName}`;
 
       // Upload to Supabase Storage
       const { data, error } = await supabase.storage
         .from('profile-images')
-        .upload(fileName, processedFile, {
+        .upload(filePath, processedFile, {
           cacheControl: '3600',
           upsert: false
         });
