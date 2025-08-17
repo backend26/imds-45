@@ -31,6 +31,8 @@ export default function Account() {
   
   const { user, loading } = useAuth();
   const { toast } = useToast();
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const toggleTheme = () => {
     const newTheme = !darkMode;
@@ -43,6 +45,50 @@ export default function Account() {
       document.documentElement.classList.remove("dark");
     }
   };
+
+  // Fetch user profile
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    setProfileLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code === 'PGRST116') {
+        // No profile found, create one using the signup handler
+        const { error: signupError } = await supabase.functions.invoke('handle-signup');
+        if (signupError) {
+          console.error('Error creating profile:', signupError);
+        } else {
+          // Retry fetching after creation
+          const { data: newData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+          setProfile(newData);
+        }
+      } else if (error) {
+        console.error('Error fetching profile:', error);
+      } else {
+        setProfile(data);
+      }
+    } catch (error) {
+      console.error('Profile fetch error:', error);
+    } finally {
+      setProfileLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
 
   useEffect(() => {
     if (darkMode) {
@@ -69,7 +115,7 @@ export default function Account() {
     }
   };
 
-  if (loading) {
+  if (loading || profileLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -136,11 +182,8 @@ export default function Account() {
 
           <TabsContent value="profile" className="space-y-6">
             <EnhancedProfileSection 
-              profile={user as any} 
-              onProfileUpdate={() => {
-                // Refresh user data or handle profile updates
-                window.location.reload();
-              }} 
+              profile={profile} 
+              onProfileUpdate={fetchProfile} 
             />
           </TabsContent>
 

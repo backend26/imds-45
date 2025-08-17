@@ -20,6 +20,7 @@ import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 import { getTimeAgo } from "@/utils/dateUtils";
 import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { isValidUUID } from "@/utils/uuid-validator";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -108,12 +109,17 @@ const Index = () => {
 
         // Fetch metrics for popularity/comments/trending
         if (list.length > 0 && (sortBy === 'popular' || sortBy === 'comments' || sortBy === 'trending')) {
-          const ids = list.map((p: any) => p.id);
-          const { data: metrics } = await (supabase as any).rpc('get_post_metrics', { post_ids: ids });
-          const metricsArr = Array.isArray(metrics) ? metrics : [];
-          const map = new Map<string, { like_count: number; comment_count: number }>();
-          metricsArr.forEach((m: any) => map.set(m.post_id, { like_count: Number(m.like_count) || 0, comment_count: Number(m.comment_count) || 0 }));
-          list = list.map((p: any) => ({ ...p, _metrics: map.get(p.id) || { like_count: 0, comment_count: 0 } }));
+          const ids = list.map((p: any) => p.id).filter(id => id && isValidUUID(id));
+          if (ids.length > 0) {
+            const { data: metrics } = await (supabase as any).rpc('get_post_metrics', { post_ids: ids });
+            const metricsArr = Array.isArray(metrics) ? metrics : [];
+            const map = new Map<string, { like_count: number; comment_count: number }>();
+            metricsArr.forEach((m: any) => map.set(m.post_id, { like_count: Number(m.like_count) || 0, comment_count: Number(m.comment_count) || 0 }));
+            list = list.map((p: any) => ({ ...p, _metrics: map.get(p.id) || { like_count: 0, comment_count: 0 } }));
+          } else {
+            // No valid UUIDs found, set empty metrics
+            list = list.map((p: any) => ({ ...p, _metrics: { like_count: 0, comment_count: 0 } }));
+          }
 
           const trendScore = (p: any) => {
             const likes = p._metrics.like_count;

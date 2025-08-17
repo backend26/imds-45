@@ -87,6 +87,19 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
   const [location, setLocation] = useState(profile?.location || '');
   const [socialLinks, setSocialLinks] = useState<SocialLinks>(profile?.social_links || {});
   const [favoriteTeams, setFavoriteTeams] = useState<FavoriteTeams>(profile?.favorite_teams || {});
+
+  // Sync form states with profile prop changes
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username || '');
+      setDisplayName(profile.display_name || '');
+      setBio(profile.bio || '');
+      setBirthDate(profile.birth_date ? new Date(profile.birth_date) : undefined);
+      setLocation(profile.location || '');
+      setSocialLinks(profile.social_links || {});
+      setFavoriteTeams(profile.favorite_teams || {});
+    }
+  }, [profile]);
   
   // Validation states
   const [usernameError, setUsernameError] = useState('');
@@ -427,6 +440,8 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
                 disabled={(date) =>
                   date > new Date() || date < new Date("1900-01-01")
                 }
+                initialFocus
+                captionLayout="dropdown"
                 fromYear={1900}
                 toYear={new Date().getFullYear()}
                 className="pointer-events-auto"
