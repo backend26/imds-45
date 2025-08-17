@@ -791,6 +791,7 @@ export type Database = {
           created_at: string
           display_name: string
           favorite_team: string | null
+          favorite_teams: Json | null
           id: string
           is_banned: boolean | null
           last_login: string | null
@@ -820,6 +821,7 @@ export type Database = {
           created_at?: string
           display_name: string
           favorite_team?: string | null
+          favorite_teams?: Json | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
@@ -849,6 +851,7 @@ export type Database = {
           created_at?: string
           display_name?: string
           favorite_team?: string | null
+          favorite_teams?: Json | null
           id?: string
           is_banned?: boolean | null
           last_login?: string | null
