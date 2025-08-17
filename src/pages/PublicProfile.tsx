@@ -91,7 +91,7 @@ export default function PublicProfile() {
         const cleanUsername = username.replace('@', '');
         
         const { data: profileList, error: directError } = await supabase
-          .from('public_profiles')
+          .from('profiles')
           .select('*')
           .eq('username', cleanUsername);
 

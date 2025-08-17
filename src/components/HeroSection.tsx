@@ -24,8 +24,8 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
-  // Use database articles if available, fallback to static ones
-  const displayArticles = dbHeroArticles && dbHeroArticles.length > 0 ? dbHeroArticles : heroArticles;
+  // Use database articles if available, show empty state if none
+  const displayArticles = dbHeroArticles && dbHeroArticles.length > 0 ? dbHeroArticles : [];
 
   useEffect(() => {
     if (!isAutoPlaying) return;
@@ -53,6 +53,18 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
   };
 
   const currentArticle = displayArticles[currentSlide];
+
+  // Show empty state if no articles
+  if (!displayArticles || displayArticles.length === 0) {
+    return (
+      <section className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden bg-gradient-to-r from-primary/20 to-secondary/20 flex items-center justify-center">
+        <div className="text-center text-muted-foreground">
+          <h2 className="text-2xl font-bold mb-2">Nessun articolo in evidenza</h2>
+          <p>Gli articoli in evidenza appariranno qui una volta pubblicati.</p>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden group hero-section">

@@ -35,7 +35,7 @@ export const NotificationSystem = () => {
       // Enrich with actor username and related post title
       const enriched = await Promise.all(base.map(async (n: any) => {
         const [actorRes, postRes] = await Promise.all([
-          supabase.from('public_profiles').select('username, profile_picture_url').eq('user_id', n.actor_id).maybeSingle(),
+          supabase.from('profiles').select('username, profile_picture_url').eq('id', n.actor_id).maybeSingle(),
           n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
         ]);
         return {
@@ -54,7 +54,7 @@ export const NotificationSystem = () => {
         const n = payload.new as any;
         if (n.recipient_id !== user.id) return;
         const [actorRes, postRes] = await Promise.all([
-          supabase.from('public_profiles').select('username, profile_picture_url').eq('user_id', n.actor_id).maybeSingle(),
+          supabase.from('profiles').select('username, profile_picture_url').eq('id', n.actor_id).maybeSingle(),
           n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
         ]);
         const enriched: Notification = {

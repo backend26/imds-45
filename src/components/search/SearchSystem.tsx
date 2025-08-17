@@ -87,8 +87,8 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
 
     // Search users 
     const { data: users } = await supabase
-      .from('public_profiles')
-      .select('user_id,username,display_name,profile_picture_url')
+      .from('profiles')
+      .select('id,username,display_name,profile_picture_url')
       .or(`username.ilike.%${searchQuery}%,display_name.ilike.%${searchQuery}%`)
       .limit(10);
 
@@ -101,7 +101,7 @@ export const SearchSystem = ({ onSearch }: SearchSystemProps) => {
     }));
 
     setSearchResults(results);
-    setUserResults(users || []);
+    setUserResults((users || []).map(u => ({ ...u, user_id: u.id })));
     onSearch?.(searchQuery, filters);
   };
 

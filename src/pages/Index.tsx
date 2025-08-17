@@ -182,7 +182,7 @@ const Index = () => {
       
       {/* Hero Section */}
       <div className="hero-section">
-        <HeroSection />
+        <HeroSection heroArticles={featured} />
       </div>
 
       {/* Main Content with Sidebar Layout */}

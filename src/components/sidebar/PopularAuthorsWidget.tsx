@@ -10,7 +10,14 @@ import type { Database } from '@/integrations/supabase/types';
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 interface AuthorStats {
-  author: Profile;
+  author: {
+    id: string;
+    username: string;
+    display_name: string;
+    profile_picture_url?: string;
+    role: string;
+    bio?: string;
+  };
   postsCount: number;
   totalLikes: number;
   totalComments: number;
@@ -160,7 +167,7 @@ export const PopularAuthorsWidget = () => {
             </div>
           ) : (
             authors.map((authorStats, index) => (
-              <div key={authorStats.author.user_id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+              <div key={authorStats.author.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
                 <div className="relative">
                   <Avatar className="w-10 h-10">
                     <AvatarImage src={authorStats.author.profile_picture_url || undefined} />
