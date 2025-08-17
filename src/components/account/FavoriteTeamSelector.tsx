@@ -83,7 +83,7 @@ export const FavoriteTeamSelector = () => {
         .single();
       
       if (data?.favorite_team) {
-        // Parse the favorite team JSON if it exists
+        // Parse the favorite teams JSON if it exists
         const teams = typeof data.favorite_team === 'string' 
           ? JSON.parse(data.favorite_team) 
           : data.favorite_team;

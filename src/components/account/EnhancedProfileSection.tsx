@@ -213,8 +213,7 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         bio: bio.trim() || null,
         birth_date: birthDate ? format(birthDate, 'yyyy-MM-dd') : null,
         location: location.trim() || null,
-        social_links: Object.keys(socialLinks).length > 0 ? socialLinks : {},
-        favorite_teams: Object.keys(favoriteTeams).length > 0 ? favoriteTeams : {},
+        social_links: socialLinks,
         updated_at: new Date().toISOString()
       };
 
