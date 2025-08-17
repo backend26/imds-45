@@ -34,7 +34,17 @@ export const getImageUrl = (path: string): string => {
     return path;
   }
   
-  // In produzione, restituire il path diretto
+  // Handle Supabase Storage paths - convert to public URLs
+  if (path.includes('/') && (
+    path.startsWith('post-media/') || 
+    path.startsWith('cover-images/') || 
+    path.startsWith('avatars/') || 
+    path.startsWith('profile-images/')
+  )) {
+    return constructSupabaseImageUrl(path);
+  }
+  
+  // In produzione, restituire il path diretto per assets locali
   if (import.meta.env.PROD) {
     return path;
   }
@@ -55,4 +65,35 @@ export const getImageUrl = (path: string): string => {
   };
   
   return pathMap[path] || path;
+};
+
+// Helper function to construct Supabase Storage URLs
+const constructSupabaseImageUrl = (path: string): string => {
+  if (!path || typeof path !== 'string') return '';
+  
+  // Already a full URL
+  if (path.startsWith('http') || path.startsWith('//')) {
+    return path;
+  }
+  
+  // Determine bucket and clean path
+  let bucket = 'post-media'; // default
+  let cleanPath = path;
+  
+  if (path.startsWith('post-media/')) {
+    bucket = 'post-media';
+    cleanPath = path.substring(11);
+  } else if (path.startsWith('cover-images/')) {
+    bucket = 'cover-images';
+    cleanPath = path.substring(13);
+  } else if (path.startsWith('avatars/')) {
+    bucket = 'avatars';
+    cleanPath = path.substring(8);
+  } else if (path.startsWith('profile-images/')) {
+    bucket = 'profile-images';
+    cleanPath = path.substring(15);
+  }
+  
+  // Construct the public URL
+  return `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${cleanPath}`;
 };

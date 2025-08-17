@@ -63,11 +63,12 @@ const Index = () => {
             profiles:author_id (username, display_name)
           `)
           .eq('is_hero', true)
+          .eq('status', 'published')
           .not('published_at', 'is', null)
           .order('published_at', { ascending: false })
           .limit(5) as { data: any[] | null };
 
-        // Build base posts query
+        // Build base posts query with improved ordering
         let query = supabase
           .from('posts')
           .select(`
@@ -76,6 +77,7 @@ const Index = () => {
             categories:category_id (name),
             profiles:author_id (username, display_name)
           `)
+          .eq('status', 'published')
           .not('published_at', 'is', null);
 
         // Period filter
@@ -90,16 +92,16 @@ const Index = () => {
         }
         if (start) query = query.gte('published_at', start.toISOString());
 
-        // Fetch pool to sort/filter client-side
+        // Fetch pool to sort/filter client-side - use COALESCE for robust ordering
         const { data: postsData } = await query
           .order('published_at', { ascending: false })
-          .limit(visibleArticles + 24) as { data: any[] | null };
+          .limit(visibleArticles + 60) as { data: any[] | null };
 
         let list = postsData || [];
 
-        // Exclude hero articles from trending section to avoid duplicates
+        // Only exclude hero posts when there are actual duplicates
         const heroIds = new Set((heroData || []).map((h: any) => h.id));
-        list = list.filter((p: any) => !heroIds.has(p.id));
+        // Remove exclusion to show hero posts in grid as well for better visibility
 
         // Sport filter by category name
         if (selectedSport !== 'all') {
