@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ProfileSection } from "@/components/account/ProfileSection";
-import { PersonalInfoSection } from "@/components/account/PersonalInfoSection";
+import { EnhancedProfileSection } from "@/components/account/EnhancedProfileSection";
 import { SecuritySection } from "@/components/account/SecuritySection";
 import { PrivacySection } from "@/components/account/PrivacySection";
 import { NotificationSection } from "@/components/account/NotificationSection";
@@ -136,24 +135,13 @@ export default function Account() {
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
-            <PersonalInfoSection 
-              profile={user} 
+            <EnhancedProfileSection 
+              profile={user as any} 
               onProfileUpdate={() => {
                 // Refresh user data or handle profile updates
                 window.location.reload();
               }} 
             />
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5 text-primary" />
-                  Profilo Pubblico
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ProfileSection />
-              </CardContent>
-            </Card>
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">

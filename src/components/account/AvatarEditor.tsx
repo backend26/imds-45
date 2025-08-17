@@ -160,9 +160,12 @@ export const AvatarEditor = ({ imageUrl, onClose, onAvatarUpdated }: AvatarEdito
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="avatar-editor-description">
         <DialogHeader>
           <DialogTitle>Modifica Avatar</DialogTitle>
+          <p id="avatar-editor-description" className="text-sm text-muted-foreground">
+            Carica e ritaglia la tua immagine profilo
+          </p>
         </DialogHeader>
         
         <div className="space-y-4">

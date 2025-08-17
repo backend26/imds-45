@@ -64,9 +64,12 @@ export const EditProfileModal = ({ profile, onClose, onProfileUpdated }: EditPro
 
   return (
     <Dialog open onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md" aria-describedby="edit-profile-description">
         <DialogHeader>
           <DialogTitle>Modifica Profilo</DialogTitle>
+          <p id="edit-profile-description" className="text-sm text-muted-foreground">
+            Aggiorna le informazioni del tuo profilo pubblico
+          </p>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">

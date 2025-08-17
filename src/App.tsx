@@ -54,7 +54,7 @@ const App = () => (
             <Route path="/register" element={<Register />} /> {/* Compatibility fallback */}
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/account" element={<Account />} />
-            <Route path="/@:username" element={<PublicProfile />} />
+            <Route path="/:username" element={<PublicProfile />} />
             <Route path="/editor/new" element={<NewPostPage />} />
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />
             <Route path="/post/:postId" element={<Post />} />
