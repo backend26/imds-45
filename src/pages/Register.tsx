@@ -368,9 +368,14 @@ export default function Register() {
                     required
                     maxLength={40}
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {displayName.length}/40 caratteri
-                  </p>
+                  <div className="flex justify-between text-xs mt-1">
+                    <span className="text-muted-foreground">
+                      Questo nome apparirà nei tuoi articoli
+                    </span>
+                    <span className={`${displayName.length > 35 ? 'text-orange-500' : 'text-muted-foreground'} ${displayName.length > 40 ? 'text-red-500' : ''}`}>
+                      {displayName.length}/40 caratteri
+                    </span>
+                  </div>
                 </div>
                 <div>
                   <Label htmlFor="email">Email</Label>

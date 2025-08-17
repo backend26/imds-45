@@ -1311,6 +1311,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      invalidate_user_role_cache: {
+        Args: { p_user_id: string }
+        Returns: undefined
+      }
       is_user_admin: {
         Args: { user_uuid?: string }
         Returns: boolean

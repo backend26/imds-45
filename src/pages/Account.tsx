@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProfileSection } from "@/components/account/ProfileSection";
+import { PersonalInfoSection } from "@/components/account/PersonalInfoSection";
 import { SecuritySection } from "@/components/account/SecuritySection";
 import { PrivacySection } from "@/components/account/PrivacySection";
 import { NotificationSection } from "@/components/account/NotificationSection";
@@ -135,6 +136,13 @@ export default function Account() {
           </TabsList>
 
           <TabsContent value="profile" className="space-y-6">
+            <PersonalInfoSection 
+              profile={user} 
+              onProfileUpdate={() => {
+                // Refresh user data or handle profile updates
+                window.location.reload();
+              }} 
+            />
             <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">

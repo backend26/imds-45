@@ -61,11 +61,23 @@ export const useRoleCheckCached = ({ allowedRoles, cacheKey }: UseRoleCheckOptio
     }
 
     try {
+      // Usa la funzione RPC per ottenere il ruolo corrente senza problemi di cache
+      const { data: currentRole, error: roleError } = await supabase.rpc('get_current_user_role');
+      
+      // Fallback alla query diretta se RPC fallisce
       const { data: profileData, error: profileError } = await supabase
         .from('profiles')
         .select('user_id, username, role, display_name, is_banned')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      // Se RPC ha funzionato, usa quel risultato per il ruolo
+      if (!roleError && currentRole && profileData) {
+        const validRole = currentRole === 'guest' ? 'registered_user' : 
+                         ['administrator', 'editor', 'journalist', 'registered_user'].includes(currentRole) 
+                         ? currentRole as UserRole : 'registered_user';
+        profileData.role = validRole;
+      }
 
       if (profileError) {
         console.error('Error fetching profile:', profileError);
