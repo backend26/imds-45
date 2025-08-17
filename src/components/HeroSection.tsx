@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Enhanced3DFootball } from "./Enhanced3DFootball";
 
-import { heroArticles } from "@/data/articles";
+// Mock data removed - using database data only
 import { getImageUrl } from "@/config/images";
 
 interface HeroArticle {
@@ -72,7 +72,7 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
       <div 
         className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out scale-105 group-hover:scale-110 parallax-image"
         style={{ 
-          backgroundImage: `url(${getImageUrl(currentArticle?.imageUrl || '/assets/images/derby-inter-milan.jpg')})` 
+          backgroundImage: `url(${getImageUrl(currentArticle?.imageUrl || '/assets/images/default-banner.jpg')})` 
         }}
       />
       
