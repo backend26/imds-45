@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       await supabase.auth.signOut({ scope: 'global' });
     } catch {}
 
+    // CRITICAL: Always set emailRedirectTo to prevent auth issues
     const redirectUrl = `${window.location.origin}/`;
     const { error } = await supabase.auth.signUp({
       email,

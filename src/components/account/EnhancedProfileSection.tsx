@@ -162,7 +162,7 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
   const handleFavoriteTeamChange = (sport: keyof FavoriteTeams, value: string) => {
     setFavoriteTeams(prev => ({
       ...prev,
-      [sport]: value
+      [sport]: value === 'none' ? '' : value
     }));
   };
 
@@ -267,7 +267,7 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
   };
 
   return (
-    <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-elegant overflow-hidden">
+    <Card className="border-border/50 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm shadow-elegant overflow-hidden animate-fade-in">
       {/* Banner Section */}
       <div className="relative">
         <IntelligentBanner
@@ -303,12 +303,12 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         </div>
       </div>
 
-      <CardHeader className="pt-16 pb-4">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="pt-16 pb-4 bg-gradient-to-r from-primary/5 to-accent/5">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <User className="h-5 w-5 text-primary" />
           Informazioni Profilo
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="text-sm">
           Gestisci tutte le informazioni del tuo profilo pubblico. Le impostazioni privacy determinano cosa sarà visibile agli altri utenti.
         </CardDescription>
       </CardHeader>
@@ -538,14 +538,14 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
               <div key={sport} className="space-y-1">
                 <Label className="text-xs text-muted-foreground capitalize">{sport}</Label>
                 <Select
-                  value={favoriteTeams[sport as keyof FavoriteTeams] || ''}
+                  value={favoriteTeams[sport as keyof FavoriteTeams] || 'none'}
                   onValueChange={(value) => handleFavoriteTeamChange(sport as keyof FavoriteTeams, value)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={`Seleziona squadra ${sport}`} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Nessuna preferenza</SelectItem>
+                    <SelectItem value="none">Nessuna preferenza</SelectItem>
                     {teams.map((team) => (
                       <SelectItem key={team} value={team}>{team}</SelectItem>
                     ))}
@@ -557,11 +557,11 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-end pt-4">
+        <div className="flex justify-end pt-6 border-t border-border/50">
           <Button 
             onClick={handleSave} 
             disabled={loading || displayNameRemaining < 0 || bioRemaining < 0 || usernameValid === false}
-            className="min-w-[140px]"
+            className="min-w-[140px] bg-gradient-primary hover:bg-gradient-primary/90 text-white shadow-elegant transition-all duration-300 hover:scale-105"
           >
             {loading ? (
               <>

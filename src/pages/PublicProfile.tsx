@@ -151,10 +151,10 @@ export default function PublicProfile() {
           });
         }
 
-        // Carica follower/following
+        // Carica follower/following (using count without selecting specific columns)
         const [{ count: followers }, { count: following }] = await Promise.all([
-          supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', profileData.user_id),
-          supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', profileData.user_id),
+          supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', profileData.user_id),
+          supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', profileData.user_id),
         ]);
         setFollowerCount(followers || 0);
         setFollowingCount(following || 0);
@@ -163,7 +163,7 @@ export default function PublicProfile() {
         if (user?.id) {
           const { data: followRelation } = await supabase
             .from('follows')
-            .select('id')
+            .select('follower_id')
             .eq('follower_id', user.id)
             .eq('following_id', profileData.user_id)
             .maybeSingle();
