@@ -4,9 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
-import { useLazyImage } from "@/hooks/use-lazy-image";
-import { getImageUrl } from "@/config/images";
-import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
+import { SmartImage } from "@/components/ui/smart-image";
 import { ContentPreview } from "@/components/posts/ContentPreview";
 
 interface HorizontalArticleCardProps {
@@ -38,13 +36,10 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
   className,
   article
 }) => {
-  const coverImage = article ? getCoverImageFromPost(article) : imageUrl;
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
-
-  const { imgRef, isLoaded, isInView } = useLazyImage();
 
   const handleLike = (e: React.MouseEvent<HTMLButtonElement>) => {
     e.stopPropagation();
@@ -78,36 +73,18 @@ export const HorizontalArticleCard: React.FC<HorizontalArticleCardProps> = ({
         <div className="flex h-full">
           {/* Image Section - 30% width */}
           <div className="relative w-1/3 min-w-[120px]">
-            <div 
-              className="h-full bg-cover bg-center relative overflow-hidden"
-              style={{ 
-                backgroundImage: isInView ? `url(${getImageUrl(coverImage)})` : 'none',
-                backgroundColor: isLoaded ? 'transparent' : 'hsl(var(--muted))'
-              }}
-              role="img"
-              aria-label={`Immagine per l'articolo: ${title}`}
+            <SmartImage
+              src={article?.cover_images || imageUrl}
+              alt={`Immagine per l'articolo: ${title}`}
+              className="h-full group-hover:scale-105 transition-transform duration-300"
+            />
+
+            {/* Category badge */}
+            <Badge 
+              className="absolute top-2 left-2 bg-primary text-primary-foreground animate-scale-in z-10 text-xs"
             >
-              {/* Loading skeleton */}
-              {!isLoaded && (
-                <div className="absolute inset-0 loading-skeleton" />
-              )}
-
-              {/* Hidden image for lazy loading */}
-              <img
-                ref={imgRef}
-                src={isInView ? getImageUrl(coverImage) : ''}
-                alt={`Immagine per l'articolo: ${title}`}
-                className="hidden"
-                loading="lazy"
-              />
-
-              {/* Category badge */}
-              <Badge 
-                className="absolute top-2 left-2 bg-primary text-primary-foreground animate-scale-in z-10 text-xs"
-              >
-                {category}
-              </Badge>
-            </div>
+              {category}
+            </Badge>
           </div>
 
           {/* Content Section - 70% width */}

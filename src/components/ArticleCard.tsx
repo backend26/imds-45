@@ -4,9 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "./Icon";
 import { cn } from "@/lib/utils";
-import { useLazyImage } from "@/hooks/use-lazy-image";
-import { getImageUrl } from "@/config/images";
-import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
+import { SmartImage } from "@/components/ui/smart-image";
 import { ContentPreview } from "@/components/posts/ContentPreview";
 import { gsap } from "gsap";
 import { usePostInteractions } from "@/hooks/use-post-interactions";
@@ -48,12 +46,9 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   onClick,
   article
 }) => {
-  const coverImage = article ? getCoverImageFromPost(article) : imageUrl;
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  const { imgRef, isLoaded, isInView } = useLazyImage();
   
   const {
     isLiked,
@@ -165,31 +160,13 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
       }}
     >
       <div className="relative">
-        <div 
-          className={cn(
-            "bg-cover bg-center relative overflow-hidden",
-            featured ? "aspect-[16/9] sm:aspect-[21/9]" : "aspect-[16/9] sm:aspect-[4/3]"
-          )}
-          style={{ 
-            backgroundImage: isInView ? `url(${getImageUrl(coverImage)})` : 'none',
-            backgroundColor: isLoaded ? 'transparent' : 'hsl(var(--muted))'
-          }}
-          role="img"
-          aria-label={`Immagine per l'articolo: ${title}`}
-        >
-          {/* Loading skeleton */}
-          {!isLoaded && (
-            <div className="absolute inset-0 loading-skeleton" />
-          )}
-
-          {/* Hidden image for lazy loading */}
-                        <img
-                ref={imgRef}
-                src={isInView ? getImageUrl(coverImage) : ''}
-                alt={`Immagine per l'articolo: ${title}`}
-                className="hidden"
-                loading="lazy"
-              />
+        <div className="relative overflow-hidden">
+          <SmartImage
+            src={article?.cover_images || imageUrl}
+            alt={`Immagine per l'articolo: ${title}`}
+            aspectRatio={featured ? "21/9" : "4/3"}
+            className="w-full h-full group-hover:scale-105 transition-transform duration-300"
+          />
 
           {/* Gradient overlay for better text readability */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />

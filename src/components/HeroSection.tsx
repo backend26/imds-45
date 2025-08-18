@@ -4,9 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Enhanced3DFootball } from "./Enhanced3DFootball";
-
-// Mock data removed - using database data only
-import { getImageUrl } from "@/config/images";
+import { SmartImage } from "@/components/ui/smart-image";
 
 interface HeroArticle {
   id: string;
@@ -69,12 +67,13 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
   return (
     <section className="relative h-[50vh] sm:h-[60vh] lg:h-[70vh] overflow-hidden group hero-section">
       {/* Background Image with Responsive Parallax Effect */}
-      <div 
-        className="absolute inset-0 bg-cover bg-center transition-all duration-1000 ease-out scale-105 group-hover:scale-110 parallax-image"
-        style={{ 
-          backgroundImage: `url(${getImageUrl(currentArticle?.imageUrl || '/assets/images/default-banner.jpg')})` 
-        }}
-      />
+      <div className="absolute inset-0">
+        <SmartImage
+          src={currentArticle?.imageUrl}
+          alt={currentArticle?.title || "Hero image"}
+          className="scale-105 group-hover:scale-110 transition-all duration-1000 ease-out"
+        />
+      </div>
       
       {/* Responsive Overlay Gradient */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/20 sm:from-black/70 sm:via-black/40 sm:to-transparent" />
