@@ -3,12 +3,15 @@ import { Link, useNavigate, Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Eye, EyeOff } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { isAllowedEmail, getAllowedDomains } from "@/utils/emailValidator";
+import { useRateLimit } from "@/hooks/use-rate-limit";
+import { ValidationSchemas, sanitizeInput } from "@/utils/security";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -24,6 +27,7 @@ export default function Register() {
   });
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -45,6 +49,7 @@ export default function Register() {
     allowedDomains: []
   });
   const { signUp, user, loading } = useAuth();
+  const { checkRateLimit, recordAttempt } = useRateLimit();
   const navigate = useNavigate();
 
   const toggleTheme = () => {
@@ -189,11 +194,27 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Check rate limiting
+    const rateCheck = checkRateLimit();
+    if (!rateCheck.allowed) {
+      toast({
+        title: "Troppi tentativi",
+        description: rateCheck.message,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      // Sanitize inputs
+      const cleanEmail = sanitizeInput(email.trim());
+      const cleanUsername = sanitizeInput(username.trim());
+      const cleanDisplayName = sanitizeInput(displayName.trim());
       // Validazioni finali
-      if (!(await isAllowedEmail(email))) {
+      if (!(await isAllowedEmail(cleanEmail))) {
         toast({
           title: "Email non consentita",
           description: "Il dominio della tua email non è nella whitelist. Contatta l'amministratore per richiedere l'accesso.",
@@ -213,7 +234,7 @@ export default function Register() {
         return;
       }
 
-      if (!displayName.trim()) {
+      if (!cleanDisplayName) {
         toast({
           title: "Nome visualizzato obbligatorio",
           description: "Inserisci il tuo nome visualizzato",
@@ -223,7 +244,7 @@ export default function Register() {
         return;
       }
 
-      if (displayName.length > 40) {
+      if (cleanDisplayName.length > 40) {
         toast({
           title: "Nome troppo lungo",
           description: "Il nome visualizzato deve essere massimo 40 caratteri",
@@ -234,7 +255,7 @@ export default function Register() {
       }
 
       // Controlli di unicità pre-submit
-      const { data: usernameExists, error: usernameErr } = await supabase.rpc('check_username_exists', { username_check: username });
+      const { data: usernameExists, error: usernameErr } = await supabase.rpc('check_username_exists', { username_check: cleanUsername });
       if (usernameErr) {
         toast({ title: "Errore", description: "Errore verifica username", variant: "destructive" });
         setIsLoading(false);
@@ -246,7 +267,7 @@ export default function Register() {
         return;
       }
 
-      const { data: emailExists, error: emailErr } = await supabase.rpc('check_email_exists', { email_check: email.toLowerCase() });
+      const { data: emailExists, error: emailErr } = await supabase.rpc('check_email_exists', { email_check: cleanEmail.toLowerCase() });
       if (emailErr) {
         toast({ title: "Errore", description: "Errore verifica email", variant: "destructive" });
         setIsLoading(false);
@@ -260,18 +281,19 @@ export default function Register() {
 
       // Registra l'utente con Supabase Auth e metadati per il trigger
       const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: cleanEmail,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            username: username,
-            display_name: displayName || username
+            username: cleanUsername,
+            display_name: cleanDisplayName || cleanUsername
           }
         }
       });
 
       if (authError) {
+        recordAttempt(false);
         toast({
           title: "Errore di registrazione",
           description: authError.message,
@@ -280,6 +302,8 @@ export default function Register() {
         setIsLoading(false);
         return;
       }
+      
+      recordAttempt(true);
 
       toast({
         title: "Registrazione completata!",
@@ -288,7 +312,7 @@ export default function Register() {
       });
 
       navigate("/email-confirmation", { 
-        state: { email, message: "Ti abbiamo inviato una email di conferma" }
+        state: { email: cleanEmail, message: "Ti abbiamo inviato una email di conferma" }
       });
 
     } catch (error) {
@@ -404,15 +428,30 @@ export default function Register() {
                 </div>
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input
-                    id="password"
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    className="mt-1"
-                    minLength={6}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="mt-1 pr-10"
+                      minLength={6}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox 

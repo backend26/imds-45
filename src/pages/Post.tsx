@@ -12,7 +12,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 import DOMPurify from 'dompurify';
-import { getCoverImageFromPost } from '@/utils/getCoverImageFromPost';
+import { SmartImage } from '@/components/ui/smart-image';
 import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
@@ -333,18 +333,16 @@ const PostPage = () => {
           </div>
 
           {/* Cover image */}
-          {(() => {
-            const coverImage = getCoverImageFromPost(post);
-            return coverImage ? (
-              <div className="mb-8">
-                <img
-                  src={coverImage}
-                  alt={post.title}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
-              </div>
-            ) : null;
-          })()}
+          {post.cover_images && (
+            <div className="mb-8">
+              <SmartImage
+                src={post.cover_images}
+                alt={post.title}
+                className="w-full h-96 rounded-lg"
+                aspectRatio="16/9"
+              />
+            </div>
+          )}
         </header>
 
         {/* Content */}

@@ -18,7 +18,7 @@ import { useCardAnimations } from "@/hooks/use-card-animations";
 import { useInteractiveAnimations } from "@/hooks/use-interactive-animations";
 import { useLiquidAnimation } from "@/hooks/use-liquid-animation";
 import { getTimeAgo } from "@/utils/dateUtils";
-import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
+
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { isValidUUID } from "@/utils/uuid-validator";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
@@ -192,7 +192,7 @@ const Index = () => {
             id: post.id,
             title: post.title,
             excerpt: post.excerpt || '',
-            imageUrl: getCoverImageFromPost(post),
+            imageUrl: post.cover_images,
             category: post.categories?.name || 'News',
           };
         });
@@ -333,8 +333,8 @@ const Index = () => {
 };
 
 function mapPostToCard(post: any) {
-  // Use the utility function for consistent image handling
-  const image = getCoverImageFromPost(post);
+  // Pass raw cover_images directly to SmartImage
+  const image = post.cover_images;
   
   const date = post.published_at || post.created_at;
   

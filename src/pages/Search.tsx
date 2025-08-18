@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Search, Filter, SortAsc, Calendar } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
-import { getCoverImageFromPost } from '@/utils/getCoverImageFromPost';
+import { SmartImage } from '@/components/ui/smart-image';
 
 interface SearchResult {
   id: string;
@@ -220,7 +220,7 @@ export default function SearchPage() {
                   excerpt={article.excerpt || ''}
                   author={article.profiles?.display_name || article.profiles?.username || 'Redazione'}
                   publishedAt={article.published_at}
-                  imageUrl={getCoverImageFromPost(article)}
+                  imageUrl={article.cover_images}
                   category={article.categories?.name || 'News'}
                   readTime="3 min"
                   likes={0}

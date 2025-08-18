@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getCoverImageFromPost } from '@/utils/getCoverImageFromPost';
-import { getImageUrl } from '@/config/images';
+import { ImageUrlProcessor } from '@/utils/imageUrlProcessor';
 import { useCacheInvalidation } from '@/hooks/use-cache-invalidation';
 import { RefreshCw, Bug, Trash2 } from 'lucide-react';
 
@@ -24,17 +23,16 @@ export const ImageDebugPanel: React.FC<ImageDebugPanelProps> = ({
   const analyzeImageUrls = () => {
     return posts.slice(0, 5).map(post => {
       const rawCoverImages = post.cover_images;
-      const extractedUrl = getCoverImageFromPost(post);
-      const finalUrl = getImageUrl(extractedUrl);
+      const result = ImageUrlProcessor.process(rawCoverImages);
       
       return {
         postId: post.id,
         title: post.title?.substring(0, 30) + '...',
         rawCoverImages,
-        extractedUrl,
-        finalUrl,
-        hasError: finalUrl.includes('[') || finalUrl.includes(']'),
-        isEmpty: !finalUrl || finalUrl === '/assets/images/derby-inter-milan.jpg'
+        extractedUrl: result.originalInput,
+        finalUrl: result.url,
+        hasError: !result.isValid,
+        isEmpty: result.source === 'fallback'
       };
     });
   };
