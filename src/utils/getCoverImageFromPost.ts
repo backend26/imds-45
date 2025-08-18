@@ -1,4 +1,4 @@
-// Utility to safely extract cover image from post data - ENHANCED VERSION
+// Utility to safely extract cover image from post data - ENHANCED VERSION WITH URL SANITIZATION
 export const getCoverImageFromPost = (post: any): string => {
   try {
     // Handle null/undefined
@@ -11,7 +11,7 @@ export const getCoverImageFromPost = (post: any): string => {
     if (post.cover_images) {
       // Handle direct HTTP/HTTPS URL string
       if (typeof post.cover_images === 'string' && (post.cover_images.startsWith('http') || post.cover_images.startsWith('//'))) {
-        return post.cover_images;
+        return sanitizeUrl(post.cover_images);
       }
       
       // Handle Supabase Storage path (convert to public URL)
@@ -30,17 +30,19 @@ export const getCoverImageFromPost = (post: any): string => {
             const firstImage = parsed[0];
             // Handle array of URLs
             if (typeof firstImage === 'string') {
-              return firstImage.startsWith('http') ? firstImage : constructSupabaseStorageUrl(firstImage);
+              const url = firstImage.startsWith('http') ? sanitizeUrl(firstImage) : constructSupabaseStorageUrl(firstImage);
+              return url;
             }
             // Handle array of objects {url}
             if (typeof firstImage === 'object' && firstImage?.url) {
-              return firstImage.url.startsWith('http') ? firstImage.url : constructSupabaseStorageUrl(firstImage.url);
+              const url = firstImage.url.startsWith('http') ? sanitizeUrl(firstImage.url) : constructSupabaseStorageUrl(firstImage.url);
+              return url;
             }
           }
         } catch (e) {
           // If JSON parsing fails, check if it's a direct URL or Storage path
           if (post.cover_images.startsWith('http') || post.cover_images.startsWith('//')) {
-            return post.cover_images;
+            return sanitizeUrl(post.cover_images);
           }
           if (post.cover_images.includes('/')) {
             return constructSupabaseStorageUrl(post.cover_images);
@@ -52,10 +54,10 @@ export const getCoverImageFromPost = (post: any): string => {
       if (Array.isArray(post.cover_images) && post.cover_images.length > 0) {
         const firstImage = post.cover_images[0];
         if (typeof firstImage === 'string') {
-          return firstImage.startsWith('http') ? firstImage : constructSupabaseStorageUrl(firstImage);
+          return firstImage.startsWith('http') ? sanitizeUrl(firstImage) : constructSupabaseStorageUrl(firstImage);
         }
         if (typeof firstImage === 'object' && firstImage?.url) {
-          return firstImage.url.startsWith('http') ? firstImage.url : constructSupabaseStorageUrl(firstImage.url);
+          return firstImage.url.startsWith('http') ? sanitizeUrl(firstImage.url) : constructSupabaseStorageUrl(firstImage.url);
         }
       }
     }
@@ -86,33 +88,52 @@ export const getCoverImageFromPost = (post: any): string => {
   }
 };
 
+// Helper function to sanitize URLs removing escape characters
+const sanitizeUrl = (url: string): string => {
+  if (!url || typeof url !== 'string') return '';
+  
+  // Remove URL encoding artifacts like %22 (quotes)
+  let cleanUrl = url.replace(/%22/g, '').replace(/"/g, '');
+  
+  // Remove any trailing commas or invalid characters
+  cleanUrl = cleanUrl.replace(/[,\]}"']+$/, '');
+  
+  return cleanUrl.trim();
+};
+
 // Helper function to construct Supabase Storage public URLs
 const constructSupabaseStorageUrl = (path: string): string => {
   if (!path || typeof path !== 'string') return '';
   
   // Already a full URL
   if (path.startsWith('http') || path.startsWith('//')) {
-    return path;
+    return sanitizeUrl(path);
   }
+  
+  // Remove any quotes or escape characters from path
+  let cleanPath = path.replace(/['"]/g, '').replace(/%22/g, '');
   
   // Determine bucket based on path prefix
   let bucket = 'post-media'; // default
-  let cleanPath = path;
+  let finalPath = cleanPath;
   
-  if (path.startsWith('post-media/')) {
+  if (cleanPath.startsWith('post-media/')) {
     bucket = 'post-media';
-    cleanPath = path.substring(11); // remove 'post-media/'
-  } else if (path.startsWith('cover-images/')) {
+    finalPath = cleanPath.substring(11); // remove 'post-media/'
+  } else if (cleanPath.startsWith('cover-images/')) {
     bucket = 'cover-images';
-    cleanPath = path.substring(13); // remove 'cover-images/'
-  } else if (path.startsWith('avatars/')) {
+    finalPath = cleanPath.substring(13); // remove 'cover-images/'
+  } else if (cleanPath.startsWith('avatars/')) {
     bucket = 'avatars';
-    cleanPath = path.substring(8); // remove 'avatars/'
-  } else if (path.startsWith('profile-images/')) {
+    finalPath = cleanPath.substring(8); // remove 'avatars/'
+  } else if (cleanPath.startsWith('profile-images/')) {
     bucket = 'profile-images';
-    cleanPath = path.substring(15); // remove 'profile-images/'
+    finalPath = cleanPath.substring(15); // remove 'profile-images/'
   }
   
+  // Ensure no double slashes in path
+  finalPath = finalPath.replace(/\/+/g, '/');
+  
   // Construct the public URL
-  return `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${cleanPath}`;
+  return `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${finalPath}`;
 };

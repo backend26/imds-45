@@ -2,6 +2,7 @@ import { createRoot } from 'react-dom/client'
 import App from './App.tsx'
 import './index.css'
 import { suppressResizeObserverErrors } from './utils/errorHandler'
+import { QueryProvider } from './providers/QueryProvider'
 
 // Gestisci errori ResizeObserver
 suppressResizeObserverErrors();
@@ -33,4 +34,8 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <QueryProvider>
+    <App />
+  </QueryProvider>
+);

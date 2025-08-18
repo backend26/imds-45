@@ -40,6 +40,7 @@ import { it } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useQueryClient } from '@tanstack/react-query';
 
 function AdminDashboardContent() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -73,6 +74,7 @@ function AdminDashboardContent() {
   
   const { profile } = useAdminCheck();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Theme management
   const toggleTheme = () => {
@@ -247,6 +249,9 @@ function AdminDashboardContent() {
   const refreshData = async () => {
     setLoading(true);
     try {
+      // Clear any cached data
+      queryClient?.removeQueries();
+      
       await Promise.all([
         fetchStats(),
         fetchUsers(),
@@ -348,6 +353,9 @@ function AdminDashboardContent() {
             .delete()
             .eq('id', postId);
           if (deleteError) throw deleteError;
+          
+          // Force cache invalidation and refresh after deletion
+          queryClient.removeQueries();
           toast({ title: "Successo", description: "Post eliminato" });
           break;
       }

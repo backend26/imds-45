@@ -53,8 +53,8 @@ const Index = () => {
     const fetchData = async () => {
       try {
         setLoadingPosts(true);
-        // Hero posts for carousel
-        const { data: heroData } = await supabase
+        // Hero posts for carousel - with fallback to recent posts
+        let { data: heroData } = await supabase
           .from('posts')
           .select(`
             id, title, excerpt, content, cover_images, featured_image_url, 
@@ -64,9 +64,24 @@ const Index = () => {
           `)
           .eq('is_hero', true)
           .eq('status', 'published')
-          .not('published_at', 'is', null)
           .order('published_at', { ascending: false })
           .limit(5) as { data: any[] | null };
+
+        // If no hero posts, fallback to 3 most recent posts
+        if (!heroData || heroData.length === 0) {
+          const { data: recentData } = await supabase
+            .from('posts')
+            .select(`
+              id, title, excerpt, content, cover_images, featured_image_url, 
+              published_at, created_at, author_id, category_id, is_hero,
+              categories:category_id (name),
+              profiles:author_id (username, display_name)
+            `)
+            .eq('status', 'published')
+            .order('published_at', { ascending: false })
+            .limit(3) as { data: any[] | null };
+          heroData = recentData;
+        }
 
         // Build base posts query with improved ordering
         let query = supabase
@@ -77,8 +92,7 @@ const Index = () => {
             categories:category_id (name),
             profiles:author_id (username, display_name)
           `)
-          .eq('status', 'published')
-          .not('published_at', 'is', null);
+          .eq('status', 'published');
 
         // Period filter
         const now = new Date();
@@ -90,18 +104,19 @@ const Index = () => {
           case 'year': start = new Date(now); start.setFullYear(now.getFullYear() - 1); break;
           default: start = null;
         }
-        if (start) query = query.gte('published_at', start.toISOString());
+        // For specific periods, add date filter
+        if (start && period !== 'all') {
+          query = query.gte('published_at', start.toISOString());
+        }
 
-        // Fetch pool to sort/filter client-side - use COALESCE for robust ordering
+        // Fetch pool to sort/filter client-side - more permissive for 'Always'
         const { data: postsData } = await query
           .order('published_at', { ascending: false })
-          .limit(visibleArticles + 60) as { data: any[] | null };
+          .limit(visibleArticles + 90) as { data: any[] | null };
 
         let list = postsData || [];
 
-        // Only exclude hero posts when there are actual duplicates
-        const heroIds = new Set((heroData || []).map((h: any) => h.id));
-        // Remove exclusion to show hero posts in grid as well for better visibility
+        // Allow hero posts to appear in grid for better visibility - no exclusion
 
         // Sport filter by category name
         if (selectedSport !== 'all') {
@@ -138,8 +153,12 @@ const Index = () => {
             list.sort((a: any, b: any) => trendScore(b) - trendScore(a));
           }
         } else {
-          // Default: most recent
-          list.sort((a: any, b: any) => new Date(b.published_at || b.created_at).getTime() - new Date(a.published_at || a.created_at).getTime());
+          // Default: most recent using COALESCE logic
+          list.sort((a: any, b: any) => {
+            const dateA = new Date(a.published_at || a.created_at).getTime();
+            const dateB = new Date(b.published_at || b.created_at).getTime();
+            return dateB - dateA;
+          });
         }
 
         setPosts(list);
