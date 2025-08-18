@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
-import { AdvancedSearchSystem } from "@/components/search/AdvancedSearchSystem";
+import { SearchSystem } from "@/components/search/SearchSystem";
 
 const sports = [
   { name: "Prima Pagina", href: "/" },
@@ -108,14 +108,12 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
           {/* Right Actions - Mobile Optimized */}
           <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
-            <AdvancedSearchSystem 
-              onResults={(results, query) => {
+            <SearchSystem 
+              onSearch={(query, filters) => {
                 const searchParams = new URLSearchParams();
                 searchParams.set('q', query);
                 navigate(`/search?${searchParams.toString()}`);
               }}
-              className="w-auto"
-              placeholder="Ricerca avanzata..."
             />
             
             <Button 

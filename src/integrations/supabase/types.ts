@@ -80,6 +80,39 @@ export type Database = {
         }
         Relationships: []
       }
+      comment_likes: {
+        Row: {
+          comment_id: string
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comment_likes_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comment_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       comments: {
         Row: {
           author_id: string
@@ -1145,12 +1178,20 @@ export type Database = {
         Args: { user_uuid?: string }
         Returns: boolean
       }
+      is_user_journalist_or_admin: {
+        Args: { user_uuid?: string }
+        Returns: boolean
+      }
       promote_user_to_journalist: {
         Args: { user_uuid: string }
         Returns: boolean
       }
       safe_purge_user_content: {
         Args: { target_user_id: string }
+        Returns: undefined
+      }
+      update_trending_topics: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       validate_password_strength: {
