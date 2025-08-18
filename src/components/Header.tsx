@@ -109,10 +109,13 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
           {/* Right Actions - Mobile Optimized */}
           <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
             <SearchSystem 
-              onSearch={(query, filters) => {
-                const searchParams = new URLSearchParams();
-                searchParams.set('q', query);
-                navigate(`/search?${searchParams.toString()}`);
+              compact={true}
+              onResults={(results, query) => {
+                if (results.length === 0 && query) {
+                  const searchParams = new URLSearchParams();
+                  searchParams.set('q', query);
+                  navigate(`/search?${searchParams.toString()}`);
+                }
               }}
             />
             

@@ -45,6 +45,7 @@ export const SortingControls: React.FC<SortingControlsProps> = ({
               <SelectItem value="popular">Più Popolari</SelectItem>
               <SelectItem value="trending">Più Votate</SelectItem>
               <SelectItem value="comments">Più Commentate</SelectItem>
+              <SelectItem value="always">Sempre Attuali</SelectItem>
             </SelectContent>
           </Select>
         </div>
