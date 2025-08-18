@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { AdvancedEditor } from '@/components/editor/AdvancedEditor';
+import { EditorContentSection } from '@/components/editor/EditorContentSection';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useEditorCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
@@ -57,7 +57,7 @@ function NewPostPageContent() {
             {profile && ` | ${profile.display_name || profile.username}`}
           </p>
         </div>
-        <AdvancedEditor />
+        <EditorContentSection />
       </div>
     </div>
   );
@@ -65,7 +65,7 @@ function NewPostPageContent() {
 
 const NewPostPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['administrator', 'editor', 'journalist']}>
+    <ProtectedRoute allowedRoles={['administrator', 'journalist']}>
       <NewPostPageContent />
     </ProtectedRoute>
   );

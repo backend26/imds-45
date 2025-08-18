@@ -32,26 +32,41 @@ export const ActivitySection = () => {
     if (!user) return;
 
     try {
-      // Fetch user stats
-      const { data: statsData } = await supabase.rpc('get_author_stats', { author_uuid: user.id });
-      if (Array.isArray(statsData) && statsData[0]) {
-        setStats({
-          posts_count: Number(statsData[0].posts_count) || 0,
-          likes_received: Number(statsData[0].likes_received) || 0,
-          comments_received: Number(statsData[0].comments_received) || 0,
-        });
-      }
+      // Fetch basic stats from posts and likes
+      const { data: postsCount } = await supabase
+        .from('posts')
+        .select('id', { count: 'exact', head: true })
+        .eq('author_id', user.id);
+
+      const { data: likesData } = await supabase
+        .from('post_likes')
+        .select('post_id, posts!inner(author_id)', { count: 'exact', head: true })
+        .eq('posts.author_id', user.id);
+
+      const { data: commentsData } = await supabase
+        .from('comments')
+        .select('id, posts!inner(author_id)', { count: 'exact', head: true })
+        .eq('posts.author_id', user.id);
+
+      setStats({
+        posts_count: postsCount?.length || 0,
+        likes_received: likesData?.length || 0,
+        comments_received: commentsData?.length || 0,
+      });
 
       // Fetch recent posts
       const { data: postsData } = await supabase
         .from('posts')
-        .select('id, title, created_at, status')
+        .select('id, title, created_at, published_at')
         .eq('author_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5);
 
       if (postsData) {
-        setRecentPosts(postsData);
+        setRecentPosts(postsData.map(post => ({
+          ...post,
+          status: post.published_at ? 'published' : 'draft'
+        })));
       }
     } catch (error) {
       console.error('Error fetching activity:', error);

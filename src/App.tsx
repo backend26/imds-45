@@ -29,7 +29,7 @@ import BasketPage from "./pages/sports/Basket";
 import NotFound from "./pages/NotFound";
 import NewPostPage from "./pages/editor/new";
 import EditPostPage from "./pages/editor/[postId]/edit";
-import AdminGuide from "./pages/AdminGuide";
+
 import ChiSiamo from "./pages/ChiSiamo";
 import Contatti from "./pages/Contatti";
 import ResetPassword from "./pages/ResetPassword";
@@ -59,7 +59,7 @@ const App = () => (
             <Route path="/editor/:postId/edit" element={<EditPostPage />} />
             <Route path="/post/:postId" element={<Post />} />
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/admin/guide" element={<ProtectedRoute allowedRoles={['administrator']}><AdminGuide /></ProtectedRoute>} />
+            
             <Route path="/editor/events" element={<ProtectedRoute allowedRoles={['administrator', 'editor', 'journalist']}><EventsManagement /></ProtectedRoute>} />
             <Route path="/chi-siamo" element={<ChiSiamo />} />
             <Route path="/contatti" element={<Contatti />} />

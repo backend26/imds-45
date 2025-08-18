@@ -25,60 +25,8 @@ export const NotificationSystem = () => {
     markAsRead,
     markAllAsRead,
     deleteNotification,
-    getNotificationMessage,
-    getNotificationIcon
+    getNotificationMessage
   } = useRealNotifications();
-
-  useEffect(() => {
-    if (!user) return;
-    const load = async () => {
-      const { data } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('recipient_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      const base = data || [];
-      // Enrich with actor username and related post title
-      const enriched = await Promise.all(base.map(async (n: any) => {
-        const [actorRes, postRes] = await Promise.all([
-          supabase.from('profiles').select('username, profile_picture_url').eq('id', n.actor_id).maybeSingle(),
-          n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
-        ]);
-        return {
-          ...n,
-          actor: { username: actorRes.data?.username || 'Utente', profile_picture_url: actorRes.data?.profile_picture_url || null },
-          related_post: n.related_post_id ? { title: (postRes as any).data?.title || '' } : null
-        } as Notification;
-      }));
-      setNotifications(enriched);
-    };
-    load();
-
-    const channel = supabase
-      .channel('notifications-feed')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, async (payload) => {
-        const n = payload.new as any;
-        if (n.recipient_id !== user.id) return;
-        const [actorRes, postRes] = await Promise.all([
-          supabase.from('profiles').select('username, profile_picture_url').eq('id', n.actor_id).maybeSingle(),
-          n.related_post_id ? supabase.from('posts').select('title').eq('id', n.related_post_id).maybeSingle() : Promise.resolve({ data: null })
-        ]);
-        const enriched: Notification = {
-          ...(n as any),
-          actor: { username: actorRes.data?.username || 'Utente', profile_picture_url: actorRes.data?.profile_picture_url || null },
-          related_post: n.related_post_id ? { title: (postRes as any).data?.title || '' } : null
-        };
-        setNotifications(prev => [enriched, ...prev]);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
-
-  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -95,64 +43,9 @@ export const NotificationSystem = () => {
     }
   };
 
-  const getNotificationText = (notification: Notification) => {
-    const { type, actor, related_post } = notification;
-    const username = actor.username || 'Utente';
-    
-    switch (type) {
-      case 'like':
-        return `${username} ha messo mi piace al tuo articolo "${related_post?.title}"`;
-      case 'comment':
-        return `${username} ha commentato il tuo articolo "${related_post?.title}"`;
-      case 'mention':
-        return `${username} ti ha menzionato in un commento`;
-      case 'new_follower':
-        return `${username} ha iniziato a seguirti`;
-      default:
-        return 'Nuova notifica';
-    }
+  const getNotificationText = (notification: any) => {
+    return getNotificationMessage(notification);
   };
-
-  const markAsRead = async (notificationId: string) => {
-    try {
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId)
-        .eq('recipient_id', user!.id);
-      setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    try {
-      await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('recipient_id', user!.id)
-        .eq('is_read', false);
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  const deleteNotification = async (notificationId: string) => {
-    try {
-      await supabase
-        .from('notifications')
-        .delete()
-        .eq('id', notificationId)
-        .eq('recipient_id', user!.id);
-      setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    } catch (error) {
-      console.error('Error deleting notification:', error);
-    }
-  };
-
-  if (!user) return null;
 
   return (
     <>
@@ -220,7 +113,7 @@ export const NotificationSystem = () => {
                     
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-foreground">
-                        {getNotificationText(notification)}
+                        {getNotificationMessage(notification)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(notification.created_at), {

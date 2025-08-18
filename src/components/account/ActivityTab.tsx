@@ -9,7 +9,7 @@ import { Heart, Bookmark, Edit, FileText, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
-type Post = Database['public']['Tables']['posts']['Row'];
+type Post = Database['public']['Tables']['posts']['Row'] & { status?: string };
 type PostLike = Database['public']['Tables']['post_likes']['Row'];
 type BookmarkedPost = Database['public']['Tables']['bookmarked_posts']['Row'];
 
@@ -145,8 +145,8 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3" />
               {new Date(post.created_at).toLocaleDateString('it-IT')}
-              <Badge variant={post.status === 'published' ? 'default' : 'secondary'} className="text-xs">
-                {post.status === 'published' ? 'Pubblicato' : 'Bozza'}
+              <Badge variant={post.published_at ? 'default' : 'secondary'} className="text-xs">
+                {post.published_at ? 'Pubblicato' : 'Bozza'}
               </Badge>
             </div>
           </div>
@@ -194,7 +194,7 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
           </TabsList>
 
           <TabsContent value="posts" className="space-y-4">
-            {profile?.role === 'editor' || profile?.role === 'administrator' ? (
+            {profile?.role === 'journalist' || profile?.role === 'administrator' ? (
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">I Tuoi Articoli</h3>
@@ -221,7 +221,7 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Edit className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Solo gli editor possono scrivere articoli.</p>
+                <p>Solo i giornalisti possono scrivere articoli.</p>
                 <p className="text-sm">Contatta un amministratore per ottenere i permessi.</p>
               </div>
             )}
