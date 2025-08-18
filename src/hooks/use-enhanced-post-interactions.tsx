@@ -62,6 +62,39 @@ export function useEnhancedPostInteractions(postId: string) {
         averageRating: Math.round(averageRating * 10) / 10,
         totalRatings: ratings.length
       });
+
+      // Set up real-time subscriptions for this post
+      const channel = supabase.channel(`post-${postId}`)
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'post_likes',
+          filter: `post_id=eq.${postId}`
+        }, () => {
+          // Reload data when likes change
+          loadInteractionData();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'comments',
+          filter: `post_id=eq.${postId}`
+        }, () => {
+          // Reload data when comments change
+          loadInteractionData();
+        })
+        .on('postgres_changes', { 
+          event: '*', 
+          schema: 'public', 
+          table: 'post_ratings',
+          filter: `post_id=eq.${postId}`
+        }, () => {
+          // Reload data when ratings change
+          loadInteractionData();
+        })
+        .subscribe();
+
+      return () => supabase.removeChannel(channel);
     } catch (error) {
       console.error('Error loading interaction data:', error);
     }
