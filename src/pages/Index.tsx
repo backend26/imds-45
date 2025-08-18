@@ -23,6 +23,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { isValidUUID } from "@/utils/uuid-validator";
 import { useAutoRefresh } from "@/hooks/use-auto-refresh";
 import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
+import { ImageDebugPanel } from "@/components/debug/ImageDebugPanel";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -323,6 +324,9 @@ const Index = () => {
 
         {/* Footer */}
         <Footer />
+        
+        {/* Debug Panel for Image Issues */}
+        <ImageDebugPanel posts={posts} />
       </div>
     </ErrorBoundary>
   );

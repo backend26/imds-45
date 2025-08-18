@@ -22,13 +22,25 @@ export const getCoverImageFromPost = (post: any): string => {
         return constructSupabaseStorageUrl(post.cover_images);
       }
       
-      // Handle JSON string or array
+      // Handle JSON string or array with improved parsing
       if (typeof post.cover_images === 'string') {
         try {
-          // Enhanced JSON parsing - handle malformed arrays with brackets
+          // First sanitize the entire string to remove brackets that might interfere
           let jsonString = post.cover_images.trim();
           
-          // Fix common malformed JSON patterns
+          // Handle direct URLs that got wrapped in brackets
+          if (jsonString.startsWith('[') && jsonString.endsWith(']') && 
+              jsonString.includes('http') && !jsonString.includes(',')) {
+            // Single URL wrapped in brackets: ["https://..."]
+            const urlMatch = jsonString.match(/\["?([^"]+)"?\]/);
+            if (urlMatch && urlMatch[1]) {
+              const cleanUrl = sanitizeUrl(urlMatch[1]);
+              if (import.meta.env.DEV) console.log('🖼️ Found single URL in brackets:', cleanUrl);
+              return cleanUrl.startsWith('http') ? cleanUrl : constructSupabaseStorageUrl(cleanUrl);
+            }
+          }
+          
+          // Fix malformed JSON patterns
           if (jsonString.startsWith('[') && !jsonString.endsWith(']')) {
             jsonString += ']';
           }
@@ -36,18 +48,27 @@ export const getCoverImageFromPost = (post: any): string => {
             jsonString = '[' + jsonString;
           }
           
+          // Clean up quotes and escape characters before parsing
+          jsonString = jsonString
+            .replace(/\\"/g, '"')     // Fix escaped quotes
+            .replace(/"{2,}/g, '"')   // Remove double quotes
+            .replace(/\["+/g, '["')   // Fix opening bracket quotes
+            .replace(/"+\]/g, '"]');  // Fix closing bracket quotes
+          
           const parsed = JSON.parse(jsonString);
           if (Array.isArray(parsed) && parsed.length > 0) {
             const firstImage = parsed[0];
             // Handle array of URLs
             if (typeof firstImage === 'string') {
-              const url = firstImage.startsWith('http') ? sanitizeUrl(firstImage) : constructSupabaseStorageUrl(sanitizeUrl(firstImage));
+              const cleanUrl = sanitizeUrl(firstImage);
+              const url = cleanUrl.startsWith('http') ? cleanUrl : constructSupabaseStorageUrl(cleanUrl);
               if (import.meta.env.DEV) console.log('🖼️ Found image from JSON array:', url);
               return url;
             }
             // Handle array of objects {url}
             if (typeof firstImage === 'object' && firstImage?.url) {
-              const url = firstImage.url.startsWith('http') ? sanitizeUrl(firstImage.url) : constructSupabaseStorageUrl(sanitizeUrl(firstImage.url));
+              const cleanUrl = sanitizeUrl(firstImage.url);
+              const url = cleanUrl.startsWith('http') ? cleanUrl : constructSupabaseStorageUrl(cleanUrl);
               if (import.meta.env.DEV) console.log('🖼️ Found image from JSON object:', url);
               return url;
             }
@@ -107,22 +128,28 @@ export const getCoverImageFromPost = (post: any): string => {
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return '';
   
-  // Remove URL encoding artifacts and malformed characters
+  // Aggressive removal of all malformed characters and brackets
   let cleanUrl = url
-    .replace(/%22/g, '')        // Remove %22 (encoded quotes)
-    .replace(/"/g, '')          // Remove literal quotes
-    .replace(/[\[\]]/g, '')     // Remove ALL square brackets (start/end/middle)
-    .replace(/\\"/g, '')        // Remove escaped quotes
-    .replace(/^[,\s\[\]]+/, '') // Remove leading commas/spaces/brackets
-    .replace(/[,\s\[\]]+$/, '') // Remove trailing commas/spaces/brackets
-    .replace(/^\[+/, '')        // Remove leading brackets specifically
-    .replace(/\]+$/, '');       // Remove trailing brackets specifically
+    .replace(/%22/g, '')           // Remove %22 (encoded quotes)
+    .replace(/"/g, '')             // Remove literal quotes
+    .replace(/\\"/g, '')           // Remove escaped quotes
+    .replace(/[\[\]]/g, '')        // Remove ALL square brackets ANYWHERE in string
+    .replace(/^[,\s\[\]]+/, '')    // Remove leading commas/spaces/brackets
+    .replace(/[,\s\[\]]+$/, '')    // Remove trailing commas/spaces/brackets
+    .replace(/^\[*/, '')           // Remove any remaining leading brackets
+    .replace(/\]*$/, '')           // Remove any remaining trailing brackets
+    .trim();                       // Final trim
+  
+  // Additional bracket removal pass (in case of nested brackets)
+  while (cleanUrl.includes('[') || cleanUrl.includes(']')) {
+    cleanUrl = cleanUrl.replace(/[\[\]]/g, '');
+  }
   
   if (import.meta.env.DEV) {
     console.log('🔧 sanitizeUrl:', { original: url, cleaned: cleanUrl });
   }
   
-  return cleanUrl.trim();
+  return cleanUrl;
 };
 
 // Helper function to construct Supabase Storage public URLs

@@ -28,7 +28,38 @@ export const useCacheInvalidation = () => {
   const refreshAfterDelete = useCallback(() => {
     // Force immediate refresh for critical operations
     queryClient.removeQueries();
-    window.location.reload();
+    
+    // Clear service worker cache
+    if ('serviceWorker' in navigator && 'caches' in window) {
+      caches.keys().then((cacheNames) => {
+        cacheNames.forEach((cacheName) => {
+          caches.delete(cacheName);
+        });
+      }).then(() => {
+        window.location.reload();
+      });
+    } else {
+      window.location.reload();
+    }
+  }, [queryClient]);
+
+  const clearAllCaches = useCallback(async () => {
+    // Clear React Query cache
+    queryClient.removeQueries();
+    
+    // Clear Service Worker caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map(name => caches.delete(name))
+      );
+    }
+    
+    // Clear localStorage cache flags
+    localStorage.removeItem('posts-cache');
+    localStorage.removeItem('hero-cache');
+    
+    console.log('🧹 All caches cleared');
   }, [queryClient]);
 
   return {
@@ -36,6 +67,7 @@ export const useCacheInvalidation = () => {
     invalidatePosts,
     invalidateUsers,
     invalidateReports,
-    refreshAfterDelete
+    refreshAfterDelete,
+    clearAllCaches
   };
 };

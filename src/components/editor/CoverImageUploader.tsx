@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { sanitizeImagePath, constructSupabaseUrl } from '@/utils/imageValidator';
 
 interface CoverImageUploaderProps {
   images: string;
@@ -57,8 +58,12 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
       const imageUrl = await uploadImage(files[0]);
       
       if (imageUrl) {
+        // Sanitize the URL before storing
+        const cleanUrl = sanitizeImagePath(imageUrl);
+        const finalUrl = cleanUrl.startsWith('http') ? cleanUrl : constructSupabaseUrl(cleanUrl, 'post-media');
+        
         // Store as JSON array for consistency with database schema
-        onChange(JSON.stringify([imageUrl]));
+        onChange(JSON.stringify([finalUrl]));
         toast({
           title: "Successo",
           description: "Immagine di copertina caricata",
@@ -100,10 +105,13 @@ export const CoverImageUploader: React.FC<CoverImageUploaderProps> = ({ images, 
     if (!images) return '';
     try {
       const parsed = JSON.parse(images);
-      return Array.isArray(parsed) ? parsed[0] : images;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return sanitizeImagePath(parsed[0]);
+      }
+      return sanitizeImagePath(images);
     } catch {
-      // If parsing fails, treat as direct URL
-      return images;
+      // If parsing fails, treat as direct URL and sanitize
+      return sanitizeImagePath(images);
     }
   })();
 

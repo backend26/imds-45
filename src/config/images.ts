@@ -29,12 +29,17 @@ export const getImageUrl = (path: string): string => {
     return '/assets/images/derby-inter-milan.jpg'; // fallback
   }
   
-  // If it's already an absolute URL, return as-is
+  // Already a full URL - don't double-process
   if (path.startsWith('http') || path.startsWith('//')) {
     return path;
   }
   
-  // Handle Supabase Storage paths - convert to public URLs
+  // Check if this is already a complete Supabase URL that got passed incorrectly
+  if (path.includes('supabase.co/storage/v1/object/public/')) {
+    return path.startsWith('http') ? path : 'https://' + path;
+  }
+  
+  // Supabase Storage path - construct full URL only if it's a storage path
   if (path.includes('/') && (
     path.startsWith('post-media/') || 
     path.startsWith('cover-images/') || 
@@ -71,29 +76,44 @@ export const getImageUrl = (path: string): string => {
 const constructSupabaseImageUrl = (path: string): string => {
   if (!path || typeof path !== 'string') return '';
   
-  // Already a full URL
+  // Already a full URL - don't double-process
   if (path.startsWith('http') || path.startsWith('//')) {
     return path;
   }
   
-  // Determine bucket and clean path
-  let bucket = 'post-media'; // default
-  let cleanPath = path;
+  // Remove any brackets or malformed characters
+  let cleanPath = path
+    .replace(/[\[\]"']/g, '')
+    .replace(/%22/g, '')
+    .trim();
   
-  if (path.startsWith('post-media/')) {
+  // Determine bucket and final path
+  let bucket = 'post-media'; // default
+  let finalPath = cleanPath;
+  
+  if (cleanPath.startsWith('post-media/')) {
     bucket = 'post-media';
-    cleanPath = path.substring(11);
-  } else if (path.startsWith('cover-images/')) {
+    finalPath = cleanPath.substring(11);
+  } else if (cleanPath.startsWith('cover-images/')) {
     bucket = 'cover-images';
-    cleanPath = path.substring(13);
-  } else if (path.startsWith('avatars/')) {
+    finalPath = cleanPath.substring(13);
+  } else if (cleanPath.startsWith('avatars/')) {
     bucket = 'avatars';
-    cleanPath = path.substring(8);
-  } else if (path.startsWith('profile-images/')) {
+    finalPath = cleanPath.substring(8);
+  } else if (cleanPath.startsWith('profile-images/')) {
     bucket = 'profile-images';
-    cleanPath = path.substring(15);
+    finalPath = cleanPath.substring(15);
   }
   
+  // Ensure no double slashes in path
+  finalPath = finalPath.replace(/\/+/g, '/');
+  
   // Construct the public URL
-  return `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${cleanPath}`;
+  const url = `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${finalPath}`;
+  
+  if (import.meta.env.DEV) {
+    console.log('🔗 constructSupabaseImageUrl:', { original: path, bucket, finalPath, url });
+  }
+  
+  return url;
 };
