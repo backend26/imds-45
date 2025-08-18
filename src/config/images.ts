@@ -29,47 +29,75 @@ export const getImageUrl = (path: string): string => {
     return '/assets/images/derby-inter-milan.jpg'; // fallback
   }
   
-  // Already a full URL - don't double-process
-  if (path.startsWith('http') || path.startsWith('//')) {
-    return path;
+  // Clean input first
+  const cleanPath = path.trim();
+  
+  // Already a complete valid URL - return as-is
+  if (cleanPath.startsWith('https://') || cleanPath.startsWith('http://')) {
+    if (import.meta.env.DEV) {
+      console.log('🔗 getImageUrl: Complete URL detected:', cleanPath);
+    }
+    return cleanPath;
   }
   
-  // Check if this is already a complete Supabase URL that got passed incorrectly
-  if (path.includes('supabase.co/storage/v1/object/public/')) {
-    return path.startsWith('http') ? path : 'https://' + path;
+  // Protocol-relative URL
+  if (cleanPath.startsWith('//')) {
+    return 'https:' + cleanPath;
   }
   
-  // Supabase Storage path - construct full URL only if it's a storage path
-  if (path.includes('/') && (
-    path.startsWith('post-media/') || 
-    path.startsWith('cover-images/') || 
-    path.startsWith('avatars/') || 
-    path.startsWith('profile-images/')
+  // Complete Supabase URL without protocol
+  if (cleanPath.includes('supabase.co/storage/v1/object/public/')) {
+    const fullUrl = cleanPath.startsWith('http') ? cleanPath : 'https://' + cleanPath;
+    if (import.meta.env.DEV) {
+      console.log('🔗 getImageUrl: Supabase URL without protocol:', fullUrl);
+    }
+    return fullUrl;
+  }
+  
+  // Supabase Storage path - construct full URL
+  if (cleanPath.includes('/') && (
+    cleanPath.startsWith('post-media/') || 
+    cleanPath.startsWith('cover-images/') || 
+    cleanPath.startsWith('avatars/') || 
+    cleanPath.startsWith('profile-images/')
   )) {
-    return constructSupabaseImageUrl(path);
+    const constructedUrl = constructSupabaseImageUrl(cleanPath);
+    if (import.meta.env.DEV) {
+      console.log('🔗 getImageUrl: Constructed from storage path:', { original: cleanPath, constructed: constructedUrl });
+    }
+    return constructedUrl;
   }
   
-  // In produzione, restituire il path diretto per assets locali
-  if (import.meta.env.PROD) {
-    return path;
+  // Local asset path
+  if (cleanPath.startsWith('/assets/') || cleanPath.startsWith('./assets/')) {
+    // In produzione, restituire il path diretto
+    if (import.meta.env.PROD) {
+      return cleanPath;
+    }
+    
+    // In sviluppo, mappare con i placeholder
+    const pathMap: Record<string, string> = {
+      '/assets/images/hero-juventus-champions.jpg': imagePlaceholders.hero.juventus,
+      '/assets/images/hero-verstappen-monza.jpg': imagePlaceholders.hero.verstappen,
+      '/assets/images/hero-sinner-usopen.jpg': imagePlaceholders.hero.sinner,
+      '/assets/images/derby-inter-milan.jpg': imagePlaceholders.articles.derby,
+      '/assets/images/verstappen-monza.jpg': imagePlaceholders.articles.verstappen,
+      '/assets/images/sinner-usopen.jpg': imagePlaceholders.articles.sinner,
+      '/assets/images/lakers-warriors.jpg': imagePlaceholders.articles.lakers,
+      '/assets/images/chiefs-superbowl.jpg': imagePlaceholders.articles.chiefs,
+      '/assets/images/juventus-mercato.jpg': imagePlaceholders.articles.juventus,
+      '/assets/images/leclerc-ferrari.jpg': imagePlaceholders.articles.leclerc,
+      '/assets/images/djokovic-record.jpg': imagePlaceholders.articles.djokovic
+    };
+    
+    return pathMap[cleanPath] || cleanPath;
   }
   
-  // In sviluppo, mappare i path con i placeholder
-  const pathMap: Record<string, string> = {
-    '/assets/images/hero-juventus-champions.jpg': imagePlaceholders.hero.juventus,
-    '/assets/images/hero-verstappen-monza.jpg': imagePlaceholders.hero.verstappen,
-    '/assets/images/hero-sinner-usopen.jpg': imagePlaceholders.hero.sinner,
-    '/assets/images/derby-inter-milan.jpg': imagePlaceholders.articles.derby,
-    '/assets/images/verstappen-monza.jpg': imagePlaceholders.articles.verstappen,
-    '/assets/images/sinner-usopen.jpg': imagePlaceholders.articles.sinner,
-    '/assets/images/lakers-warriors.jpg': imagePlaceholders.articles.lakers,
-    '/assets/images/chiefs-superbowl.jpg': imagePlaceholders.articles.chiefs,
-    '/assets/images/juventus-mercato.jpg': imagePlaceholders.articles.juventus,
-    '/assets/images/leclerc-ferrari.jpg': imagePlaceholders.articles.leclerc,
-    '/assets/images/djokovic-record.jpg': imagePlaceholders.articles.djokovic
-  };
-  
-  return pathMap[path] || path;
+  // Unknown format - return fallback
+  if (import.meta.env.DEV) {
+    console.warn('🔗 getImageUrl: Unknown path format:', cleanPath);
+  }
+  return '/assets/images/derby-inter-milan.jpg';
 };
 
 // Helper function to construct Supabase Storage URLs
@@ -78,14 +106,28 @@ const constructSupabaseImageUrl = (path: string): string => {
   
   // Already a full URL - don't double-process
   if (path.startsWith('http') || path.startsWith('//')) {
+    if (import.meta.env.DEV) {
+      console.log('🔗 constructSupabaseImageUrl: Already full URL:', path);
+    }
     return path;
   }
   
-  // Remove any brackets or malformed characters
+  // Clean and sanitize path
   let cleanPath = path
-    .replace(/[\[\]"']/g, '')
-    .replace(/%22/g, '')
+    .replace(/[\[\]"'\\]/g, '')    // Remove brackets, quotes, backslashes
+    .replace(/%22/g, '')           // Remove URL-encoded quotes
+    .replace(/^[,\s]+/, '')        // Remove leading commas/spaces
+    .replace(/[,\s]+$/, '')        // Remove trailing commas/spaces
     .trim();
+  
+  // Prevent double construction for partial Supabase URLs
+  if (cleanPath.includes('supabase.co/storage/v1/object/public/')) {
+    const fullUrl = cleanPath.startsWith('http') ? cleanPath : 'https://' + cleanPath;
+    if (import.meta.env.DEV) {
+      console.log('🔗 constructSupabaseImageUrl: Partial URL corrected:', fullUrl);
+    }
+    return fullUrl;
+  }
   
   // Determine bucket and final path
   let bucket = 'post-media'; // default
@@ -105,14 +147,14 @@ const constructSupabaseImageUrl = (path: string): string => {
     finalPath = cleanPath.substring(15);
   }
   
-  // Ensure no double slashes in path
-  finalPath = finalPath.replace(/\/+/g, '/');
+  // Clean final path and ensure no double slashes
+  finalPath = finalPath.replace(/\/+/g, '/').replace(/^\//, '');
   
   // Construct the public URL
   const url = `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${finalPath}`;
   
   if (import.meta.env.DEV) {
-    console.log('🔗 constructSupabaseImageUrl:', { original: path, bucket, finalPath, url });
+    console.log('🔗 constructSupabaseImageUrl:', { original: path, cleaned: cleanPath, bucket, finalPath, url });
   }
   
   return url;

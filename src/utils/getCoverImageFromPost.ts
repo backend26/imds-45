@@ -128,25 +128,28 @@ export const getCoverImageFromPost = (post: any): string => {
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return '';
   
-  // Aggressive removal of all malformed characters and brackets
+  // Comprehensive URL cleaning with improved bracket removal
   let cleanUrl = url
     .replace(/%22/g, '')           // Remove %22 (encoded quotes)
-    .replace(/"/g, '')             // Remove literal quotes
-    .replace(/\\"/g, '')           // Remove escaped quotes
-    .replace(/[\[\]]/g, '')        // Remove ALL square brackets ANYWHERE in string
-    .replace(/^[,\s\[\]]+/, '')    // Remove leading commas/spaces/brackets
-    .replace(/[,\s\[\]]+$/, '')    // Remove trailing commas/spaces/brackets
-    .replace(/^\[*/, '')           // Remove any remaining leading brackets
-    .replace(/\]*$/, '')           // Remove any remaining trailing brackets
+    .replace(/["']/g, '')          // Remove all quotes
+    .replace(/\\+/g, '')           // Remove all backslashes
+    .replace(/[\[\]]/g, '')        // Remove ALL square brackets
+    .replace(/^[,\s]+/, '')        // Remove leading commas/spaces
+    .replace(/[,\s]+$/, '')        // Remove trailing commas/spaces
     .trim();                       // Final trim
   
-  // Additional bracket removal pass (in case of nested brackets)
-  while (cleanUrl.includes('[') || cleanUrl.includes(']')) {
+  // Multiple passes to ensure all brackets are removed
+  let iterations = 0;
+  while ((cleanUrl.includes('[') || cleanUrl.includes(']')) && iterations < 5) {
     cleanUrl = cleanUrl.replace(/[\[\]]/g, '');
+    iterations++;
   }
   
+  // Remove any malformed URL segments
+  cleanUrl = cleanUrl.replace(/\/+/g, '/').replace(/https:\/([^\/])/, 'https://$1');
+  
   if (import.meta.env.DEV) {
-    console.log('🔧 sanitizeUrl:', { original: url, cleaned: cleanUrl });
+    console.log('🔧 sanitizeUrl:', { original: url, cleaned: cleanUrl, iterations });
   }
   
   return cleanUrl;
