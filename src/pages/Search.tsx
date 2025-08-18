@@ -99,18 +99,13 @@ export default function Search() {
               {results.map(result => (
                 <EnhancedPostCard
                   key={result.id}
-                  post={{
-                    id: result.id,
-                    title: result.title,
-                    excerpt: result.excerpt,
-                    category: result.category,
-                    author: result.author,
-                    publishedAt: result.publishedAt,
-                    imageUrl: result.imageUrl,
-                    likes: Math.floor(result.engagement * 0.7),
-                    comments: Math.floor(result.engagement * 0.3),
-                    rating: result.rating
-                  }}
+                  postId={result.id}
+                  title={result.title}
+                  excerpt={result.excerpt}
+                  category={result.category}
+                  authorName={result.author}
+                  publishedAt={result.publishedAt}
+                  imageUrl={result.imageUrl}
                   className="h-full"
                   onClick={() => navigate(`/post/${result.id}`)}
                 />
