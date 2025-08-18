@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
-import { SearchSystem } from "@/components/search/SearchSystem";
+import { AdvancedSearchSystem } from "@/components/search/AdvancedSearchSystem";
 
 const sports = [
   { name: "Prima Pagina", href: "/" },
@@ -108,15 +108,15 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
 
           {/* Right Actions - Mobile Optimized */}
           <div className="flex items-center space-x-1 sm:space-x-2 lg:space-x-3">
-            <SearchSystem onSearch={(query, filters) => {
-              // Navigate to search results
-              const searchParams = new URLSearchParams();
-              searchParams.set('q', query);
-              if (filters.category) searchParams.set('category', filters.category);
-              if (filters.sortBy) searchParams.set('sort', filters.sortBy);
-              if (filters.tags.length > 0) searchParams.set('tags', filters.tags.join(','));
-              navigate(`/search?${searchParams.toString()}`);
-            }} />
+            <AdvancedSearchSystem 
+              onResults={(results, query) => {
+                const searchParams = new URLSearchParams();
+                searchParams.set('q', query);
+                navigate(`/search?${searchParams.toString()}`);
+              }}
+              className="w-auto"
+              placeholder="Ricerca avanzata..."
+            />
             
             <Button 
               variant="ghost" 
