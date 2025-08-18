@@ -64,11 +64,12 @@ const Index = () => {
           `)
           .eq('is_hero', true)
           .eq('status', 'published')
-          .order('published_at', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(5) as { data: any[] | null };
 
         // If no hero posts, fallback to 3 most recent posts
         if (!heroData || heroData.length === 0) {
+          console.log('🦸 No hero posts found, using recent posts fallback');
           const { data: recentData } = await supabase
             .from('posts')
             .select(`
@@ -78,9 +79,11 @@ const Index = () => {
               profiles:author_id (username, display_name)
             `)
             .eq('status', 'published')
-            .order('published_at', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(3) as { data: any[] | null };
           heroData = recentData;
+        } else {
+          console.log('🦸 Found hero posts:', heroData.length);
         }
 
         // Build base posts query with improved ordering
@@ -109,9 +112,9 @@ const Index = () => {
           query = query.gte('published_at', start.toISOString());
         }
 
-        // Fetch pool to sort/filter client-side - more permissive for 'Always'
+        // Fetch pool to sort/filter client-side - use created_at for reliable ordering
         const { data: postsData } = await query
-          .order('published_at', { ascending: false })
+          .order('created_at', { ascending: false })
           .limit(visibleArticles + 90) as { data: any[] | null };
 
         let list = postsData || [];
@@ -153,11 +156,20 @@ const Index = () => {
             list.sort((a: any, b: any) => trendScore(b) - trendScore(a));
           }
         } else {
-          // Default: most recent using COALESCE logic
+          // Default: most recent using COALESCE logic - prioritize published_at if available
           list.sort((a: any, b: any) => {
             const dateA = new Date(a.published_at || a.created_at).getTime();
             const dateB = new Date(b.published_at || b.created_at).getTime();
             return dateB - dateA;
+          });
+        }
+
+        if (import.meta.env.DEV) {
+          console.log(`📊 Filtered posts for period "${period}":`, {
+            total: list.length,
+            sport: selectedSport,
+            sortBy,
+            sample: list.slice(0, 3).map(p => ({ title: p.title, published_at: p.published_at, created_at: p.created_at }))
           });
         }
 

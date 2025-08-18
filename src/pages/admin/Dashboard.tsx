@@ -249,8 +249,9 @@ function AdminDashboardContent() {
   const refreshData = async () => {
     setLoading(true);
     try {
-      // Clear any cached data
+      // Force complete cache invalidation
       queryClient?.removeQueries();
+      queryClient?.clear();
       
       await Promise.all([
         fetchStats(),
@@ -354,8 +355,9 @@ function AdminDashboardContent() {
             .eq('id', postId);
           if (deleteError) throw deleteError;
           
-          // Force cache invalidation and refresh after deletion
+          // Force complete cache invalidation and page refresh
           queryClient.removeQueries();
+          window.location.reload();
           toast({ title: "Successo", description: "Post eliminato" });
           break;
       }
