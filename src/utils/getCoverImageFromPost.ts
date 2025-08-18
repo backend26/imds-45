@@ -25,19 +25,29 @@ export const getCoverImageFromPost = (post: any): string => {
       // Handle JSON string or array
       if (typeof post.cover_images === 'string') {
         try {
-          // Try to parse as JSON array first
-          const parsed = JSON.parse(post.cover_images);
+          // Enhanced JSON parsing - handle malformed arrays with brackets
+          let jsonString = post.cover_images.trim();
+          
+          // Fix common malformed JSON patterns
+          if (jsonString.startsWith('[') && !jsonString.endsWith(']')) {
+            jsonString += ']';
+          }
+          if (!jsonString.startsWith('[') && jsonString.endsWith(']')) {
+            jsonString = '[' + jsonString;
+          }
+          
+          const parsed = JSON.parse(jsonString);
           if (Array.isArray(parsed) && parsed.length > 0) {
             const firstImage = parsed[0];
             // Handle array of URLs
             if (typeof firstImage === 'string') {
-              const url = firstImage.startsWith('http') ? sanitizeUrl(firstImage) : constructSupabaseStorageUrl(firstImage);
+              const url = firstImage.startsWith('http') ? sanitizeUrl(firstImage) : constructSupabaseStorageUrl(sanitizeUrl(firstImage));
               if (import.meta.env.DEV) console.log('🖼️ Found image from JSON array:', url);
               return url;
             }
             // Handle array of objects {url}
             if (typeof firstImage === 'object' && firstImage?.url) {
-              const url = firstImage.url.startsWith('http') ? sanitizeUrl(firstImage.url) : constructSupabaseStorageUrl(firstImage.url);
+              const url = firstImage.url.startsWith('http') ? sanitizeUrl(firstImage.url) : constructSupabaseStorageUrl(sanitizeUrl(firstImage.url));
               if (import.meta.env.DEV) console.log('🖼️ Found image from JSON object:', url);
               return url;
             }
@@ -45,11 +55,12 @@ export const getCoverImageFromPost = (post: any): string => {
         } catch (e) {
           // If JSON parsing fails, treat as direct URL or Storage path
           if (import.meta.env.DEV) console.log('🔧 JSON parse failed, treating as direct path:', post.cover_images);
-          if (post.cover_images.startsWith('http') || post.cover_images.startsWith('//')) {
-            return sanitizeUrl(post.cover_images);
+          const sanitized = sanitizeUrl(post.cover_images);
+          if (sanitized.startsWith('http') || sanitized.startsWith('//')) {
+            return sanitized;
           }
-          if (post.cover_images.includes('/')) {
-            return constructSupabaseStorageUrl(post.cover_images);
+          if (sanitized.includes('/')) {
+            return constructSupabaseStorageUrl(sanitized);
           }
         }
       }
@@ -98,13 +109,14 @@ const sanitizeUrl = (url: string): string => {
   
   // Remove URL encoding artifacts and malformed characters
   let cleanUrl = url
-    .replace(/%22/g, '')     // Remove %22 (encoded quotes)
-    .replace(/"/g, '')       // Remove literal quotes
-    .replace(/\[/g, '')      // Remove square brackets
-    .replace(/\]/g, '')      // Remove square brackets
-    .replace(/\\"/g, '')     // Remove escaped quotes
-    .replace(/^[,\s]+/, '')  // Remove leading commas/spaces
-    .replace(/[,\s]+$/, ''); // Remove trailing commas/spaces
+    .replace(/%22/g, '')        // Remove %22 (encoded quotes)
+    .replace(/"/g, '')          // Remove literal quotes
+    .replace(/[\[\]]/g, '')     // Remove ALL square brackets (start/end/middle)
+    .replace(/\\"/g, '')        // Remove escaped quotes
+    .replace(/^[,\s\[\]]+/, '') // Remove leading commas/spaces/brackets
+    .replace(/[,\s\[\]]+$/, '') // Remove trailing commas/spaces/brackets
+    .replace(/^\[+/, '')        // Remove leading brackets specifically
+    .replace(/\]+$/, '');       // Remove trailing brackets specifically
   
   if (import.meta.env.DEV) {
     console.log('🔧 sanitizeUrl:', { original: url, cleaned: cleanUrl });

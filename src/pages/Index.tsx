@@ -21,6 +21,8 @@ import { getTimeAgo } from "@/utils/dateUtils";
 import { getCoverImageFromPost } from "@/utils/getCoverImageFromPost";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { isValidUUID } from "@/utils/uuid-validator";
+import { useAutoRefresh } from "@/hooks/use-auto-refresh";
+import { useCacheInvalidation } from "@/hooks/use-cache-invalidation";
 
 const Index = () => {
   const navigate = useNavigate();
@@ -36,7 +38,15 @@ const Index = () => {
   const { pageRef } = useGSAPAnimations();
   const { animateCardHover } = useCardAnimations();
   const { animateIconClick, animateCounter } = useInteractiveAnimations();
+  const { invalidatePosts } = useCacheInvalidation();
   useLiquidAnimation();
+  
+  // Auto-refresh to keep content updated
+  useAutoRefresh({ 
+    interval: 60000, // 1 minute 
+    enabled: true,
+    keys: ['posts', 'heroArticles'] 
+  });
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
@@ -188,12 +198,14 @@ const Index = () => {
         setFeatured(mappedHeroArticles);
       } catch (e) {
         console.error('Error fetching posts', e);
+        // On error, try to invalidate cache and retry once
+        invalidatePosts();
       } finally {
         setLoadingPosts(false);
       }
     };
     fetchData();
-  }, [selectedSport, sortBy, period, visibleArticles]);
+  }, [selectedSport, sortBy, period, visibleArticles, invalidatePosts]);
 
   const categories = [
     { name: "Tutti", count: posts.length },
