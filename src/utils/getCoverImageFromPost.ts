@@ -124,32 +124,68 @@ export const getCoverImageFromPost = (post: any): string => {
   }
 };
 
-// Helper function to sanitize URLs removing escape characters
+// Helper function to sanitize URLs removing escape characters - ULTRA AGGRESSIVE VERSION
 const sanitizeUrl = (url: string): string => {
   if (!url || typeof url !== 'string') return '';
   
-  // Comprehensive URL cleaning with improved bracket removal
-  let cleanUrl = url
+  // ULTRA AGGRESSIVE bracket removal - multiple techniques
+  let cleanUrl = url;
+  
+  // Step 1: Remove URL encoding and escape characters
+  cleanUrl = cleanUrl
     .replace(/%22/g, '')           // Remove %22 (encoded quotes)
+    .replace(/%5B/g, '')           // Remove %5B (encoded [)
+    .replace(/%5D/g, '')           // Remove %5D (encoded ])
     .replace(/["']/g, '')          // Remove all quotes
     .replace(/\\+/g, '')           // Remove all backslashes
-    .replace(/[\[\]]/g, '')        // Remove ALL square brackets
-    .replace(/^[,\s]+/, '')        // Remove leading commas/spaces
-    .replace(/[,\s]+$/, '')        // Remove trailing commas/spaces
-    .trim();                       // Final trim
+    .replace(/&quot;/g, '')        // Remove HTML entities
+    .trim();
   
-  // Multiple passes to ensure all brackets are removed
+  // Step 2: ULTRA AGGRESSIVE bracket removal with multiple passes
   let iterations = 0;
-  while ((cleanUrl.includes('[') || cleanUrl.includes(']')) && iterations < 5) {
-    cleanUrl = cleanUrl.replace(/[\[\]]/g, '');
+  const maxIterations = 10;
+  
+  while (iterations < maxIterations && (cleanUrl.includes('[') || cleanUrl.includes(']'))) {
+    // Remove brackets at any position
+    cleanUrl = cleanUrl
+      .replace(/^\[+/, '')         // Remove leading brackets
+      .replace(/\]+$/, '')         // Remove trailing brackets
+      .replace(/[\[\]]/g, '')      // Remove ALL remaining brackets
+      .replace(/\[+/g, '')         // Remove multiple opening brackets
+      .replace(/\]+/g, '');        // Remove multiple closing brackets
+    
     iterations++;
   }
   
-  // Remove any malformed URL segments
-  cleanUrl = cleanUrl.replace(/\/+/g, '/').replace(/https:\/([^\/])/, 'https://$1');
+  // Step 3: Clean up whitespace and malformed segments
+  cleanUrl = cleanUrl
+    .replace(/^[,\s]+/, '')        // Remove leading commas/spaces
+    .replace(/[,\s]+$/, '')        // Remove trailing commas/spaces
+    .replace(/\s+/g, ' ')          // Normalize spaces
+    .trim();
+  
+  // Step 4: Fix malformed URL patterns
+  cleanUrl = cleanUrl
+    .replace(/\/+/g, '/')                    // Fix multiple slashes
+    .replace(/https?:\/([^\/])/, 'https://$1')  // Fix protocol
+    .replace(/^\/+/, '')                     // Remove leading slashes
+    .replace(/https:\/([^\/])/, 'https://$1'); // Ensure proper protocol format
+  
+  // Step 5: Final validation and logging
+  const hasBrackets = cleanUrl.includes('[') || cleanUrl.includes(']');
   
   if (import.meta.env.DEV) {
-    console.log('🔧 sanitizeUrl:', { original: url, cleaned: cleanUrl, iterations });
+    console.log('🔧 ULTRA sanitizeUrl:', { 
+      original: url, 
+      cleaned: cleanUrl, 
+      iterations, 
+      hasBrackets,
+      isValid: cleanUrl.startsWith('http') || cleanUrl.includes('/')
+    });
+    
+    if (hasBrackets) {
+      console.error('❌ BRACKETS STILL PRESENT after ultra sanitization!', cleanUrl);
+    }
   }
   
   return cleanUrl;

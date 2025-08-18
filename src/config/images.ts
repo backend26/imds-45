@@ -22,39 +22,67 @@ export const imagePlaceholders = {
   }
 };
 
-// Funzione per ottenere l'URL dell'immagine
+// Funzione per ottenere l'URL dell'immagine - ANTI-DOUBLE-PROCESSING VERSION
 export const getImageUrl = (path: string): string => {
   // Safety check
   if (!path || typeof path !== 'string') {
     return '/assets/images/derby-inter-milan.jpg'; // fallback
   }
   
-  // Clean input first
-  const cleanPath = path.trim();
+  // Clean input with ultra-aggressive sanitization
+  let cleanPath = path.trim();
   
-  // Already a complete valid URL - return as-is
+  // ULTRA AGGRESSIVE bracket removal first
+  let iterations = 0;
+  while ((cleanPath.includes('[') || cleanPath.includes(']')) && iterations < 10) {
+    cleanPath = cleanPath
+      .replace(/^\[+/, '')         // Remove leading brackets
+      .replace(/\]+$/, '')         // Remove trailing brackets
+      .replace(/[\[\]]/g, '')      // Remove ALL brackets
+      .replace(/%5B/g, '')         // Remove encoded brackets
+      .replace(/%5D/g, '')         // Remove encoded brackets
+      .trim();
+    iterations++;
+  }
+  
+  if (import.meta.env.DEV && iterations > 0) {
+    console.log('🔧 getImageUrl: Removed brackets in', iterations, 'iterations:', { original: path, cleaned: cleanPath });
+  }
+  
+  // PRIORITY 1: Complete Supabase URLs - return immediately after sanitization
+  if (cleanPath.includes('supabase.co/storage/v1/object/public/')) {
+    // Already a complete Supabase URL - just ensure proper protocol
+    let finalUrl = cleanPath;
+    
+    if (!finalUrl.startsWith('http')) {
+      finalUrl = 'https://' + finalUrl.replace(/^\/+/, '');
+    }
+    
+    // Final cleanup of any remaining malformed parts
+    finalUrl = finalUrl
+      .replace(/\/+/g, '/')
+      .replace(/https:\/([^\/])/, 'https://$1');
+    
+    if (import.meta.env.DEV) {
+      console.log('🔗 getImageUrl: Complete Supabase URL detected (NO PROCESSING):', { original: path, final: finalUrl });
+    }
+    return finalUrl;
+  }
+  
+  // PRIORITY 2: Complete HTTP/HTTPS URLs - return as-is
   if (cleanPath.startsWith('https://') || cleanPath.startsWith('http://')) {
     if (import.meta.env.DEV) {
-      console.log('🔗 getImageUrl: Complete URL detected:', cleanPath);
+      console.log('🔗 getImageUrl: Complete HTTP URL detected:', cleanPath);
     }
     return cleanPath;
   }
   
-  // Protocol-relative URL
+  // PRIORITY 3: Protocol-relative URL
   if (cleanPath.startsWith('//')) {
     return 'https:' + cleanPath;
   }
   
-  // Complete Supabase URL without protocol
-  if (cleanPath.includes('supabase.co/storage/v1/object/public/')) {
-    const fullUrl = cleanPath.startsWith('http') ? cleanPath : 'https://' + cleanPath;
-    if (import.meta.env.DEV) {
-      console.log('🔗 getImageUrl: Supabase URL without protocol:', fullUrl);
-    }
-    return fullUrl;
-  }
-  
-  // Supabase Storage path - construct full URL
+  // PRIORITY 4: Supabase Storage path - construct full URL (ONLY if not already complete)
   if (cleanPath.includes('/') && (
     cleanPath.startsWith('post-media/') || 
     cleanPath.startsWith('cover-images/') || 
@@ -63,12 +91,12 @@ export const getImageUrl = (path: string): string => {
   )) {
     const constructedUrl = constructSupabaseImageUrl(cleanPath);
     if (import.meta.env.DEV) {
-      console.log('🔗 getImageUrl: Constructed from storage path:', { original: cleanPath, constructed: constructedUrl });
+      console.log('🔗 getImageUrl: Constructed from storage path:', { original: path, cleaned: cleanPath, constructed: constructedUrl });
     }
     return constructedUrl;
   }
   
-  // Local asset path
+  // PRIORITY 5: Local asset path
   if (cleanPath.startsWith('/assets/') || cleanPath.startsWith('./assets/')) {
     // In produzione, restituire il path diretto
     if (import.meta.env.PROD) {
@@ -95,36 +123,53 @@ export const getImageUrl = (path: string): string => {
   
   // Unknown format - return fallback
   if (import.meta.env.DEV) {
-    console.warn('🔗 getImageUrl: Unknown path format:', cleanPath);
+    console.warn('🔗 getImageUrl: Unknown path format after all processing:', cleanPath);
   }
   return '/assets/images/derby-inter-milan.jpg';
 };
 
-// Helper function to construct Supabase Storage URLs
+// Helper function to construct Supabase Storage URLs - ULTRA SAFE VERSION
 const constructSupabaseImageUrl = (path: string): string => {
   if (!path || typeof path !== 'string') return '';
   
-  // Already a full URL - don't double-process
-  if (path.startsWith('http') || path.startsWith('//')) {
+  // CRITICAL: Already a full URL - NEVER double-process
+  if (path.startsWith('http') || path.startsWith('//') || path.includes('supabase.co')) {
     if (import.meta.env.DEV) {
-      console.log('🔗 constructSupabaseImageUrl: Already full URL:', path);
+      console.log('🔗 constructSupabaseImageUrl: SKIPPING - Already full URL:', path);
     }
-    return path;
+    return path.startsWith('http') ? path : 'https://' + path.replace(/^\/+/, '');
   }
   
-  // Clean and sanitize path
-  let cleanPath = path
-    .replace(/[\[\]"'\\]/g, '')    // Remove brackets, quotes, backslashes
-    .replace(/%22/g, '')           // Remove URL-encoded quotes
+  // ULTRA AGGRESSIVE path cleaning
+  let cleanPath = path;
+  
+  // Remove ALL brackets aggressively
+  let iterations = 0;
+  while ((cleanPath.includes('[') || cleanPath.includes(']')) && iterations < 10) {
+    cleanPath = cleanPath
+      .replace(/^\[+/, '')         // Remove leading brackets
+      .replace(/\]+$/, '')         // Remove trailing brackets
+      .replace(/[\[\]]/g, '')      // Remove ALL brackets
+      .replace(/%5B/g, '')         // Remove encoded brackets
+      .replace(/%5D/g, '')         // Remove encoded brackets
+      .replace(/["'\\]/g, '')      // Remove quotes, backslashes
+      .replace(/%22/g, '')         // Remove URL-encoded quotes
+      .trim();
+    iterations++;
+  }
+  
+  // Clean whitespace and separators
+  cleanPath = cleanPath
     .replace(/^[,\s]+/, '')        // Remove leading commas/spaces
     .replace(/[,\s]+$/, '')        // Remove trailing commas/spaces
+    .replace(/\s+/g, '')           // Remove ALL spaces
     .trim();
   
-  // Prevent double construction for partial Supabase URLs
+  // CRITICAL: Double-check for Supabase URL after cleaning
   if (cleanPath.includes('supabase.co/storage/v1/object/public/')) {
     const fullUrl = cleanPath.startsWith('http') ? cleanPath : 'https://' + cleanPath;
     if (import.meta.env.DEV) {
-      console.log('🔗 constructSupabaseImageUrl: Partial URL corrected:', fullUrl);
+      console.log('🔗 constructSupabaseImageUrl: FOUND Supabase URL after cleaning:', { original: path, cleaned: cleanPath, fullUrl });
     }
     return fullUrl;
   }
@@ -148,13 +193,23 @@ const constructSupabaseImageUrl = (path: string): string => {
   }
   
   // Clean final path and ensure no double slashes
-  finalPath = finalPath.replace(/\/+/g, '/').replace(/^\//, '');
+  finalPath = finalPath
+    .replace(/\/+/g, '/')          // Fix multiple slashes
+    .replace(/^\/+/, '')           // Remove leading slashes
+    .replace(/\s/g, '');           // Remove any remaining spaces
   
   // Construct the public URL
   const url = `https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public/${bucket}/${finalPath}`;
   
   if (import.meta.env.DEV) {
-    console.log('🔗 constructSupabaseImageUrl:', { original: path, cleaned: cleanPath, bucket, finalPath, url });
+    console.log('🔗 constructSupabaseImageUrl FINAL:', { 
+      original: path, 
+      cleaned: cleanPath, 
+      bucket, 
+      finalPath, 
+      url,
+      bracketsRemoved: iterations > 0 ? iterations : 'none'
+    });
   }
   
   return url;
