@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { supabase } from '@/integrations/supabase/client';
@@ -255,7 +255,10 @@ const PostPage = () => {
           {/* Author info */}
           <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold">
+              <Link 
+                to={`/@${post.profiles?.username}`}
+                className="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white font-bold hover:opacity-80 transition-opacity"
+              >
                 {post.profiles?.profile_picture_url ? (
                   <img 
                     src={post.profiles.profile_picture_url} 
@@ -265,11 +268,14 @@ const PostPage = () => {
                 ) : (
                   <User className="w-6 h-6" />
                 )}
-              </div>
+              </Link>
               <div>
-                <p className="font-semibold text-foreground">
+                <Link 
+                  to={`/@${post.profiles?.username}`}
+                  className="font-semibold text-foreground hover:text-primary transition-colors"
+                >
                   {post.profiles?.display_name || post.profiles?.username || 'Redazione'}
-                </p>
+                </Link>
                 <div className="flex items-center gap-4 text-sm text-muted-foreground">
                   <span>{new Date(post.published_at).toLocaleDateString('it-IT')}</span>
                   <span className="flex items-center gap-1">

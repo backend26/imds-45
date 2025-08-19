@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { EventsManagement } from '@/pages/admin/EventsManagement';
+import { EventsEditor } from '@/components/events/EventsEditor';
 import { useEditorCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
 
 function EventsPageContent() {
@@ -49,7 +49,7 @@ function EventsPageContent() {
     <div className="min-h-screen bg-background">
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <EventsManagement />
+        <EventsEditor />
       </div>
     </div>
   );
@@ -57,7 +57,7 @@ function EventsPageContent() {
 
 const EventsPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['administrator']}>
+    <ProtectedRoute allowedRoles={['administrator', 'journalist']}>
       <EventsPageContent />
     </ProtectedRoute>
   );

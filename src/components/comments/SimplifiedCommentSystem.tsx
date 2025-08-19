@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -40,7 +41,7 @@ export const SimplifiedCommentSystem: React.FC<SimplifiedCommentSystemProps> = (
         .from('comments')
         .select(`
           *,
-          profiles (username, role)
+          profiles!comments_author_id_fkey (username, role)
         `)
         .eq('post_id', postId)
         .order('created_at', { ascending: false });
@@ -73,7 +74,7 @@ export const SimplifiedCommentSystem: React.FC<SimplifiedCommentSystemProps> = (
         })
         .select(`
           *,
-          profiles (username, role)
+          profiles!comments_author_id_fkey (username, role)
         `)
         .single();
 
@@ -155,13 +156,17 @@ export const SimplifiedCommentSystem: React.FC<SimplifiedCommentSystemProps> = (
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium text-sm">
+                      <Link 
+                        to={`/@${comment.profiles?.username}`}
+                        className="font-medium text-sm hover:text-primary transition-colors"
+                      >
                         {comment.profiles?.username || 'Utente'}
-                      </span>
+                      </Link>
                       {comment.profiles?.role && (
                         <Badge variant="outline" className="text-xs">
                           {comment.profiles.role === 'administrator' ? 'Admin' :
-                           comment.profiles.role === 'editor' ? 'Editor' : 'Utente'}
+                           comment.profiles.role === 'editor' ? 'Editor' : 
+                           comment.profiles.role === 'journalist' ? 'Giornalista' : 'Utente'}
                         </Badge>
                       )}
                     </div>

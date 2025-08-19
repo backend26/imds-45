@@ -166,8 +166,8 @@ export class ImageUrlProcessor {
    * Construct Supabase storage URL
    */
   private static constructStorageUrl(path: string): string {
-    // Determine bucket
-    let bucket = 'post-media';
+    // Determine bucket based on path prefix
+    let bucket = 'cover-images'; // Default for cover images
     let cleanPath = path;
 
     if (path.startsWith('post-media/')) {
@@ -182,10 +182,23 @@ export class ImageUrlProcessor {
     } else if (path.startsWith('profile-images/')) {
       bucket = 'profile-images';
       cleanPath = path.substring(15);
+    } else {
+      // For paths without prefix, assume cover-images bucket
+      bucket = 'cover-images';
     }
 
     // Clean the final path
     cleanPath = cleanPath.replace(/\/+/g, '/').replace(/^\/+/, '');
+    
+    // Debug log for development
+    if (import.meta.env.DEV) {
+      console.log('ImageUrlProcessor: Constructing URL', {
+        originalPath: path,
+        detectedBucket: bucket,
+        cleanPath,
+        finalUrl: `${this.SUPABASE_URL}/${bucket}/${cleanPath}`
+      });
+    }
     
     return `${this.SUPABASE_URL}/${bucket}/${cleanPath}`;
   }
