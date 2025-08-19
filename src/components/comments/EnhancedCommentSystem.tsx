@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
-import { MessageCircle, Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
+import { Send, Reply, Heart, Flag, MoreVertical, Smile, TrendingUp, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import EmojiPicker from 'emoji-picker-react';
 import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 
@@ -18,17 +20,19 @@ interface Comment {
   id: string;
   content: string;
   author_id: string;
+  post_id: string;
   parent_comment_id: string | null;
   created_at: string;
   updated_at: string;
-  author: {
+  profiles?: {
     username: string;
     display_name: string;
-    profile_picture_url?: string;
+    profile_picture_url: string | null;
+    role: string;
   };
-  likes_count: number;
-  user_has_liked: boolean;
-  replies: Comment[];
+  replies?: Comment[];
+  likes_count?: number;
+  is_liked?: boolean;
 }
 
 interface EnhancedCommentSystemProps {
@@ -36,72 +40,100 @@ interface EnhancedCommentSystemProps {
   className?: string;
 }
 
-export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSystemProps) => {
+type SortOrder = 'popular' | 'recent';
+
+export const EnhancedCommentSystem: React.FC<EnhancedCommentSystemProps> = ({ 
+  postId, 
+  className = "" 
+}) => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [replyTo, setReplyTo] = useState<string | null>(null);
-  const [replyContent, setReplyContent] = useState('');
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editContent, setEditContent] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('popular');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showReplyEmojiPicker, setShowReplyEmojiPicker] = useState(false);
+  const [expandedReplies, setExpandedReplies] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    loadComments();
-  }, [postId]);
-
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
+    if (!postId) return;
+    
+    setLoading(true);
     try {
-      const { data: commentsData, error } = await supabase
+      // First get comments with author profiles
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
         .select(`
-          id,
-          content,
-          author_id,
-          parent_comment_id,
-          created_at,
-          updated_at,
-          profiles:author_id (
+          *,
+          profiles!comments_author_id_fkey (
             username,
             display_name,
-            profile_picture_url
+            profile_picture_url,
+            role
           )
         `)
         .eq('post_id', postId)
-        .order('created_at', { ascending: true });
+        .order('created_at', { ascending: sortOrder === 'recent' });
 
-      if (error) throw error;
+      if (commentsError) throw commentsError;
 
-        // Process comments to build tree structure (simplified for now)
-        const processedComments = (commentsData || []).map((comment: any) => ({
-          ...comment,
-          author: comment.profiles,
-          likes_count: 0, // Simplified - comment likes will be implemented later
-          user_has_liked: false,
-          replies: []
-        }));
+      // Get likes count for each comment
+      const commentIds = commentsData?.map(c => c.id) || [];
+      const { data: likesData, error: likesError } = await supabase
+        .from('comment_likes')
+        .select('comment_id, user_id')
+        .in('comment_id', commentIds);
 
-      // Build comment tree
-      const commentMap = new Map<string, Comment>();
-      const rootComments: Comment[] = [];
+      if (likesError) throw likesError;
 
-      processedComments.forEach((comment: Comment) => {
-        commentMap.set(comment.id, comment);
+      // Process likes data
+      const likesMap = new Map<string, { count: number; isLiked: boolean }>();
+      likesData?.forEach(like => {
+        const existing = likesMap.get(like.comment_id) || { count: 0, isLiked: false };
+        existing.count++;
+        if (like.user_id === user?.id) existing.isLiked = true;
+        likesMap.set(like.comment_id, existing);
       });
 
-      processedComments.forEach((comment: Comment) => {
-        if (comment.parent_comment_id) {
-          const parent = commentMap.get(comment.parent_comment_id);
-          if (parent) {
-            parent.replies.push(comment);
-          }
-        } else {
-          rootComments.push(comment);
+      // Combine data and organize into threaded structure
+      const commentMap = new Map<string, Comment>();
+      const topLevelComments: Comment[] = [];
+
+      commentsData?.forEach(comment => {
+        const likes = likesMap.get(comment.id) || { count: 0, isLiked: false };
+        const commentWithData: Comment = {
+          ...comment,
+          replies: [],
+          likes_count: likes.count,
+          is_liked: likes.isLiked
+        };
+        commentMap.set(comment.id, commentWithData);
+
+        if (!comment.parent_comment_id) {
+          topLevelComments.push(commentWithData);
         }
       });
 
-      setComments(rootComments);
+      // Add replies to parent comments (max 3 levels deep)
+      commentsData?.forEach(comment => {
+        if (comment.parent_comment_id) {
+          const parent = commentMap.get(comment.parent_comment_id);
+          if (parent) {
+            parent.replies!.push(commentMap.get(comment.id)!);
+          }
+        }
+      });
+
+      // Sort based on selected order
+      if (sortOrder === 'popular') {
+        topLevelComments.sort((a, b) => (b.likes_count || 0) - (a.likes_count || 0));
+      }
+
+      setComments(topLevelComments);
     } catch (error) {
       console.error('Error loading comments:', error);
       toast({
@@ -112,10 +144,26 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
     } finally {
       setLoading(false);
     }
-  };
+  }, [postId, sortOrder, user?.id, toast]);
 
   const submitComment = async () => {
-    if (!user || !newComment.trim()) return;
+    if (!user) {
+      toast({
+        title: "Accesso richiesto",
+        description: "Devi essere loggato per commentare",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!newComment.trim()) {
+      toast({
+        title: "Commento vuoto",
+        description: "Scrivi qualcosa prima di inviare",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -131,17 +179,18 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
       if (error) throw error;
 
       setNewComment('');
+      setShowEmojiPicker(false);
       await loadComments();
       
       toast({
-        title: "Commento pubblicato",
-        description: "Il tuo commento è stato aggiunto con successo"
+        title: "Commento inviato",
+        description: "Il tuo commento è stato pubblicato"
       });
     } catch (error) {
       console.error('Error submitting comment:', error);
       toast({
         title: "Errore",
-        description: "Impossibile pubblicare il commento",
+        description: "Impossibile inviare il commento",
         variant: "destructive"
       });
     } finally {
@@ -150,7 +199,23 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
   };
 
   const submitReply = async (parentId: string) => {
-    if (!user || !replyContent.trim()) return;
+    if (!user) {
+      toast({
+        title: "Accesso richiesto",
+        description: "Devi essere loggato per rispondere",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!replyText.trim()) {
+      toast({
+        title: "Risposta vuota",
+        description: "Scrivi qualcosa prima di rispondere",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -159,25 +224,26 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
         .insert({
           post_id: postId,
           author_id: user.id,
-          content: replyContent.trim(),
+          content: replyText.trim(),
           parent_comment_id: parentId
         });
 
       if (error) throw error;
 
+      setReplyText('');
       setReplyTo(null);
-      setReplyContent('');
+      setShowReplyEmojiPicker(false);
       await loadComments();
       
       toast({
-        title: "Risposta pubblicata",
-        description: "La tua risposta è stata aggiunta con successo"
+        title: "Risposta inviata",
+        description: "La tua risposta è stata pubblicata"
       });
     } catch (error) {
       console.error('Error submitting reply:', error);
       toast({
         title: "Errore",
-        description: "Impossibile pubblicare la risposta",
+        description: "Impossibile inviare la risposta",
         variant: "destructive"
       });
     } finally {
@@ -185,7 +251,7 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
     }
   };
 
-  const toggleCommentLike = async (commentId: string) => {
+  const toggleLike = async (commentId: string, isLiked: boolean) => {
     if (!user) {
       toast({
         title: "Accesso richiesto",
@@ -195,293 +261,358 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
       return;
     }
 
-    // Comment likes functionality will be implemented when comment_likes table is properly added
-    toast({
-      title: "Funzionalità in sviluppo",
-      description: "I like ai commenti saranno disponibili presto"
+    try {
+      if (isLiked) {
+        const { error } = await supabase
+          .from('comment_likes')
+          .delete()
+          .eq('comment_id', commentId)
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('comment_likes')
+          .insert({
+            comment_id: commentId,
+            user_id: user.id
+          });
+        
+        if (error) throw error;
+      }
+
+      // Refresh comments to update like counts
+      await loadComments();
+    } catch (error) {
+      console.error('Error toggling like:', error);
+      toast({
+        title: "Errore",
+        description: "Impossibile aggiornare il like",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const onEmojiClick = (emojiData: any) => {
+    setNewComment(prev => prev + emojiData.emoji);
+    setShowEmojiPicker(false);
+  };
+
+  const onReplyEmojiClick = (emojiData: any) => {
+    setReplyText(prev => prev + emojiData.emoji);
+    setShowReplyEmojiPicker(false);
+  };
+
+  const toggleRepliesVisibility = (commentId: string) => {
+    setExpandedReplies(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(commentId)) {
+        newSet.delete(commentId);
+      } else {
+        newSet.add(commentId);
+      }
+      return newSet;
     });
   };
 
-  const deleteComment = async (commentId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('author_id', user.id);
-
-      if (error) throw error;
-
-      await loadComments();
-      toast({
-        title: "Commento eliminato",
-        description: "Il commento è stato rimosso con successo"
-      });
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile eliminare il commento",
-        variant: "destructive"
-      });
+  const getRoleBadge = (role: string) => {
+    switch (role) {
+      case 'administrator':
+        return <Badge variant="destructive" className="text-xs">Admin</Badge>;
+      case 'journalist':
+        return <Badge variant="default" className="text-xs">Giornalista</Badge>;
+      case 'editor':
+        return <Badge variant="secondary" className="text-xs">Editor</Badge>;
+      default:
+        return null;
     }
   };
 
-  const startEdit = (comment: Comment) => {
-    setEditingId(comment.id);
-    setEditContent(comment.content);
-  };
-
-  const saveEdit = async (commentId: string) => {
-    if (!user || !editContent.trim()) return;
-
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .update({ content: editContent.trim() })
-        .eq('id', commentId)
-        .eq('author_id', user.id);
-
-      if (error) throw error;
-
-      setEditingId(null);
-      setEditContent('');
-      await loadComments();
-      
-      toast({
-        title: "Commento aggiornato",
-        description: "Le modifiche sono state salvate"
-      });
-    } catch (error) {
-      console.error('Error updating comment:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile aggiornare il commento",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const findCommentById = (id: string): Comment | null => {
-    const findInArray = (comments: Comment[]): Comment | null => {
-      for (const comment of comments) {
-        if (comment.id === id) return comment;
-        const found = findInArray(comment.replies);
-        if (found) return found;
-      }
-      return null;
-    };
-    return findInArray(comments);
-  };
-
-  const renderComment = (comment: Comment, isReply = false) => (
-    <div key={comment.id} className={`${isReply ? 'ml-8 mt-4' : 'mb-6'}`}>
-      <div className="flex gap-3">
-        <Avatar className="h-8 w-8 flex-shrink-0">
-          <AvatarImage src={comment.author.profile_picture_url} />
-          <AvatarFallback>
-            {comment.author.display_name?.charAt(0) || comment.author.username?.charAt(0) || 'U'}
-          </AvatarFallback>
-        </Avatar>
-        
-        <div className="flex-1 min-w-0">
-          <div className="bg-muted/50 rounded-lg p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <span className="font-medium text-sm">
-                  {comment.author.display_name || comment.author.username}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(new Date(comment.created_at), {
-                    addSuffix: true,
-                    locale: it
-                  })}
-                </span>
-                {comment.updated_at !== comment.created_at && (
-                  <Badge variant="outline" className="text-xs">
-                    Modificato
-                  </Badge>
-                )}
-              </div>
+  const renderComment = (comment: Comment, isReply = false, depth = 0) => {
+    const hasReplies = comment.replies && comment.replies.length > 0;
+    const isExpanded = expandedReplies.has(comment.id);
+    
+    return (
+      <div key={comment.id} className={`${isReply ? 'ml-6 mt-4' : 'mb-6'} ${depth > 2 ? 'opacity-75' : ''}`}>
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex items-start space-x-3">
+              <Link to={`/@${comment.profiles?.username}`} className="flex-shrink-0">
+                <Avatar className="w-10 h-10 hover:ring-2 hover:ring-primary/20 transition-all">
+                  <AvatarImage src={comment.profiles?.profile_picture_url || ''} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">
+                    {comment.profiles?.display_name?.charAt(0) || comment.profiles?.username?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
               
-              {user && user.id === comment.author_id && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                      <MoreHorizontal className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => startEdit(comment)}>
-                      <Edit className="h-3 w-3 mr-2" />
-                      Modifica
-                    </DropdownMenuItem>
-                    <DropdownMenuItem 
-                      onClick={() => deleteComment(comment.id)}
-                      className="text-destructive"
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Link 
+                      to={`/@${comment.profiles?.username}`}
+                      className="font-medium text-sm hover:text-primary transition-colors"
                     >
-                      <Trash2 className="h-3 w-3 mr-2" />
-                      Elimina
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-            </div>
-            
-            {editingId === comment.id ? (
-              <div className="space-y-2">
-                <Textarea
-                  value={editContent}
-                  onChange={(e) => setEditContent(e.target.value)}
-                  className="min-h-[60px]"
-                />
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => saveEdit(comment.id)}>
-                    Salva
-                  </Button>
+                      {comment.profiles?.display_name || comment.profiles?.username || 'Utente'}
+                    </Link>
+                    {comment.profiles?.role && getRoleBadge(comment.profiles.role)}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(comment.created_at), { 
+                        addSuffix: true, 
+                        locale: it 
+                      })}
+                    </span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Flag className="mr-2 h-4 w-4" />
+                          Segnala
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+                
+                <p className="text-sm leading-relaxed mb-3">{comment.content}</p>
+                
+                <div className="flex items-center gap-1">
                   <Button 
+                    variant="ghost" 
                     size="sm" 
-                    variant="outline" 
-                    onClick={() => setEditingId(null)}
+                    className={`h-8 px-2 ${comment.is_liked ? 'text-red-500' : ''}`}
+                    onClick={() => toggleLike(comment.id, comment.is_liked || false)}
                   >
-                    Annulla
+                    <Heart className={`h-4 w-4 mr-1 ${comment.is_liked ? 'fill-current' : ''}`} />
+                    <span className="text-xs">{comment.likes_count || 0}</span>
                   </Button>
+                  
+                  {depth < 2 && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+                    >
+                      <Reply className="h-4 w-4 mr-1" />
+                      <span className="text-xs">Rispondi</span>
+                    </Button>
+                  )}
+                  
+                  {hasReplies && (
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-8 px-2"
+                      onClick={() => toggleRepliesVisibility(comment.id)}
+                    >
+                      <span className="text-xs">
+                        {isExpanded ? 'Nascondi' : 'Mostra'} risposte ({comment.replies!.length})
+                      </span>
+                    </Button>
+                  )}
                 </div>
               </div>
-            ) : (
-              <p className="text-sm leading-relaxed">{comment.content}</p>
-            )}
-          </div>
-          
-          <div className="flex items-center gap-4 mt-2 text-xs">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 p-1 text-xs"
-              onClick={() => toggleCommentLike(comment.id)}
-            >
-              <Heart className={`h-3 w-3 mr-1 ${comment.user_has_liked ? 'fill-current text-red-500' : ''}`} />
-              {comment.likes_count}
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 p-1 text-xs"
-              onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-            >
-              <Reply className="h-3 w-3 mr-1" />
-              Rispondi
-            </Button>
-          </div>
-          
-          {replyTo === comment.id && (
-            <div className="mt-3 p-3 bg-muted/30 rounded-lg">
-              <Textarea
-                placeholder="Scrivi una risposta..."
-                value={replyContent}
-                onChange={(e) => setReplyContent(e.target.value)}
-                className="min-h-[60px] mb-2"
-              />
-              <div className="flex gap-2">
-                <Button 
-                  size="sm" 
-                  onClick={() => submitReply(comment.id)}
-                  disabled={!replyContent.trim() || submitting}
-                >
-                  <Send className="h-3 w-3 mr-1" />
-                  Pubblica
-                </Button>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => setReplyTo(null)}
-                >
-                  Annulla
-                </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Reply form */}
+        {replyTo === comment.id && (
+          <Card className="mt-4 ml-6">
+            <CardContent className="p-4">
+              <div className="flex space-x-3">
+                <Avatar className="w-8 h-8">
+                  <AvatarImage src={user?.user_metadata?.avatar_url} />
+                  <AvatarFallback>
+                    {user?.user_metadata?.display_name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Scrivi una risposta..."
+                      value={replyText}
+                      onChange={(e) => setReplyText(e.target.value)}
+                      className="min-h-[80px] resize-none pr-10"
+                    />
+                    <Popover open={showReplyEmojiPicker} onOpenChange={setShowReplyEmojiPicker}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute bottom-2 right-2 h-8 w-8 p-0"
+                        >
+                          <Smile className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <EmojiPicker onEmojiClick={onReplyEmojiClick} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex justify-end space-x-2 mt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setReplyTo(null)}
+                    >
+                      Annulla
+                    </Button>
+                    <Button 
+                      size="sm"
+                      onClick={() => submitReply(comment.id)}
+                      disabled={submitting || !replyText.trim()}
+                    >
+                      {submitting ? 'Inviando...' : 'Rispondi'}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-          
-          {comment.replies.length > 0 && (
-            <div className="mt-4">
-              {comment.replies.map(reply => renderComment(reply, true))}
-            </div>
-          )}
-        </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Render replies */}
+        {hasReplies && isExpanded && (
+          <div className="mt-4">
+            {comment.replies!.map(reply => renderComment(reply, true, depth + 1))}
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
+  };
+
+  useEffect(() => {
+    loadComments();
+  }, [loadComments]);
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className={className}>
+    <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <MessageCircle className="h-5 w-5" />
-          Commenti ({comments.reduce((total, comment) => total + 1 + comment.replies.length, 0)})
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Heart className="h-5 w-5" />
+            Commenti ({comments.length})
+          </CardTitle>
+          
+          <Select value={sortOrder} onValueChange={(value: SortOrder) => setSortOrder(value)}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="popular">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4" />
+                  Più popolari
+                </div>
+              </SelectItem>
+              <SelectItem value="recent">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Più recenti
+                </div>
+              </SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </CardHeader>
+      
       <CardContent className="space-y-6">
-        {/* New Comment Form */}
+        {/* Comment Form */}
         {user ? (
-          <div className="space-y-3">
-            <div className="flex gap-3">
-              <Avatar className="h-8 w-8 flex-shrink-0">
-                <AvatarFallback>
-                  {user.email?.charAt(0).toUpperCase() || 'U'}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <Textarea
-                  placeholder="Scrivi un commento..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  className="min-h-[80px]"
-                />
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex space-x-3">
+                <Avatar className="w-10 h-10">
+                  <AvatarImage src={user.user_metadata?.avatar_url} />
+                  <AvatarFallback className="bg-gradient-to-br from-primary/20 to-secondary/20">
+                    {user.user_metadata?.display_name?.charAt(0) || 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="relative">
+                    <Textarea
+                      placeholder="Scrivi un commento..."
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="min-h-[100px] resize-none pr-10"
+                    />
+                    <Popover open={showEmojiPicker} onOpenChange={setShowEmojiPicker}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="absolute bottom-2 right-2 h-8 w-8 p-0"
+                        >
+                          <Smile className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="end">
+                        <EmojiPicker onEmojiClick={onEmojiClick} />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div className="flex justify-end mt-2">
+                    <Button 
+                      onClick={submitComment}
+                      disabled={submitting || !newComment.trim()}
+                      className="flex items-center gap-2"
+                    >
+                      <Send className="h-4 w-4" />
+                      {submitting ? 'Inviando...' : 'Invia'}
+                    </Button>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex justify-end">
-              <Button 
-                onClick={submitComment}
-                disabled={!newComment.trim() || submitting}
-              >
-                <Send className="h-4 w-4 mr-2" />
-                Pubblica commento
-              </Button>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="text-center p-4 bg-muted/50 rounded-lg">
-            <p className="text-muted-foreground">
-              Effettua il login per lasciare un commento
-            </p>
-          </div>
+          <Card>
+            <CardContent className="p-4">
+              <p className="text-center text-muted-foreground">
+                <Link to="/login" className="text-primary hover:underline">
+                  Accedi
+                </Link>
+                {' '}per partecipare alla discussione
+              </p>
+            </CardContent>
+          </Card>
         )}
-
-        <Separator />
 
         {/* Comments List */}
-        {loading ? (
-          <div className="text-center py-8">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-sm text-muted-foreground">Caricamento commenti...</p>
-          </div>
-        ) : comments.length > 0 ? (
-          <ScrollArea className="max-h-[600px]">
-            <div className="space-y-4">
-              {comments.map(comment => renderComment(comment))}
-            </div>
-          </ScrollArea>
-        ) : (
-          <div className="text-center py-8">
-            <MessageCircle className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
-            <p className="text-muted-foreground">
-              Nessun commento ancora. Sii il primo a commentare!
-            </p>
-          </div>
-        )}
+        <div className="space-y-4">
+          {comments.length === 0 ? (
+            <Card>
+              <CardContent className="p-8">
+                <div className="text-center text-muted-foreground">
+                  <Heart className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                  <p>Nessun commento ancora</p>
+                  <p className="text-sm">Sii il primo a commentare!</p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            comments.map(comment => renderComment(comment))
+          )}
+        </div>
       </CardContent>
     </Card>
   );

@@ -16,7 +16,7 @@ import { SmartImage } from '@/components/ui/smart-image';
 import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
-import { SimplifiedCommentSystem } from '@/components/comments/SimplifiedCommentSystem';
+import { EnhancedCommentSystem } from '@/components/comments/EnhancedCommentSystem';
 
 interface Post {
   id: string;
@@ -390,7 +390,7 @@ const PostPage = () => {
           {/* Comments Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-24">
-              <SimplifiedCommentSystem postId={postId!} />
+              <EnhancedCommentSystem postId={postId!} />
             </div>
           </aside>
         </div>
