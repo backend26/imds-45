@@ -105,7 +105,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
         <div className="absolute inset-0 bg-muted flex items-center justify-center text-muted-foreground">
           <div className="text-center">
             <div className="text-2xl mb-2">🖼️</div>
-            <div className="text-sm">Immagine non disponibile</div>
+            <div className="text-sm">Image unavailable</div>
           </div>
         </div>
       )}
