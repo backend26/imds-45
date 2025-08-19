@@ -28,7 +28,9 @@ import { it } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { EventsEditor } from '../events/EventsEditor';
+import { AdminUserManager } from './AdminUserManager';
+import { AdminContentManager } from './AdminContentManager';
+import { AdminModerationCenter } from './AdminModerationCenter';
 
 interface AdminStats {
   totalUsers: number;
@@ -286,11 +288,10 @@ export const EnhancedAdminDashboard: React.FC = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Panoramica</TabsTrigger>
           <TabsTrigger value="users">Utenti ({stats.totalUsers})</TabsTrigger>
           <TabsTrigger value="posts">Contenuti ({stats.totalPosts})</TabsTrigger>
-          <TabsTrigger value="events">Eventi ({stats.totalEvents})</TabsTrigger>
           <TabsTrigger value="moderation">
             Moderazione ({stats.pendingReports})
           </TabsTrigger>
@@ -386,151 +387,19 @@ export const EnhancedAdminDashboard: React.FC = () => {
           </Card>
         </TabsContent>
 
-        {/* Users Tab - Keep existing user management */}
+        {/* Users Tab */}
         <TabsContent value="users">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestione Utenti</CardTitle>
-              <CardDescription>
-                Visualizza e gestisci gli utenti della piattaforma
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Modulo gestione utenti - da implementare con lista utenti e azioni
-              </p>
-            </CardContent>
-          </Card>
+          <AdminUserManager />
         </TabsContent>
 
-        {/* Posts Tab - Keep existing content management */}
+        {/* Posts Tab */}
         <TabsContent value="posts">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestione Contenuti</CardTitle>
-              <CardDescription>
-                Modera e gestisci i contenuti pubblicati
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-muted-foreground">
-                Modulo gestione contenuti - da implementare con lista post e azioni
-              </p>
-            </CardContent>
-          </Card>
+          <AdminContentManager />
         </TabsContent>
 
-        {/* Events Tab - New Events Management */}
-        <TabsContent value="events">
-          <EventsEditor />
-        </TabsContent>
-
-        {/* Moderation Tab - New Comment Moderation */}
-        <TabsContent value="moderation" className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="h-5 w-5" />
-                Moderazione Commenti
-              </CardTitle>
-              <CardDescription>
-                Gestisci le segnalazioni dei commenti
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {commentReports.length > 0 ? (
-                  commentReports.map(report => (
-                    <div key={report.id} className="border rounded-lg p-4 space-y-3">
-                      <div className="flex items-start justify-between">
-                        <div className="space-y-2 flex-1">
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">{report.reason}</Badge>
-                            {getReportStatusBadge(report.status)}
-                            <span className="text-xs text-muted-foreground">
-                              {format(new Date(report.created_at), 'dd MMM yyyy HH:mm', { locale: it })}
-                            </span>
-                          </div>
-                          
-                          <div className="text-sm">
-                            <p><strong>Segnalato da:</strong> {report.reporter?.display_name || report.reporter?.username}</p>
-                            {report.description && (
-                              <p><strong>Descrizione:</strong> {report.description}</p>
-                            )}
-                          </div>
-
-                          <div className="bg-muted/50 p-3 rounded text-sm">
-                            <p><strong>Commento segnalato:</strong></p>
-                            <p className="mt-1 italic">"{report.comments?.content}"</p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              di @{report.comments?.author?.username || 'utente sconosciuto'}
-                            </p>
-                          </div>
-                        </div>
-
-                        {report.status === 'pending' && (
-                          <div className="flex gap-2 ml-4">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCommentReportAction(report.id, 'dismiss')}
-                              disabled={actionLoading}
-                            >
-                              <XCircle className="h-4 w-4 mr-1" />
-                              Respingi
-                            </Button>
-                            
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleCommentReportAction(report.id, 'approve')}
-                              disabled={actionLoading}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-1" />
-                              Approva
-                            </Button>
-
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button size="sm" variant="destructive">
-                                  <Trash2 className="h-4 w-4 mr-1" />
-                                  Elimina
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Elimina Commento</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Sei sicuro di voler eliminare definitivamente questo commento? 
-                                    L'azione non può essere annullata.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Annulla</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => deleteReportedComment(report.comment_id, report.id)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
-                                    Elimina Commento
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <MessageCircle className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p>Nessuna segnalazione commento</p>
-                    <p className="text-sm">Ottimo! Non ci sono segnalazioni da moderare.</p>
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        {/* Moderation Tab */}
+        <TabsContent value="moderation">
+          <AdminModerationCenter />
         </TabsContent>
       </Tabs>
     </div>

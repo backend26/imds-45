@@ -29,6 +29,7 @@ import BasketPage from "./pages/sports/Basket";
 import NotFound from "./pages/NotFound";
 import NewPostPage from "./pages/editor/new";
 import EditPostPage from "./pages/editor/[postId]/edit";
+import Editor from "./pages/Editor";
 
 import ChiSiamo from "./pages/ChiSiamo";
 import Contatti from "./pages/Contatti";
@@ -55,12 +56,11 @@ const App = () => (
             <Route path="/email-confirmation" element={<EmailConfirmation />} />
             <Route path="/account" element={<Account />} />
             <Route path="/:username" element={<PublicProfile />} />
-            <Route path="/editor/new" element={<NewPostPage />} />
-            <Route path="/editor/:postId/edit" element={<EditPostPage />} />
+            <Route path="/editor" element={<ProtectedRoute allowedRoles={['administrator', 'journalist']}><Editor /></ProtectedRoute>} />
+            <Route path="/editor/new" element={<ProtectedRoute allowedRoles={['administrator', 'journalist']}><NewPostPage /></ProtectedRoute>} />
+            <Route path="/editor/:postId/edit" element={<ProtectedRoute allowedRoles={['administrator', 'journalist']}><EditPostPage /></ProtectedRoute>} />
             <Route path="/post/:postId" element={<Post />} />
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><AdminDashboard /></ProtectedRoute>} />
-            
-            <Route path="/editor/events" element={<ProtectedRoute allowedRoles={['administrator']}><EventsManagement /></ProtectedRoute>} />
             <Route path="/chi-siamo" element={<ChiSiamo />} />
             <Route path="/contatti" element={<Contatti />} />
             <Route path="/reset-password" element={<ResetPassword />} />
