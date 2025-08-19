@@ -11,22 +11,10 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, Camera, Save } from 'lucide-react';
 
-interface Profile {
-  id: string;
-  user_id: string;
-  username: string;
-  display_name: string;
-  bio: string | null;
-  location: string | null;
-  birth_date: string | null;
-  profile_picture_url: string | null;
-  banner_url: string | null;
-  favorite_teams: any;
-  preferred_sports: string[];
-  social_links: any;
-  privacy_settings: any;
-  created_at: string;
-}
+import { Database } from '@/integrations/supabase/types';
+
+// Use Supabase generated types for strong typing
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export const ConnectedProfileSettings: React.FC = () => {
   const { user } = useAuth();
@@ -66,27 +54,14 @@ export const ConnectedProfileSettings: React.FC = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        // Create simplified profile with available fields only
-        const simplifiedProfile = {
-          ...data,
-          display_name: '',
-          bio: '', 
-          location: '',
-          birth_date: '',
-          preferred_sports: [],
-          profile_picture_url: '',
-          banner_url: '',
-          social_links: {},
-          is_banned: false
-        };
-        setProfile(simplifiedProfile);
+        setProfile(data);
         setFormData({
           username: data.username || '',
-          display_name: '', // Field doesn't exist in current schema
-          bio: '',
-          location: '',
-          birth_date: '',
-          preferred_sports: []
+          display_name: data.display_name || '',
+          bio: data.bio || '',
+          location: data.location || '',
+          birth_date: data.birth_date || '',
+          preferred_sports: Array.isArray(data.preferred_sports) ? data.preferred_sports : []
         });
       }
     } catch (error) {
