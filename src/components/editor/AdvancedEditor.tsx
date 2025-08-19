@@ -17,12 +17,12 @@ import HorizontalRule from '@tiptap/extension-horizontal-rule';
 import Superscript from '@tiptap/extension-superscript';
 import Subscript from '@tiptap/extension-subscript';
 import { createLowlight } from 'lowlight';
-import { AdvancedEditorToolbar } from './AdvancedEditorToolbar';
+import { OptimizedEditorToolbar } from './OptimizedEditorToolbar';
 import { AlertBox } from './extensions/AlertBoxReact';
 import { CallToAction } from './extensions/CallToAction';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
-import { ContentPreview } from './ContentPreview';
+// ContentPreview rimosso come richiesto
 import { ContentModerationAlert } from './ContentModerationAlert';
 import { PublishSuccessModal } from './PublishSuccessModal';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
@@ -439,7 +439,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
         <Card>
           <CardHeader><CardTitle>Contenuto</CardTitle></CardHeader>
           <CardContent>
-            {editor && <AdvancedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
+            {editor && <OptimizedEditorToolbar editor={editor} onImageUpload={handleImageUpload} />}
             <div className="border rounded-lg min-h-[400px] p-4 bg-card">
               <EditorContent 
                 editor={editor} 
@@ -465,16 +465,6 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           status={status}
           setStatus={setStatus}
         />
-        
-                {/* Anteprima Contenuto */}
-                <ContentPreview
-                  title={title}
-                  content={editor?.getHTML() || ''}
-                  coverImage={coverImages}
-                  category={categoryId}
-                  excerpt={excerpt}
-                />
-                
                 <Card>
           <CardHeader><CardTitle>Checklist pubblicazione</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
