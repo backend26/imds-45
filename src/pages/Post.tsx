@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import DOMPurify from 'dompurify';
 import { SmartImage } from '@/components/ui/smart-image';
 import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
+import { useImageUrl } from '@/hooks/use-image-url';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
 import { CompactCommentSystem } from '@/components/comments/CompactCommentSystem';
@@ -63,6 +64,9 @@ const PostPage = () => {
 
   // Use enhanced post interactions hook
   const interactions = useEnhancedPostInteractions(postId || '');
+  
+  // Gestione robusta dell'URL cover image
+  const coverImageUrl = useImageUrl(post?.cover_images);
 
   const fetchPost = async () => {
     if (!postId) return;
@@ -339,14 +343,13 @@ const PostPage = () => {
           </div>
 
           {/* Cover image */}
-          {post.cover_images && (
+          {coverImageUrl && coverImageUrl !== '/assets/images/default-banner.jpg' && (
             <div className="mb-8">
               <SmartImage
-                src={post.cover_images}
+                src={coverImageUrl}
                 alt={post.title}
                 className="w-full h-96 rounded-lg"
                 aspectRatio="16/9"
-                showDebug={import.meta.env.DEV}
               />
             </div>
           )}

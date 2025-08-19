@@ -23,14 +23,28 @@ export class ImageUrlProcessor {
       return this.createResult(fallbackUrl, 'fallback', String(input));
     }
 
+    // CRITICAL: Handle native JavaScript arrays FIRST (cover_images from database)
+    if (Array.isArray(input)) {
+      if (input.length > 0 && typeof input[0] === 'string') {
+        const firstUrl = input[0].trim();
+        if (firstUrl) {
+          // Check if it's already a complete URL
+          if (this.isCompleteUrl(firstUrl)) {
+            return this.createResult(firstUrl, this.getUrlSource(firstUrl), String(input));
+          }
+          // If it's a storage path, construct the URL
+          if (this.isStoragePath(firstUrl)) {
+            const constructedUrl = this.constructStorageUrl(firstUrl);
+            return this.createResult(constructedUrl, 'supabase', String(input));
+          }
+        }
+      }
+      return this.createResult(fallbackUrl, 'fallback', String(input));
+    }
+
     // Handle string input
     if (typeof input === 'string') {
       return this.processString(input, fallbackUrl);
-    }
-
-    // Handle array input (should not happen with new system, but legacy support)
-    if (Array.isArray(input) && input.length > 0) {
-      return this.processString(String(input[0]), fallbackUrl);
     }
 
     // Fallback for unknown types
