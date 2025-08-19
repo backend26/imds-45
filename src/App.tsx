@@ -60,7 +60,7 @@ const App = () => (
             <Route path="/post/:postId" element={<Post />} />
             <Route path="/admin/dashboard" element={<ProtectedRoute allowedRoles={['administrator']}><AdminDashboard /></ProtectedRoute>} />
             
-            <Route path="/editor/events" element={<ProtectedRoute allowedRoles={['administrator', 'editor', 'journalist']}><EventsManagement /></ProtectedRoute>} />
+            <Route path="/editor/events" element={<ProtectedRoute allowedRoles={['administrator']}><EventsManagement /></ProtectedRoute>} />
             <Route path="/chi-siamo" element={<ChiSiamo />} />
             <Route path="/contatti" element={<Contatti />} />
             <Route path="/reset-password" element={<ResetPassword />} />

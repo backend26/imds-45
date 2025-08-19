@@ -22,7 +22,7 @@ import { AlertBox } from './extensions/AlertBoxReact';
 import { CallToAction } from './extensions/CallToAction';
 import { PostSettingsSidebar } from './PostSettingsSidebar';
 import { CoverImageUploader } from './CoverImageUploader';
-import { ContentPreview } from './ContentPreview';
+
 import { ContentModerationAlert } from './ContentModerationAlert';
 import { PublishSuccessModal } from './PublishSuccessModal';
 import { EditorErrorBoundary } from './EditorErrorBoundary';
@@ -466,16 +466,7 @@ export const AdvancedEditor: React.FC<AdvancedEditorProps> = ({ initialPost }) =
           setStatus={setStatus}
         />
         
-                {/* Anteprima Contenuto */}
-                <ContentPreview
-                  title={title}
-                  content={editor?.getHTML() || ''}
-                  coverImage={coverImages}
-                  category={categoryId}
-                  excerpt={excerpt}
-                />
-                
-                <Card>
+        <Card>
           <CardHeader><CardTitle>Checklist pubblicazione</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex items-center gap-2">

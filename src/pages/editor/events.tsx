@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { EditorContentSection } from '@/components/editor/EditorContentSection';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { EventsManagement } from '@/pages/admin/EventsManagement';
 import { useEditorCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
 
-
-function NewPostPageContent() {
+function EventsPageContent() {
   const { profile } = useEditorCheck();
   const [darkMode, setDarkMode] = React.useState(() => {
     if (typeof window !== 'undefined') {
@@ -27,8 +26,8 @@ function NewPostPageContent() {
   };
 
   useEffect(() => {
-    document.title = 'Nuovo Articolo | Editor - Malati dello Sport';
-    const desc = 'Crea e pubblica un nuovo articolo con editor avanzato: titolo, categoria, copertina e contenuti.';
+    document.title = 'Gestione Eventi | Editor - Malati dello Sport';
+    const desc = 'Crea e gestisci eventi sportivi per il calendario della community.';
     let meta = document.querySelector('meta[name="description"]') as HTMLMetaElement | null;
     if (!meta) {
       meta = document.createElement('meta');
@@ -50,25 +49,18 @@ function NewPostPageContent() {
     <div className="min-h-screen bg-background">
       <Header darkMode={darkMode} toggleTheme={toggleTheme} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground">Crea Nuovo Articolo</h1>
-          <p className="text-muted-foreground mt-2">
-            Scrivi e pubblica il tuo prossimo articolo
-            {profile && ` | ${profile.display_name || profile.username}`}
-          </p>
-        </div>
-        <EditorContentSection />
+        <EventsManagement />
       </div>
     </div>
   );
 }
 
-const NewPostPage = () => {
+const EventsPage = () => {
   return (
     <ProtectedRoute allowedRoles={['administrator']}>
-      <NewPostPageContent />
+      <EventsPageContent />
     </ProtectedRoute>
   );
 };
 
-export default NewPostPage;
+export default EventsPage;

@@ -103,16 +103,27 @@ export class ImageUrlProcessor {
     try {
       const parsed = JSON.parse(input);
       
-      // Handle array format
+      // Handle array format - most common case for cover_images
       if (Array.isArray(parsed) && parsed.length > 0) {
         const first = parsed[0];
-        return typeof first === 'string' ? first : 
-               (first && typeof first === 'object' && first.url) ? first.url : null;
+        if (typeof first === 'string') {
+          return first;
+        }
+        // Handle object with url property
+        if (first && typeof first === 'object' && first.url) {
+          return first.url;
+        }
+        return null;
       }
       
       // Handle object format
       if (parsed && typeof parsed === 'object' && parsed.url) {
         return parsed.url;
+      }
+      
+      // Handle direct string value wrapped in JSON
+      if (typeof parsed === 'string') {
+        return parsed;
       }
       
       return null;
@@ -138,7 +149,9 @@ export class ImageUrlProcessor {
       input.startsWith('post-media/') ||
       input.startsWith('cover-images/') ||
       input.startsWith('avatars/') ||
-      input.startsWith('profile-images/')
+      input.startsWith('profile-images/') ||
+      // Handle UUID-based paths (user_id/filename)
+      /^[\w-]{36}\//.test(input)
     );
   }
 

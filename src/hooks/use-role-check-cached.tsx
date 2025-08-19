@@ -270,7 +270,7 @@ export const useModeratorCheckCached = () => {
 
 // Export convenience hooks for backward compatibility
 export const useAdminCheck = () => useRoleCheckCached({ allowedRoles: ['administrator'] });
-export const useEditorCheck = () => useRoleCheckCached({ allowedRoles: ['administrator', 'editor', 'journalist'] });
+export const useEditorCheck = () => useRoleCheckCached({ allowedRoles: ['administrator'] });
 
 // Legacy hook compatibility
 export const usePermissionsCheck = (allowedRoles: UserRole[]) => useRoleCheckCached({ allowedRoles });

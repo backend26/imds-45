@@ -710,10 +710,10 @@ function AdminDashboardContent() {
                                 <SelectValue placeholder="Azioni" />
                               </SelectTrigger>
                               <SelectContent>
-                                {user.role !== 'editor' && user.role !== 'administrator' && (
+                                {user.role !== 'administrator' && (
                                   <SelectItem value="promote">Promuovi</SelectItem>
                                 )}
-                                {user.role === 'editor' && (
+                                {user.role === 'administrator' && (
                                   <SelectItem value="demote">Declassa</SelectItem>
                                 )}
                                 {!user.is_banned ? (
