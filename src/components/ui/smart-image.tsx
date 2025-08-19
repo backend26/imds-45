@@ -76,7 +76,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
 
   // Determine what to render
   const shouldShowImage = isInView && imageUrl !== fallback && !hasError;
-  const finalImageUrl = shouldShowImage ? imageUrl : '';
+  const finalImageUrl = shouldShowImage ? imageUrl : fallback;
 
   return (
     <div className={cn('relative overflow-hidden', className)} style={{ aspectRatio }}>

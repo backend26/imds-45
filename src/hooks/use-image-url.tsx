@@ -14,11 +14,19 @@ export const useImageUrl = (
       return fallback;
     }
 
-    // Se è un array JavaScript nativo (caso cover_images dal database)
+    // PRIORITÀ: Array JavaScript nativo (cover_images dal database)
     if (Array.isArray(input)) {
       const firstItem = input[0];
       if (typeof firstItem === 'string' && firstItem.trim()) {
-        return firstItem;
+        // Se è già un URL completo, restituisci direttamente
+        const cleaned = firstItem.trim();
+        if (cleaned.startsWith('http://') || cleaned.startsWith('https://')) {
+          return cleaned;
+        }
+        if (cleaned.startsWith('/assets/')) {
+          return cleaned;
+        }
+        return cleaned; // Per altri casi
       }
       return fallback;
     }
@@ -39,7 +47,8 @@ export const useImageUrl = (
             return parsed[0];
           }
         } catch {
-          // Se il parsing fallisce, continua con la stringa pulita
+          // Se il parsing fallisce, usa fallback
+          return fallback;
         }
       }
 
@@ -48,45 +57,12 @@ export const useImageUrl = (
         return cleaned;
       }
 
-      // Se è un path che inizia con /assets/, è un asset locale
+      // Se è un path locale, restituisci direttamente
       if (cleaned.startsWith('/assets/')) {
         return cleaned;
       }
 
-      // Se contiene un path Supabase, costruisci URL completo
-      if (cleaned.includes('/') && !cleaned.startsWith('http')) {
-        const supabaseUrl = 'https://ybybtquplonmoopexljw.supabase.co/storage/v1/object/public';
-        
-        // Determina il bucket in base al path
-        let bucket = 'cover-images'; // default
-        let cleanPath = cleaned;
-
-        if (cleaned.startsWith('post-media/')) {
-          bucket = 'post-media';
-          cleanPath = cleaned.substring(11);
-        } else if (cleaned.startsWith('avatars/')) {
-          bucket = 'avatars';
-          cleanPath = cleaned.substring(8);
-        } else if (cleaned.startsWith('profile-images/')) {
-          bucket = 'profile-images';
-          cleanPath = cleaned.substring(15);
-        } else if (cleaned.startsWith('cover-images/')) {
-          bucket = 'cover-images';
-          cleanPath = cleaned.substring(13);
-        }
-
-        return `${supabaseUrl}/${bucket}/${cleanPath}`;
-      }
-
       return cleaned;
-    }
-
-    // Se è un oggetto, prova a estrarre la proprietà url
-    if (typeof input === 'object' && input !== null) {
-      const obj = input as any;
-      if (obj.url && typeof obj.url === 'string') {
-        return obj.url;
-      }
     }
 
     // Fallback finale

@@ -345,11 +345,13 @@ const PostPage = () => {
           {/* Cover image */}
           {coverImageUrl && coverImageUrl !== '/assets/images/default-banner.jpg' && (
             <div className="mb-8">
-              <SmartImage
-                src={coverImageUrl}
-                alt={post.title}
-                className="w-full h-96 rounded-lg"
-                aspectRatio="16/9"
+              <img 
+                src={coverImageUrl} 
+                alt={post.title} 
+                className="w-full h-96 rounded-lg object-cover"
+                onError={(e) => {
+                  e.currentTarget.src = '/assets/images/default-banner.jpg';
+                }}
               />
             </div>
           )}
