@@ -17,7 +17,7 @@ import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interacti
 import { useImageUrl } from '@/hooks/use-image-url';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
-import { CompactCommentSystem } from '@/components/comments/CompactCommentSystem';
+import { AdvancedCommentSystem } from '@/components/comments/AdvancedCommentSystem';
 
 interface Post {
   id: string;
@@ -396,7 +396,7 @@ const PostPage = () => {
           {/* Comments Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-24">
-              <CompactCommentSystem postId={postId!} />
+              <AdvancedCommentSystem postId={postId!} />
             </div>
           </aside>
         </div>
