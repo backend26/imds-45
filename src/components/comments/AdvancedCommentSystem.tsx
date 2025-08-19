@@ -359,22 +359,56 @@ export const AdvancedCommentSystem: React.FC<AdvancedCommentSystemProps> = ({
     return total + 1 + (comment.replies?.length || 0);
   }, 0);
 
-  // Render comment content with smart truncation
+  // Render comment content with hashtags, mentions and smart truncation
   const renderCommentContent = (content: string, commentId: string) => {
     const isExpanded = expandedComments.has(commentId);
     const shouldTruncate = content.length > 280;
+    const displayContent = shouldTruncate && !isExpanded ? `${content.substring(0, 280)}...` : content;
     
-    if (!shouldTruncate) return content;
+    // Process hashtags and mentions
+    const processedContent = displayContent
+      .split(/(\s+)/)
+      .map((word, index) => {
+        // Handle mentions
+        if (word.startsWith('@') && word.length > 1) {
+          const username = word.slice(1).replace(/[^a-zA-Z0-9_]/g, '');
+          return (
+            <Link
+              key={index}
+              to={`/@${username}`}
+              className="text-primary hover:text-primary/80 font-medium break-all"
+            >
+              {word}
+            </Link>
+          );
+        }
+        // Handle hashtags
+        if (word.startsWith('#') && word.length > 1) {
+          const hashtag = word.slice(1).replace(/[^a-zA-Z0-9_]/g, '');
+          return (
+            <Link
+              key={index}
+              to={`/search?q=${encodeURIComponent(hashtag)}`}
+              className="text-blue-500 hover:text-blue-600 font-medium break-all"
+            >
+              {word}
+            </Link>
+          );
+        }
+        return <span key={index} className="break-words">{word}</span>;
+      });
     
     return (
-      <div>
-        <span>{isExpanded ? content : `${content.substring(0, 280)}...`}</span>
-        <button
-          onClick={() => toggleExpandedComment(commentId)}
-          className="ml-2 text-primary hover:text-primary/80 text-sm font-medium"
-        >
-          {isExpanded ? 'Mostra meno' : 'Leggi tutto'}
-        </button>
+      <div className="break-words overflow-wrap-anywhere">
+        {processedContent}
+        {shouldTruncate && (
+          <button
+            onClick={() => toggleExpandedComment(commentId)}
+            className="ml-2 text-primary hover:text-primary/80 text-sm font-medium"
+          >
+            {isExpanded ? 'Mostra meno' : 'Leggi tutto'}
+          </button>
+        )}
       </div>
     );
   };
@@ -470,17 +504,15 @@ export const AdvancedCommentSystem: React.FC<AdvancedCommentSystemProps> = ({
               {comment.likes_count || 0}
             </Button>
             
-            {!isReply && (
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-7 px-2 text-xs"
-                onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
-              >
-                <Reply className="h-3 w-3 mr-1" />
-                Rispondi
-              </Button>
-            )}
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-7 px-2 text-xs"
+              onClick={() => setReplyTo(replyTo === comment.id ? null : comment.id)}
+            >
+              <Reply className="h-3 w-3 mr-1" />
+              Rispondi
+            </Button>
           </div>
 
           {/* Reply form */}
@@ -715,11 +747,11 @@ export const AdvancedCommentSystem: React.FC<AdvancedCommentSystemProps> = ({
           <div className="space-y-4 max-h-[600px] overflow-y-auto overflow-x-hidden">
             {comments.length > 0 ? (
               comments.map(comment => (
-                <div key={comment.id}>
+                <div key={comment.id} className="space-y-3">
                   {/* Parent comment */}
                   {renderComment(comment)}
                   
-                  {/* Replies */}
+                  {/* Replies - all at same level with indicators */}
                   {comment.replies?.map(reply => 
                     renderComment(reply, true, comment.profiles?.username)
                   )}

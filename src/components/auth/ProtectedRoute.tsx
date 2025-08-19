@@ -17,6 +17,25 @@ interface ProtectedRouteProps {
   showErrorMessage?: boolean;
 }
 
+// Helper function to check hierarchical permissions
+const hasHierarchicalAccess = (userRole: UserRole | null, allowedRoles: UserRole[]): boolean => {
+  if (!userRole) return false;
+  
+  // Admin can access everything
+  if (userRole === 'administrator') return true;
+  
+  // Journalist can access editor pages + user pages
+  if (userRole === 'journalist' && allowedRoles.includes('journalist')) return true;
+  if (userRole === 'journalist' && allowedRoles.includes('registered_user')) return true;
+  
+  // Editor can access editor pages + user pages  
+  if (userRole === 'editor' && allowedRoles.includes('editor')) return true;
+  if (userRole === 'editor' && allowedRoles.includes('registered_user')) return true;
+  
+  // Check exact role match
+  return allowedRoles.includes(userRole);
+};
+
 export const ProtectedRoute = ({ 
   children, 
   allowedRoles, 
@@ -24,7 +43,7 @@ export const ProtectedRoute = ({
   loadingComponent,
   showErrorMessage = true
 }: ProtectedRouteProps) => {
-  const { isLoading, hasAccess, error } = useRoleCheck({ allowedRoles });
+  const { isLoading, profile, error } = useRoleCheck({ allowedRoles });
 
   // Show loading state
   if (isLoading) {
@@ -41,6 +60,9 @@ export const ProtectedRoute = ({
       </div>
     );
   }
+
+  // Check hierarchical access
+  const hasAccess = hasHierarchicalAccess(profile?.role || null, allowedRoles);
 
   // Access denied
   if (!hasAccess) {

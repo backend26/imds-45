@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useAdminCheck } from '@/hooks/use-role-check-cached';
 import { Header } from '@/components/Header';
+import { EnhancedAdminDashboard } from '@/components/admin/EnhancedAdminDashboard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -43,6 +44,29 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useQueryClient } from '@tanstack/react-query';
 
 function AdminDashboardContent() {
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved === 'dark' || (!saved && true);
+  });
+
+  const toggleTheme = () => {
+    const newTheme = !darkMode;
+    setDarkMode(newTheme);
+    localStorage.setItem('theme', newTheme ? 'dark' : 'light');
+    document.documentElement.classList.toggle('dark', newTheme);
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <Header darkMode={darkMode} toggleTheme={toggleTheme} />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <EnhancedAdminDashboard />
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboardContentOld() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [userFilter, setUserFilter] = useState('all');
