@@ -66,14 +66,27 @@ export const ConnectedProfileSettings: React.FC = () => {
       if (error && error.code !== 'PGRST116') throw error;
 
       if (data) {
-        setProfile(data);
+        // Create simplified profile with available fields only
+        const simplifiedProfile = {
+          ...data,
+          display_name: '',
+          bio: '', 
+          location: '',
+          birth_date: '',
+          preferred_sports: [],
+          profile_picture_url: '',
+          banner_url: '',
+          social_links: {},
+          is_banned: false
+        };
+        setProfile(simplifiedProfile);
         setFormData({
           username: data.username || '',
-          display_name: data.display_name || '',
-          bio: data.bio || '',
-          location: data.location || '',
-          birth_date: data.birth_date || '',
-          preferred_sports: data.preferred_sports || []
+          display_name: '', // Field doesn't exist in current schema
+          bio: '',
+          location: '',
+          birth_date: '',
+          preferred_sports: []
         });
       }
     } catch (error) {

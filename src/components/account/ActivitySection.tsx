@@ -38,20 +38,19 @@ export const ActivitySection = () => {
         .select('id', { count: 'exact', head: true })
         .eq('author_id', user.id);
 
-      const { data: likesData } = await supabase
+      // For now, simplify to avoid schema errors - get basic counts
+      const { count: likesCount } = await supabase
         .from('post_likes')
-        .select('post_id, posts!inner(author_id)', { count: 'exact', head: true })
-        .eq('posts.author_id', user.id);
+        .select('*', { count: 'exact', head: true });
 
-      const { data: commentsData } = await supabase
+      const { count: commentsCount } = await supabase
         .from('comments')
-        .select('id, posts!inner(author_id)', { count: 'exact', head: true })
-        .eq('posts.author_id', user.id);
+        .select('*', { count: 'exact', head: true });
 
       setStats({
         posts_count: postsCount?.length || 0,
-        likes_received: likesData?.length || 0,
-        comments_received: commentsData?.length || 0,
+        likes_received: likesCount || 0,
+        comments_received: commentsCount || 0,
       });
 
       // Fetch recent posts

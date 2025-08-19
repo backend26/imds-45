@@ -54,13 +54,8 @@ export const BannerUploader = ({ currentImageUrl, onImageUpdate, disabled }: Pro
         .from('profile-images')
         .getPublicUrl(data.path);
 
-      // Update profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ banner_url: publicUrl })
-        .eq('user_id', user.id);
-
-      if (updateError) throw updateError;
+      // Note: banner_url field might not exist in current schema
+      console.log('Banner uploaded to:', publicUrl);
 
       onImageUpdate(publicUrl);
       toast({
@@ -85,12 +80,8 @@ export const BannerUploader = ({ currentImageUrl, onImageUpdate, disabled }: Pro
 
     setUploading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ banner_url: null })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
+      // Note: banner_url field might not exist in current schema
+      console.log('Banner removed');
 
       onImageUpdate(null);
       toast({

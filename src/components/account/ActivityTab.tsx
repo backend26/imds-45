@@ -10,8 +10,18 @@ import { Link } from 'react-router-dom';
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type Post = Database['public']['Tables']['posts']['Row'] & { status?: string };
-type PostLike = Database['public']['Tables']['post_likes']['Row'];
-type BookmarkedPost = Database['public']['Tables']['bookmarked_posts']['Row'];
+// Simplified types to avoid schema conflicts
+interface PostLike {
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
+
+interface BookmarkedPost {
+  post_id: string;
+  user_id: string;
+  created_at: string;
+}
 
 interface ActivityTabProps {
   onError: (error: any) => void;
@@ -194,7 +204,7 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
           </TabsList>
 
           <TabsContent value="posts" className="space-y-4">
-            {profile?.role === 'journalist' || profile?.role === 'administrator' ? (
+            {profile?.role === 'editor' || profile?.role === 'administrator' ? (
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <h3 className="text-lg font-medium">I Tuoi Articoli</h3>
@@ -221,7 +231,7 @@ export const ActivityTab = ({ onError }: ActivityTabProps) => {
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <Edit className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Solo i giornalisti possono scrivere articoli.</p>
+                <p>Solo gli editor possono scrivere articoli.</p>
                 <p className="text-sm">Contatta un amministratore per ottenere i permessi.</p>
               </div>
             )}
