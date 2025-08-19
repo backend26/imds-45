@@ -342,10 +342,11 @@ const PostPage = () => {
           {post.cover_images && (
             <div className="mb-8">
               <SmartImage
-                src={typeof post.cover_images === 'string' ? post.cover_images : JSON.stringify(post.cover_images)}
+                src={post.cover_images}
                 alt={post.title}
                 className="w-full h-96 rounded-lg"
                 aspectRatio="16/9"
+                showDebug={import.meta.env.DEV}
               />
             </div>
           )}

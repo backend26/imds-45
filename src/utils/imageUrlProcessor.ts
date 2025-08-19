@@ -59,6 +59,12 @@ export class ImageUrlProcessor {
       return this.createResult(cleaned, this.getUrlSource(cleaned), input);
     }
 
+    // CRITICAL FIX: Check if it's already a Supabase storage URL that was malformed
+    if (this.isPartialSupabaseUrl(cleaned)) {
+      const correctedUrl = this.correctSupabaseUrl(cleaned);
+      return this.createResult(correctedUrl, 'supabase', input);
+    }
+
     // Check if it's a storage path that needs URL construction
     if (this.isStoragePath(cleaned)) {
       const constructedUrl = this.constructStorageUrl(cleaned);
@@ -160,6 +166,31 @@ export class ImageUrlProcessor {
    */
   private static isLocalPath(input: string): boolean {
     return input.startsWith('/assets/') || input.startsWith('./assets/');
+  }
+
+  /**
+   * Check if input is a partial Supabase URL that needs correction
+   */
+  private static isPartialSupabaseUrl(input: string): boolean {
+    return input.includes('supabase.co') && !this.isCompleteUrl(input);
+  }
+
+  /**
+   * Correct malformed Supabase URLs
+   */
+  private static correctSupabaseUrl(input: string): string {
+    // If it already contains the full storage path, return as is
+    if (input.includes('/storage/v1/object/public/')) {
+      return input.startsWith('http') ? input : `https://${input}`;
+    }
+    
+    // Extract the bucket and path from partial URLs
+    const match = input.match(/supabase\.co\/(.+)/);
+    if (match) {
+      return `${this.SUPABASE_URL}/${match[1]}`;
+    }
+    
+    return input;
   }
 
   /**
