@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ImageUrlProcessor } from '@/utils/imageUrlProcessor';
+import { useImageUrl } from '@/hooks/use-image-url';
 import { cn } from '@/lib/utils';
 
 export interface SmartImageProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'src'> {
@@ -31,8 +31,8 @@ export const SmartImage: React.FC<SmartImageProps> = ({
   const imgRef = useRef<HTMLImageElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
 
-  // Process the image URL
-  const result = ImageUrlProcessor.process(src, fallback);
+  // Process the image URL using the new hook
+  const imageUrl = useImageUrl(src, fallback);
 
   // Set up intersection observer for lazy loading
   useEffect(() => {
@@ -69,15 +69,14 @@ export const SmartImage: React.FC<SmartImageProps> = ({
     if (import.meta.env.DEV) {
       console.warn('SmartImage: Failed to load:', {
         originalSrc: src,
-        processedUrl: result.url,
-        source: result.source
+        processedUrl: imageUrl
       });
     }
   };
 
   // Determine what to render
-  const shouldShowImage = isInView && result.isValid && !hasError;
-  const imageUrl = shouldShowImage ? result.url : '';
+  const shouldShowImage = isInView && imageUrl !== fallback && !hasError;
+  const finalImageUrl = shouldShowImage ? imageUrl : '';
 
   return (
     <div className={cn('relative overflow-hidden', className)} style={{ aspectRatio }}>
@@ -85,9 +84,8 @@ export const SmartImage: React.FC<SmartImageProps> = ({
       {showDebug && import.meta.env.DEV && (
         <div className="absolute top-0 left-0 z-50 bg-black/80 text-white text-xs p-2 max-w-xs">
           <div>Original: {String(src).substring(0, 50)}...</div>
-          <div>Processed: {result.url.substring(0, 50)}...</div>
-          <div>Source: {result.source}</div>
-          <div>Valid: {result.isValid ? '✅' : '❌'}</div>
+          <div>Processed: {imageUrl.substring(0, 50)}...</div>
+          <div>Valid: {imageUrl !== fallback ? '✅' : '❌'}</div>
           <div>Loaded: {isLoaded ? '✅' : '❌'}</div>
           <div>Error: {hasError ? '❌' : '✅'}</div>
         </div>
@@ -113,7 +111,7 @@ export const SmartImage: React.FC<SmartImageProps> = ({
       {/* Actual image */}
       <img
         ref={imgRef}
-        src={imageUrl}
+        src={finalImageUrl}
         alt={alt}
         onLoad={handleLoad}
         onError={handleError}
