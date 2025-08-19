@@ -129,7 +129,7 @@ export const useAdminCheck = () => {
 };
 
 export const useEditorCheck = () => {
-  return useRoleCheck({ allowedRoles: ['administrator', 'editor', 'journalist'] });
+  return useRoleCheck({ allowedRoles: ['administrator', 'journalist'] });
 };
 
 export const useModeratorCheck = () => {

@@ -16,7 +16,7 @@ import { SmartImage } from '@/components/ui/smart-image';
 import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
-import { OptimizedCommentSystem } from '@/components/comments/OptimizedCommentSystem';
+import { CompactCommentSystem } from '@/components/comments/CompactCommentSystem';
 
 interface Post {
   id: string;
@@ -342,7 +342,7 @@ const PostPage = () => {
           {post.cover_images && (
             <div className="mb-8">
               <SmartImage
-                src={post.cover_images}
+                src={typeof post.cover_images === 'string' ? post.cover_images : JSON.stringify(post.cover_images)}
                 alt={post.title}
                 className="w-full h-96 rounded-lg"
                 aspectRatio="16/9"
@@ -390,7 +390,7 @@ const PostPage = () => {
           {/* Comments Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-24">
-              <OptimizedCommentSystem postId={postId!} />
+              <CompactCommentSystem postId={postId!} />
             </div>
           </aside>
         </div>
