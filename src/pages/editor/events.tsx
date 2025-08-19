@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { EventsEditor } from '@/components/events/EventsEditor';
-import { useEditorCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
+import { useJournalistCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
 
 function EventsPageContent() {
   const { profile } = useEditorCheck();

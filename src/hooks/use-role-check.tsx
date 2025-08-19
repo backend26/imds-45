@@ -128,7 +128,7 @@ export const useAdminCheck = () => {
   return useRoleCheck({ allowedRoles: ['administrator'] });
 };
 
-export const useEditorCheck = () => {
+export const useJournalistCheck = () => {
   return useRoleCheck({ allowedRoles: ['administrator', 'journalist'] });
 };
 

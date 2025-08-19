@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { useEditorCheck } from '@/hooks/use-role-check';
+import { useJournalistCheck } from '@/hooks/use-role-check';
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,7 @@ export const EditorPermissionWrapper = ({
   children, 
   fallbackMessage = "Non hai i permessi per accedere a questa sezione." 
 }: EditorPermissionWrapperProps) => {
-  const { hasAccess, isLoading, userRole, error } = useEditorCheck();
+  const { hasAccess, isLoading, userRole, error } = useJournalistCheck();
   const navigate = useNavigate();
 
   if (isLoading) {

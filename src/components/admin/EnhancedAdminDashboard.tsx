@@ -31,6 +31,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { AdminUserManager } from './AdminUserManager';
 import { AdminContentManager } from './AdminContentManager';
 import { AdminModerationCenter } from './AdminModerationCenter';
+import { useRealDashboardData } from '@/hooks/use-real-dashboard-data';
 
 interface AdminStats {
   totalUsers: number;
@@ -68,192 +69,19 @@ interface CommentReport {
 
 export const EnhancedAdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  const [stats, setStats] = useState<AdminStats>({
-    totalUsers: 0,
-    totalPosts: 0,
-    totalComments: 0,
-    totalEvents: 0,
-    pendingReports: 0,
-    activeUsers: 0,
-    monthlyGrowth: { users: 0, posts: 0, engagement: 0 }
-  });
-  const [commentReports, setCommentReports] = useState<CommentReport[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
-
+  const { stats, loading, error, refresh } = useRealDashboardData();
   const { toast } = useToast();
 
-  // Fetch dashboard statistics
-  const fetchStats = async () => {
-    try {
-      const [
-        { count: userCount },
-        { count: postCount },
-        { count: commentCount },
-        { count: eventCount },
-        { count: reportCount }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*', { count: 'exact', head: true }),
-        supabase.from('posts').select('*', { count: 'exact', head: true }),
-        supabase.from('comments').select('*', { count: 'exact', head: true }),
-        supabase.from('sports_events').select('*', { count: 'exact', head: true }),
-        supabase.from('comment_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending')
-      ]);
+  // Show error toast if data loading fails
+  if (error) {
+    toast({
+      title: "Errore",
+      description: error,
+      variant: "destructive"
+    });
+  }
 
-      setStats({
-        totalUsers: userCount || 0,
-        totalPosts: postCount || 0,
-        totalComments: commentCount || 0,
-        totalEvents: eventCount || 0,
-        pendingReports: reportCount || 0,
-        activeUsers: Math.floor((userCount || 0) * 0.3), // Approximate active users
-        monthlyGrowth: {
-          users: Math.random() * 15,
-          posts: Math.random() * 20,
-          engagement: Math.random() * 25
-        }
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile caricare le statistiche",
-        variant: "destructive"
-      });
-    }
-  };
 
-  // Fetch comment reports
-  const fetchCommentReports = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('comment_reports')
-        .select(`
-          id,
-          reason,
-          description,
-          status,
-          created_at,
-          comment_id
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      
-      // Transform data to match interface
-      const transformedReports = (data || []).map(report => ({
-        ...report,
-        comments: {
-          content: 'Contenuto commento',
-          author: {
-            username: 'utente',
-            display_name: 'Utente'
-          }
-        },
-        reporter: {
-          username: 'reporter',
-          display_name: 'Reporter'
-        }
-      }));
-      
-      setCommentReports(transformedReports);
-    } catch (error) {
-      console.error('Error fetching comment reports:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile caricare le segnalazioni commenti",
-        variant: "destructive"
-      });
-    }
-  };
-
-  // Handle comment report action
-  const handleCommentReportAction = async (reportId: string, action: 'approve' | 'dismiss') => {
-    setActionLoading(true);
-    try {
-      const { error } = await supabase
-        .from('comment_reports')
-        .update({
-          status: action === 'approve' ? 'approved' : 'dismissed',
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', reportId);
-
-      if (error) throw error;
-
-      toast({
-        title: "Successo",
-        description: action === 'approve' ? 'Segnalazione approvata' : 'Segnalazione respinta'
-      });
-
-      fetchCommentReports();
-      fetchStats();
-    } catch (error) {
-      console.error('Error handling comment report:', error);
-      toast({
-        title: "Errore",
-        description: "Operazione fallita",
-        variant: "destructive"
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  // Delete reported comment
-  const deleteReportedComment = async (commentId: string, reportId: string) => {
-    setActionLoading(true);
-    try {
-      // Delete the comment
-      const { error: deleteError } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId);
-
-      if (deleteError) throw deleteError;
-
-      // Update report status
-      const { error: updateError } = await supabase
-        .from('comment_reports')
-        .update({
-          status: 'approved',
-          reviewed_at: new Date().toISOString()
-        })
-        .eq('id', reportId);
-
-      if (updateError) throw updateError;
-
-      toast({
-        title: "Successo",
-        description: "Commento eliminato e segnalazione approvata"
-      });
-
-      fetchCommentReports();
-      fetchStats();
-    } catch (error) {
-      console.error('Error deleting comment:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile eliminare il commento",
-        variant: "destructive"
-      });
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const refreshData = async () => {
-    setLoading(true);
-    try {
-      await Promise.all([fetchStats(), fetchCommentReports()]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    refreshData();
-  }, []);
 
   const getReportStatusBadge = (status: string) => {
     switch (status) {
@@ -281,7 +109,7 @@ export const EnhancedAdminDashboard: React.FC = () => {
             Gestisci utenti, contenuti, eventi e monitora le statistiche
           </p>
         </div>
-        <Button variant="outline" onClick={refreshData} disabled={loading}>
+        <Button variant="outline" onClick={refresh} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Aggiorna
         </Button>

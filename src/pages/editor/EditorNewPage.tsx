@@ -3,11 +3,11 @@ import { AdvancedEditor } from '@/components/editor/AdvancedEditor';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { EditorErrorBoundary } from '@/components/editor/EditorErrorBoundary';
-import { useEditorCheckCached } from '@/hooks/use-role-check-cached';
+import { useJournalistCheckCached } from '@/hooks/use-role-check-cached';
 
 
 function NewPostPageContent() {
-  const { profile, isLoading, hasAccess, error } = useEditorCheckCached();
+  const { profile, isLoading, hasAccess, error } = useJournalistCheckCached();
   const [darkMode, setDarkMode] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
@@ -111,7 +111,7 @@ function NewPostPageContent() {
 
 const NewPostPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['administrator', 'editor', 'journalist']}>
+    <ProtectedRoute allowedRoles={['administrator', 'journalist']}>
       <NewPostPageContent />
     </ProtectedRoute>
   );

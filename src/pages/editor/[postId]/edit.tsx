@@ -6,7 +6,7 @@ import { Header } from '@/components/Header';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useEditorCheck } from '@/hooks/use-role-check';
+import { useJournalistCheck } from '@/hooks/use-role-check';
 
 import type { Database } from '@/integrations/supabase/types';
 
@@ -14,7 +14,7 @@ type Post = Database['public']['Tables']['posts']['Row'];
 
 function EditPostPageContent() {
   const { postId } = useParams<{ postId: string }>();
-  const { profile } = useEditorCheck();
+  const { profile } = useJournalistCheck();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [post, setPost] = useState<Post | null>(null);
@@ -163,7 +163,7 @@ function EditPostPageContent() {
 
 const EditPostPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['administrator', 'editor', 'journalist']}>
+    <ProtectedRoute allowedRoles={['administrator', 'journalist']}>
       <EditPostPageContent />
     </ProtectedRoute>
   );

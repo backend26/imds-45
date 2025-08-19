@@ -24,13 +24,9 @@ const hasHierarchicalAccess = (userRole: UserRole | null, allowedRoles: UserRole
   // Admin can access everything
   if (userRole === 'administrator') return true;
   
-  // Journalist can access editor pages + user pages
+  // Journalist can access journalist pages + user pages
   if (userRole === 'journalist' && allowedRoles.includes('journalist')) return true;
   if (userRole === 'journalist' && allowedRoles.includes('registered_user')) return true;
-  
-  // Editor can access editor pages + user pages  
-  if (userRole === 'editor' && allowedRoles.includes('editor')) return true;
-  if (userRole === 'editor' && allowedRoles.includes('registered_user')) return true;
   
   // Check exact role match
   return allowedRoles.includes(userRole);

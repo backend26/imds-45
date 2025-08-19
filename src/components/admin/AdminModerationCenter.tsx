@@ -128,7 +128,7 @@ export const AdminModerationCenter: React.FC = () => {
       if (postError) throw postError;
       setPostReports(postReportsData || []);
 
-      // Load comment reports
+      // Load comment reports - Fix Supabase relation query
       let commentQuery = supabase
         .from('comment_reports')
         .select(`
@@ -138,19 +138,7 @@ export const AdminModerationCenter: React.FC = () => {
           status,
           created_at,
           comment_id,
-          reporter_id,
-          comments:comment_id (
-            content,
-            author_id,
-            profiles:author_id (
-              display_name,
-              username
-            )
-          ),
-          reporter:profiles!comment_reports_reporter_id_fkey (
-            display_name,
-            username
-          )
+          reporter_id
         `);
 
       if (statusFilter !== 'all') {
@@ -161,7 +149,40 @@ export const AdminModerationCenter: React.FC = () => {
         .order('created_at', { ascending: false });
 
       if (commentError) throw commentError;
-      setCommentReports(commentReportsData || []);
+
+      // Fetch related data separately to avoid relation issues
+      const transformedCommentReports = await Promise.all(
+        (commentReportsData || []).map(async (report) => {
+          // Get comment details
+          const { data: commentData } = await supabase
+            .from('comments')
+            .select(`
+              content,
+              author_id,
+              profiles:author_id (
+                display_name,
+                username
+              )
+            `)
+            .eq('id', report.comment_id)
+            .maybeSingle();
+
+          // Get reporter details
+          const { data: reporterData } = await supabase
+            .from('profiles')
+            .select('display_name, username')
+            .eq('user_id', report.reporter_id)
+            .maybeSingle();
+
+          return {
+            ...report,
+            comments: commentData,
+            reporter: reporterData
+          };
+        })
+      );
+
+      setCommentReports(transformedCommentReports);
 
       // Note: User reports table would need to be created if not exists
       // For now, we'll simulate it with an empty array
