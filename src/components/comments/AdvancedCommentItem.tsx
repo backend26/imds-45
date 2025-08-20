@@ -3,8 +3,7 @@ import { Heart, Reply, MoreHorizontal, Trash2, Edit, ChevronDown, ChevronUp, Cor
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatDistanceToNow } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { formatTimeAgo } from '@/utils/timeFormat';
 import { CommentContent } from './CommentContent';
 import { CommentInput } from './CommentInput';
 import { cn } from '@/lib/utils';
@@ -93,10 +92,8 @@ export const AdvancedCommentItem = ({
   return (
     <div className={cn(
       "space-y-3",
-      // Limit visual nesting to prevent staircase effect
-      depth === 1 && "ml-4 border-l-2 border-l-muted/60 pl-3",
-      depth === 2 && "ml-6 border-l-2 border-l-muted/40 pl-2",
-      depth >= 3 && "ml-8 border-l-2 border-l-muted/20 pl-2"
+      depth > 0 && "ml-6 border-l-2 border-l-muted/30 pl-4",
+      depth > 1 && "ml-6", // All nested replies at same level
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -121,10 +118,7 @@ export const AdvancedCommentItem = ({
                   </div>
                 )}
                 <span className="text-muted-foreground text-xs">
-                  {formatDistanceToNow(new Date(comment.created_at), {
-                    addSuffix: true,
-                    locale: it
-                  })}
+                  {formatTimeAgo(comment.created_at)}
                 </span>
                 {comment.updated_at !== comment.created_at && (
                   <span className="text-muted-foreground text-xs italic">
@@ -261,7 +255,7 @@ export const AdvancedCommentItem = ({
                   onReply={onReply}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  depth={Math.min(depth + 1, maxDepth)} // Cap depth
+                  depth={depth > 0 ? 2 : 1} // Consistent depth for all replies
                   replyingToAuthor={comment.author.display_name}
                 />
               ))}

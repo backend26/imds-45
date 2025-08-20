@@ -8,8 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAuth } from '@/hooks/use-auth';
 import { useRoleCheck } from '@/hooks/use-role-check';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
-import { it } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { CommentReportModal } from './CommentReportModal';
 import { CommentInput } from './CommentInput';

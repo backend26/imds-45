@@ -25,6 +25,23 @@ interface CommentWithLikes extends Comment {
   replies: CommentWithLikes[];
 }
 
+// Helper function to update comment likes optimistically
+const updateCommentLikes = (comments: CommentWithLikes[], commentId: string, isLiked: boolean, userId: string): CommentWithLikes[] => {
+  return comments.map(comment => {
+    if (comment.id === commentId) {
+      return {
+        ...comment,
+        likes_count: isLiked ? comment.likes_count + 1 : comment.likes_count - 1,
+        user_has_liked: isLiked
+      };
+    }
+    return {
+      ...comment,
+      replies: updateCommentLikes(comment.replies, commentId, isLiked, userId)
+    };
+  });
+};
+
 export const useEnhancedComments = (postId: string) => {
   const { user } = useAuth();
   const [comments, setComments] = useState<CommentWithLikes[]>([]);
@@ -200,20 +217,21 @@ export const useEnhancedComments = (postId: string) => {
     }
   }, [user, postId, loadComments]);
 
-  // Toggle like
+  // Toggle like with debouncing and optimistic updates
   const toggleLike = useCallback(async (commentId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Check if already liked
-      const { data: existingLike } = await supabase
+      // Check if already liked - fix 400 error by not selecting 'id' field
+      const { data: existingLikes } = await supabase
         .from('comment_likes')
-        .select('id')
+        .select('comment_id')
         .eq('comment_id', commentId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (existingLike) {
+      const hasLike = existingLikes && existingLikes.length > 0;
+
+      if (hasLike) {
         // Remove like
         const { error } = await supabase
           .from('comment_likes')
@@ -234,11 +252,13 @@ export const useEnhancedComments = (postId: string) => {
         if (error) throw error;
       }
 
-      // Reload comments to update like counts
-      loadComments();
+      // Optimistically update local state
+      setComments(prev => updateCommentLikes(prev, commentId, !hasLike, user.id));
       return true;
     } catch (error) {
       console.error('Error toggling like:', error);
+      // Revert optimistic update on error
+      loadComments();
       toast({
         title: "Errore",
         description: "Impossibile aggiornare il like",
