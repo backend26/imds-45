@@ -1,85 +1,113 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, Hash, Loader2 } from 'lucide-react';
+import { TrendingUp, Hash, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 
-type TrendingTopic = Database['public']['Tables']['trending_topics']['Row'];
+interface TrendingTag {
+  tag: string;
+  post_count: number;
+  view_count: number;
+  score: number;
+  sport_category?: string;
+}
 
 export const RealTrendingWidget = () => {
-  const [topics, setTopics] = useState<TrendingTopic[]>([]);
+  const [trendingTags, setTrendingTags] = useState<TrendingTag[]>([]);
   const [loading, setLoading] = useState(true);
-  const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    fetchTrendingTopics();
-    
-    // Set up realtime subscription for trending topics
-    const channel = supabase
-      .channel('trending-topics-updates')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'trending_topics' },
-        () => fetchTrendingTopics()
-      )
-      .subscribe();
+    const fetchTrendingTags = async () => {
+      try {
+        // Get posts with tags and their view counts from the last 7 days
+        const { data: postsData, error } = await supabase
+          .from('posts')
+          .select(`
+            id,
+            tags,
+            created_at,
+            categories:category_id (name)
+          `)
+          .eq('status', 'published')
+          .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .not('tags', 'is', null);
 
-    return () => {
-      supabase.removeChannel(channel);
+        if (error) throw error;
+
+        // Get view counts for these posts
+        const postIds = postsData?.map(p => p.id) || [];
+        let viewCounts: Record<string, number> = {};
+        
+        if (postIds.length > 0) {
+          const { data: viewsData } = await supabase
+            .from('post_views')
+            .select('post_id, created_at')
+            .in('post_id', postIds);
+
+          // Count views per post
+          viewCounts = (viewsData || []).reduce((acc, view) => {
+            acc[view.post_id] = (acc[view.post_id] || 0) + 1;
+            return acc;
+          }, {} as Record<string, number>);
+        }
+
+        // Process tags and calculate scores
+        const tagStats: Record<string, { 
+          post_count: number; 
+          view_count: number; 
+          sport_category?: string;
+        }> = {};
+
+        postsData?.forEach(post => {
+          if (post.tags && Array.isArray(post.tags)) {
+            const postViews = viewCounts[post.id] || 0;
+            const category = post.categories?.name?.toLowerCase();
+            
+            post.tags.forEach((tag: string) => {
+              if (!tagStats[tag]) {
+                tagStats[tag] = { post_count: 0, view_count: 0, sport_category: category };
+              }
+              tagStats[tag].post_count += 1;
+              tagStats[tag].view_count += postViews;
+            });
+          }
+        });
+
+        // Convert to array and calculate trending score
+        const trending = Object.entries(tagStats)
+          .map(([tag, stats]) => ({
+            tag,
+            post_count: stats.post_count,
+            view_count: stats.view_count,
+            score: stats.post_count * 10 + stats.view_count * 2, // Weighted score
+            sport_category: stats.sport_category
+          }))
+          .filter(item => item.post_count > 0)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 6);
+
+        setTrendingTags(trending);
+      } catch (error) {
+        console.error('Error fetching trending tags:', error);
+      } finally {
+        setLoading(false);
+      }
     };
+
+    fetchTrendingTags();
+
+    // Refresh every 10 minutes
+    const interval = setInterval(fetchTrendingTags, 10 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  const fetchTrendingTopics = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('trending_topics')
-        .select('*')
-        .order('score', { ascending: false })
-        .limit(8);
-
-      if (error) throw error;
-      setTopics(data || []);
-    } catch (error) {
-      console.error('Error fetching trending topics:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const updateTrendingTopics = async () => {
-    setUpdating(true);
-    try {
-      const { error } = await supabase.rpc('update_trending_topics');
-      if (error) throw error;
-      
-      await fetchTrendingTopics();
-    } catch (error) {
-      console.error('Error updating trending topics:', error);
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const getSportBadgeVariant = (sport: string | null) => {
+  const getSportBadgeVariant = (sport?: string) => {
     switch (sport) {
       case 'calcio': return 'default';
       case 'tennis': return 'secondary';
       case 'f1': return 'destructive';
       case 'basket': return 'outline';
-      case 'nfl': return 'secondary';
       default: return 'secondary';
-    }
-  };
-
-  const getSportEmoji = (sport: string | null) => {
-    switch (sport) {
-      case 'calcio': return '⚽';
-      case 'tennis': return '🎾';
-      case 'f1': return '🏎️';
-      case 'basket': return '🏀';
-      case 'nfl': return '🏈';
-      default: return '🏆';
     }
   };
 
@@ -108,98 +136,54 @@ export const RealTrendingWidget = () => {
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-primary" />
-            Trend del Momento
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={updateTrendingTopics}
-            disabled={updating}
-          >
-            {updating ? (
-              <Loader2 className="h-3 w-3 animate-spin" />
-            ) : (
-              <TrendingUp className="h-3 w-3" />
-            )}
-          </Button>
-        </div>
+      <CardHeader>
+        <CardTitle className="text-lg flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-primary" />
+          Trend del Momento
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
-          {topics.length > 0 ? (
-            topics.map((topic, index) => (
-              <div 
-                key={topic.id} 
-                className="group flex items-center justify-between hover:bg-muted/50 p-2 rounded-lg transition-colors cursor-pointer border border-transparent hover:border-border"
-              >
-                <div className="flex items-center gap-3 flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="font-bold text-sm text-muted-foreground w-4 text-center">
-                      {index + 1}
-                    </span>
-                    {topic.sport_category && (
-                      <span className="text-sm">{getSportEmoji(topic.sport_category)}</span>
-                    )}
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Hash className="h-3 w-3 text-muted-foreground flex-shrink-0" />
-                      <span className="font-medium text-sm group-hover:text-primary transition-colors truncate">
-                        {topic.topic}
-                      </span>
-                    </div>
+          {trendingTags.length === 0 ? (
+            <div className="text-center py-4 text-muted-foreground">
+              <Hash className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p className="text-sm">Nessun trend disponibile</p>
+            </div>
+          ) : (
+            trendingTags.map((item, index) => (
+              <div key={item.tag} className="flex items-center justify-between hover:bg-muted/50 p-2 rounded-lg transition-colors cursor-pointer">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sm text-muted-foreground">
+                    {index + 1}
+                  </span>
+                  <div>
                     <div className="flex items-center gap-2">
-                      {topic.sport_category && (
-                        <Badge 
-                          variant={getSportBadgeVariant(topic.sport_category)} 
-                          className="text-xs px-1 py-0 h-4"
-                        >
-                          {topic.sport_category.toUpperCase()}
+                      <Hash className="h-3 w-3 text-muted-foreground" />
+                      <span className="font-medium text-sm">{item.tag}</span>
+                    </div>
+                    <div className="flex items-center gap-2 mt-1">
+                      {item.sport_category && (
+                        <Badge variant={getSportBadgeVariant(item.sport_category)} className="text-xs px-1 py-0">
+                          {item.sport_category.toUpperCase()}
                         </Badge>
                       )}
                       <span className="text-xs text-muted-foreground">
-                        {topic.mention_count} {topic.mention_count === 1 ? 'menzione' : 'menzioni'}
+                        {item.post_count} post
                       </span>
+                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                        <Eye className="h-3 w-3" />
+                        {item.view_count}
+                      </div>
                     </div>
                   </div>
                 </div>
-                
-                <div className="text-right flex-shrink-0">
+                <div className="text-right">
                   <div className="text-xs font-bold text-primary">
-                    {Number(topic.score).toFixed(0)}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    score
+                    {item.score}
                   </div>
                 </div>
               </div>
             ))
-          ) : (
-            <div className="text-center py-6">
-              <Hash className="h-8 w-8 mx-auto mb-2 text-muted-foreground opacity-50" />
-              <p className="text-sm text-muted-foreground">
-                Nessun trend disponibile
-              </p>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={updateTrendingTopics}
-                className="mt-2"
-                disabled={updating}
-              >
-                {updating ? (
-                  <Loader2 className="h-3 w-3 animate-spin mr-2" />
-                ) : (
-                  <TrendingUp className="h-3 w-3 mr-2" />
-                )}
-                Aggiorna trend
-              </Button>
-            </div>
           )}
         </div>
       </CardContent>

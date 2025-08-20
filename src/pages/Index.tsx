@@ -106,7 +106,8 @@ const Index = () => {
             categories:category_id (name),
             profiles:author_id (username, display_name)
           `)
-          .eq('status', 'published');
+          .eq('status', 'published')
+          .eq('is_hero', false); // Exclude hero posts from regular grid
 
         // Period filter
         const now = new Date();
@@ -130,7 +131,7 @@ const Index = () => {
 
         let list = postsData || [];
 
-        // Allow hero posts to appear in grid for better visibility - no exclusion
+        // Hero posts are now excluded from regular grid to prevent duplicates
 
         // Sport filter by category name
         if (selectedSport !== 'all') {
@@ -274,7 +275,7 @@ const Index = () => {
             />
           </div>
 
-          {/* Featured Article - Full Width */}
+          {/* Featured Article - Only First One */}
           {featuredArticle && (
             <div className="mb-8 article-card">
               <ArticleCard
@@ -286,9 +287,9 @@ const Index = () => {
             </div>
           )}
 
-          {/* Regular Articles Grid - Responsive */}
+          {/* Regular Articles Grid - Skip the first (featured) one */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
-            {regularArticles.slice(0, Math.max(0, visibleArticles - 1)).map((article: any) => (
+            {regularArticles.slice(1, visibleArticles).map((article: any) => (
               <div key={article.id} className="article-card h-full">
                 <ArticleCard
                   {...mapPostToCard(article)}

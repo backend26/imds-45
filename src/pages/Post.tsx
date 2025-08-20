@@ -17,7 +17,8 @@ import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interacti
 import { useImageUrl } from '@/hooks/use-image-url';
 import { PostRatingSystem } from '@/components/posts/PostRatingSystem';
 import { PostReportModal } from '@/components/posts/PostReportModal';
-import { AdvancedCommentSystem } from '@/components/comments/AdvancedCommentSystem';
+import { EnhancedCommentSystem } from '@/components/comments/EnhancedCommentSystem';
+import { usePostViews } from '@/hooks/use-post-views';
 
 interface Post {
   id: string;
@@ -64,6 +65,9 @@ const PostPage = () => {
 
   // Use enhanced post interactions hook
   const interactions = useEnhancedPostInteractions(postId || '');
+  
+  // Use post views hook
+  const { viewCount, incrementView } = usePostViews(postId || '');
   
   // Gestione robusta dell'URL cover image
   const coverImageUrl = useImageUrl(post?.cover_images);
@@ -164,11 +168,15 @@ const PostPage = () => {
     const loadData = async () => {
       setLoading(true);
       await fetchPost();
+      // Increment view after post loads
+      if (postId) {
+        incrementView();
+      }
       setLoading(false);
     };
 
     loadData();
-  }, [postId, user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [postId, user, incrementView]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Apply theme on mount
@@ -308,6 +316,10 @@ const PostPage = () => {
                 {interactions.commentsCount}
               </Button>
               
+              <Button variant="outline" size="sm" className="text-muted-foreground">
+                <span className="text-xs">{viewCount} visualizzazioni</span>
+              </Button>
+              
               <Button variant="outline" size="sm" onClick={handleShare}>
                 <Share2 className="w-4 h-4" />
               </Button>
@@ -396,7 +408,7 @@ const PostPage = () => {
           {/* Comments Sidebar */}
           <aside className="lg:col-span-1">
             <div className="sticky top-24">
-              <AdvancedCommentSystem postId={postId!} />
+              <EnhancedCommentSystem postId={postId!} />
             </div>
           </aside>
         </div>

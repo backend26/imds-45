@@ -49,6 +49,7 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
   const [isLikeAnimating, setIsLikeAnimating] = useState(false);
   const [isSaveAnimating, setIsSaveAnimating] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
+  const { viewCount } = usePostViews(id || '');
   
   const {
     isLiked,
@@ -340,6 +341,11 @@ export const ArticleCard: React.FC<ArticleCardProps> = ({
               <Icon name="comment" className="h-3 w-3 sm:h-4 sm:w-4 mr-0.5 sm:mr-1" />
               <span className="text-xs font-medium">{commentsCount}</span>
             </Button>
+            
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Icon name="clock" className="h-3 w-3" />
+              <span>{viewCount}</span>
+            </div>
           </div>
 
           <div className="flex items-center space-x-0.5 sm:space-x-1">

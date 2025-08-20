@@ -65,7 +65,7 @@ function NewPostPageContent() {
 
 const NewPostPage = () => {
   return (
-    <ProtectedRoute allowedRoles={['administrator']}>
+    <ProtectedRoute allowedRoles={['administrator', 'journalist']}>
       <NewPostPageContent />
     </ProtectedRoute>
   );
