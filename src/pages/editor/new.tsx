@@ -2,11 +2,11 @@ import React, { useEffect } from 'react';
 import { EditorContentSection } from '@/components/editor/EditorContentSection';
 import { Header } from '@/components/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
-import { useJournalistCheckCached as useEditorCheck } from '@/hooks/use-role-check-cached';
+import { useJournalistCheckCached } from '@/hooks/use-role-check-cached';
 
 
 function NewPostPageContent() {
-  const { profile } = useEditorCheck();
+  const { profile } = useJournalistCheckCached();
   const [darkMode, setDarkMode] = React.useState(() => {
     if (typeof window !== 'undefined') {
       return document.documentElement.classList.contains('dark') || localStorage.getItem('theme') === 'dark';
