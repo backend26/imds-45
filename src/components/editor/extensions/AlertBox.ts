@@ -11,8 +11,8 @@ declare module '@tiptap/core' {
        * Inserisce un blocco Alert Box
        */
       setAlertBox: (options: {
-        type?: 'info' | 'warning' | 'error' | 'success';
-        content?: string;
+        type: 'info' | 'warning' | 'error' | 'success';
+        content: string;
       }) => ReturnType;
     };
   }

@@ -11,8 +11,8 @@ declare module '@tiptap/core' {
   interface Commands<ReturnType> {
     alertBox: {
       setAlertBox: (options: {
-        type?: 'info' | 'warning' | 'error' | 'success';
-        content?: string;
+        type: 'info' | 'warning' | 'error' | 'success';
+        content: string;
       }) => ReturnType;
     };
   }

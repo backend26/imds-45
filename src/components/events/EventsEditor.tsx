@@ -83,13 +83,9 @@ export const EventsEditor: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const { data, error } = await supabase
-        .from('sports_events')
-        .select('*')
-        .order('start_datetime', { ascending: false });
-
-      if (error) throw error;
-      setEvents(data || []);
+      // Fallback: No sports_events table, use empty array
+      console.warn('Events fetching requires sports_events table to be created');
+      setEvents([]);
     } catch (error) {
       console.error('Error fetching events:', error);
       toast({

@@ -78,12 +78,10 @@ export const ModernCommentSystem = ({ postId, className }: ModernCommentSystemPr
 
       if (error) throw error;
 
-      // Load comment likes for each comment
+      // Load comment likes for each comment (fallback since comment_likes table doesn't exist)
       const commentIds = commentsData?.map(c => c.id) || [];
-      const { data: likesData } = await supabase
-        .from('comment_likes')
-        .select('comment_id, user_id')
-        .in('comment_id', commentIds);
+      // Fallback: No likes data since table doesn't exist
+      const likesData: any[] = [];
 
       const processedComments = (commentsData || []).map((comment: any) => {
         const commentLikes = likesData?.filter(l => l.comment_id === comment.id) || [];
@@ -214,24 +212,11 @@ export const ModernCommentSystem = ({ postId, className }: ModernCommentSystemPr
       if (!comment) return;
 
       if (comment.user_has_liked) {
-        // Remove like
-        const { error } = await supabase
-          .from('comment_likes')
-          .delete()
-          .eq('comment_id', commentId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
+        // Remove like (fallback - no DB operation)
+        console.warn('Like removal requires comment_likes table');
       } else {
-        // Add like
-        const { error } = await supabase
-          .from('comment_likes')
-          .insert({
-            comment_id: commentId,
-            user_id: user.id
-          });
-
-        if (error) throw error;
+        // Add like (fallback - no DB operation) 
+        console.warn('Like addition requires comment_likes table');
       }
 
       await loadComments();

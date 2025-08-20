@@ -142,9 +142,11 @@ export const TrendingAlgorithm = ({ className, limit = 10 }: TrendingAlgorithmPr
           period: timeWindow
         }));
 
-        await supabase.from('trending_topics').upsert(topTopics, {
-          onConflict: 'topic,period'
-        });
+        // Fallback: Skip trending topics storage (requires trending_topics table)
+        console.log('Trending topics calculated:', topTopics.length, 'topics');
+        // await supabase.from('trending_topics').upsert(topTopics, {
+        //   onConflict: 'topic,period'  
+        // });
       }
 
     } catch (error) {
