@@ -159,7 +159,7 @@ export const RealPopularAuthorsWidget = () => {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm group-hover:text-primary transition-colors truncate">
+                    <span className="font-semibold text-sm group-hover:text-primary transition-colors truncate text-foreground">
                       {author.display_name || author.username}
                     </span>
                     {getRoleBadge(author.role)}
@@ -168,24 +168,24 @@ export const RealPopularAuthorsWidget = () => {
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     <div className="flex items-center gap-1">
                       <Eye className="h-3 w-3" />
-                      <span>{author.posts_count}</span>
+                      <span className="font-medium">{author.posts_count}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <Heart className="h-3 w-3" />
-                      <span>{author.likes_received}</span>
+                      <span className="font-medium">{author.likes_received}</span>
                     </div>
                     <div className="flex items-center gap-1">
                       <MessageCircle className="h-3 w-3" />
-                      <span>{author.comments_received}</span>
+                      <span className="font-medium">{author.comments_received}</span>
                     </div>
                   </div>
                 </div>
                 
                   <div className="text-right flex-shrink-0">
-                    <div className="text-xs font-bold text-primary">
+                    <div className="text-sm font-bold text-primary">
                       {author.total_engagement}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs font-medium text-foreground">
                       interazioni
                     </div>
                   </div>

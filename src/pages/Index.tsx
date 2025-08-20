@@ -265,11 +265,11 @@ const Index = () => {
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="flex items-center space-x-2">
                 <Icon name="fire" className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                <h2 className="text-xl sm:text-2xl font-bold">Trending Now</h2>
+                <h2 className="text-xl sm:text-2xl font-bold">NOVITÀ</h2>
               </div>
               <Badge className="bg-gradient-primary text-white animate-scale-in text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                Trending
+                Aggiornate
               </Badge>
             </div>
           </div>

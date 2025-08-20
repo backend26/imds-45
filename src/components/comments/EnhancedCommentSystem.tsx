@@ -39,8 +39,8 @@ interface EnhancedCommentSystemProps {
 
 type SortOption = 'recent' | 'popular' | 'oldest';
 
+import { ModernCommentSystem } from './ModernCommentSystem';
+
 export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSystemProps) => {
-  // Use ModernCommentSystem instead
-  const { ModernCommentSystem } = require('./ModernCommentSystem');
   return <ModernCommentSystem postId={postId} className={className} />;
 };

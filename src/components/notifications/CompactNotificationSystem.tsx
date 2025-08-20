@@ -218,8 +218,13 @@ export const CompactNotificationSystem = () => {
       <PopoverTrigger asChild>
         <Button
           variant="ghost"
-          size="icon"
-          className="relative hover:bg-muted/80 transition-colors"
+          size="sm"
+          className={cn(
+            "relative hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+            "bg-background/50 border border-border/30 backdrop-blur-sm",
+            "shadow-lg hover:shadow-xl",
+            "h-8 sm:h-9 w-8 sm:w-9 p-0"
+          )}
         >
           {unreadCount > 0 ? (
             <BellRing className="h-5 w-5" />
@@ -238,10 +243,10 @@ export const CompactNotificationSystem = () => {
       </PopoverTrigger>
       
       <PopoverContent 
-        className="w-72 p-0 shadow-md border" 
+        className="w-80 p-0 shadow-lg border border-border/50 bg-background/95 backdrop-blur-sm" 
         align="end"
         side="bottom"
-        sideOffset={4}
+        sideOffset={8}
       >
         <div className="flex items-center justify-between p-4 border-b bg-muted/30">
           <h3 className="font-semibold text-lg">Notifiche</h3>

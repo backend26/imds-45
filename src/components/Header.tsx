@@ -6,7 +6,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { User, Moon, Sun, Search, Menu, X, LogOut, PlusCircle, BarChart3, Calendar, FileText, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
-import { useAdminCheck } from "@/hooks/use-role-check";
 import { toast } from "@/hooks/use-toast";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
 import { CompactNotificationSystem } from '@/components/notifications/CompactNotificationSystem';
@@ -35,7 +34,6 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [userRole, setUserRole] = useState<string | null>(null);
   const { user, signOut } = useAuth();
-  const { profile: adminProfile } = useAdminCheck();
 
   // Simple role check effect
   useEffect(() => {
@@ -189,7 +187,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link to="/editor/events" className="flex items-center gap-2 cursor-pointer">
+                    <Link to="/editor" className="flex items-center gap-2 cursor-pointer">
                       <Calendar className="h-4 w-4" />
                       Gestione Eventi
                     </Link>
