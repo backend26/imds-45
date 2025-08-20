@@ -181,14 +181,14 @@ export const RealPopularAuthorsWidget = () => {
                   </div>
                 </div>
                 
-                <div className="text-right flex-shrink-0">
-                  <div className="text-xs font-bold text-primary">
-                    {author.total_engagement}
+                  <div className="text-right flex-shrink-0">
+                    <div className="text-xs font-bold text-primary">
+                      {author.total_engagement}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      interazioni
+                    </div>
                   </div>
-                  <div className="text-xs text-muted-foreground">
-                    engagement
-                  </div>
-                </div>
               </div>
             ))
           ) : (

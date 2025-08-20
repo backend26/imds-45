@@ -45,29 +45,6 @@ const Sidebar = () => {
     { topic: "#ChampionsLeague", count: "890", color: "bg-purple-500" },
   ];
 
-  const popularAuthors = [
-    { 
-      id: 1, 
-      name: "Marco Rossi", 
-      title: "Giornalista sportivo", 
-      avatar: "https://picsum.photos/40?random=4",
-      specialty: "Calcio"
-    },
-    { 
-      id: 2, 
-      name: "Giulia Verdi", 
-      title: "Inviata speciale", 
-      avatar: "https://picsum.photos/40?random=5",
-      specialty: "Tennis"
-    },
-    { 
-      id: 3, 
-      name: "Luigi Bianchi", 
-      title: "Esperto di F1", 
-      avatar: "https://picsum.photos/40?random=6",
-      specialty: "Formula 1"
-    },
-  ];
 
   const upcomingEvents = [
     { id: 1, event: "Derby di Milano: Inter vs Milan", date: "15 Marzo", sport: "calcio" },

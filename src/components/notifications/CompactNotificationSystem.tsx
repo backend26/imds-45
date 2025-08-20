@@ -238,10 +238,10 @@ export const CompactNotificationSystem = () => {
       </PopoverTrigger>
       
       <PopoverContent 
-        className="w-80 p-0 shadow-lg border-2" 
+        className="w-72 p-0 shadow-md border" 
         align="end"
         side="bottom"
-        sideOffset={8}
+        sideOffset={4}
       >
         <div className="flex items-center justify-between p-4 border-b bg-muted/30">
           <h3 className="font-semibold text-lg">Notifiche</h3>
@@ -260,7 +260,7 @@ export const CompactNotificationSystem = () => {
           </div>
         </div>
 
-        <ScrollArea className="h-96">
+        <ScrollArea className="h-80">
           {loading ? (
             <div className="p-4 space-y-3">
               {[1, 2, 3].map(i => (
