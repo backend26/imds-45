@@ -1,20 +1,18 @@
 import { useState, useCallback, useMemo } from 'react';
-import { MessageCircle, Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send, Smile, User, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
+import { MessageCircle, Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send, User, ChevronDown, ChevronUp, ArrowUpDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useAuth } from '@/hooks/use-auth';
 import { useRoleCheck } from '@/hooks/use-role-check';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { it } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { CommentReportModal } from './CommentReportModal';
+import { CommentItem } from './CommentItem';
 import { useOptimizedComments } from '@/hooks/use-optimized-comments';
 
 interface Comment {
@@ -41,8 +39,6 @@ interface EnhancedCommentSystemProps {
 
 type SortOption = 'recent' | 'popular' | 'oldest';
 
-const emojis = ['😀', '😂', '❤️', '👍', '👎', '😢', '😠', '🎉', '🤔', '👏', '🔥', '💯'];
-
 export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSystemProps) => {
   const { user } = useAuth();
   const { hasAccess: isAdmin } = useRoleCheck({ allowedRoles: ['administrator'] });
@@ -60,6 +56,10 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
   const [newComment, setNewComment] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('popular');
   const [reportingComment, setReportingComment] = useState<string | null>(null);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyContent, setReplyContent] = useState('');
+  const [editingComment, setEditingComment] = useState<string | null>(null);
+  const [editContent, setEditContent] = useState('');
 
   // Sort comments based on selected option
   const sortedComments = useMemo(() => {
@@ -102,6 +102,56 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
       });
     }
   }, [user, newComment, addComment]);
+
+  const handleSubmitReply = useCallback(async (parentId: string) => {
+    if (!user || !replyContent.trim()) return;
+    
+    const success = await addReply(parentId, replyContent.trim());
+    if (success) {
+      setReplyContent('');
+      setReplyingTo(null);
+      toast({
+        title: "Risposta pubblicata",
+        description: "La tua risposta è stata aggiunta con successo"
+      });
+    }
+  }, [user, replyContent, addReply]);
+
+  const handleUpdateComment = useCallback(async (commentId: string) => {
+    if (!user || !editContent.trim()) return;
+    
+    const success = await updateComment(commentId, editContent.trim());
+    if (success) {
+      setEditContent('');
+      setEditingComment(null);
+      toast({
+        title: "Commento aggiornato",
+        description: "Il commento è stato modificato con successo"
+      });
+    }
+  }, [user, editContent, updateComment]);
+
+  const handleDeleteComment = useCallback(async (commentId: string) => {
+    if (!user) return;
+    
+    const success = await deleteComment(commentId);
+    if (success) {
+      toast({
+        title: "Commento eliminato",
+        description: "Il commento è stato rimosso con successo"
+      });
+    }
+  }, [user, deleteComment]);
+
+  const startEditing = (commentId: string, currentContent: string) => {
+    setEditingComment(commentId);
+    setEditContent(currentContent);
+  };
+
+  const startReplying = (commentId: string) => {
+    setReplyingTo(commentId);
+    setReplyContent('');
+  };
 
   return (
     <div className={`bg-background rounded-xl border shadow-sm ${className}`}>
@@ -189,49 +239,29 @@ export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSyst
             <p>Nessun commento ancora</p>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {sortedComments.map(comment => (
-              <div key={comment.id} className="flex gap-3">
-                <Avatar className="h-8 w-8">
-                  <AvatarImage src={comment.author.profile_picture_url} />
-                  <AvatarFallback>
-                    {comment.author.display_name?.charAt(0) || 'U'}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1">
-                  <div className="bg-card rounded-lg p-3 border">
-                    <div className="flex items-center gap-2 mb-2 text-sm">
-                      <span className="font-medium">{comment.author.display_name}</span>
-                      <span className="text-muted-foreground text-xs">
-                        {formatDistanceToNow(new Date(comment.created_at), {
-                          addSuffix: true,
-                          locale: it
-                        })}
-                      </span>
-                    </div>
-                    <p className="text-sm">{comment.content}</p>
-                  </div>
-                  <div className="flex items-center gap-3 mt-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                      onClick={() => toggleLike(comment.id)}
-                    >
-                      <Heart className="h-3 w-3 mr-1" />
-                      {comment.likes_count}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 px-2 text-xs"
-                    >
-                      <Reply className="h-3 w-3 mr-1" />
-                      Rispondi
-                    </Button>
-                  </div>
-                </div>
-              </div>
+              <CommentItem
+                key={comment.id}
+                comment={comment}
+                currentUser={user}
+                isAdmin={isAdmin}
+                onLike={() => toggleLike(comment.id)}
+                onReply={() => startReplying(comment.id)}
+                onEdit={() => startEditing(comment.id, comment.content)}
+                onDelete={() => handleDeleteComment(comment.id)}
+                onReport={() => setReportingComment(comment.id)}
+                replyingTo={replyingTo}
+                replyContent={replyContent}
+                setReplyContent={setReplyContent}
+                onSubmitReply={handleSubmitReply}
+                onCancelReply={() => setReplyingTo(null)}
+                editingComment={editingComment}
+                editContent={editContent}
+                setEditContent={setEditContent}
+                onUpdateComment={handleUpdateComment}
+                onCancelEdit={() => setEditingComment(null)}
+              />
             ))}
           </div>
         )}
