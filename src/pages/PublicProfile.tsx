@@ -299,13 +299,13 @@ export default function PublicProfile() {
       
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
-          {/* Hero Section con Banner */}
-          <div className="relative h-48 md:h-64 rounded-xl overflow-hidden mb-8 shadow-lg animate-fade-in">
+          {/* Hero Section con Banner Ottimizzato */}
+          <div className="relative h-32 md:h-40 rounded-xl overflow-hidden mb-6 shadow-lg animate-fade-in">
             {profile.banner_url ? (
               <img 
                 src={profile.banner_url} 
                 alt={`Banner di ${profile.display_name || profile.username}`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
                 onError={(e) => {
                   e.currentTarget.src = '/assets/images/default-banner.jpg';
                 }}
@@ -315,143 +315,178 @@ export default function PublicProfile() {
             )}
             
             {/* Overlay gradiente */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            
-            {/* Avatar posizionato */}
-            <div className="absolute -bottom-12 left-6">
-              <Avatar className="h-24 w-24 md:h-32 md:w-32 border-4 border-background shadow-xl">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
+          </div>
+
+          {/* Sezione Profilo Principale */}
+          <div className="flex flex-col md:flex-row gap-6 mb-8">
+            {/* Avatar e Info Base */}
+            <div className="flex-shrink-0">
+              <Avatar className="h-24 w-24 md:h-28 md:w-28 border-4 border-background shadow-xl mx-auto md:mx-0">
                 <AvatarImage src={profile.profile_picture_url || undefined} />
                 <AvatarFallback className="text-2xl md:text-3xl font-bold">
                   {(profile.display_name || profile.username)?.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
             </div>
-          </div>
 
-          {/* Informazioni Profilo */}
-          <div className="ml-6 mb-8">
-            <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-4">
-              <div className="space-y-2">
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h1 className="text-2xl md:text-3xl font-bold text-foreground">
-                    {profile.display_name || profile.username}
-                  </h1>
-                  <Badge variant="secondary" className="text-sm">
-                    @{profile.username}
-                  </Badge>
-                  <Badge className={`text-white ${getRoleColor(profile.role)}`}>
-                    {getRoleLabel(profile.role)}
-                  </Badge>
+            {/* Informazioni Utente */}
+            <div className="flex-1 space-y-4">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3 flex-wrap">
+                      <h1 className="text-2xl md:text-3xl font-bold text-foreground">
+                        {profile.display_name || profile.username}
+                      </h1>
+                      <Badge variant="secondary" className="text-sm">
+                        @{profile.username}
+                      </Badge>
+                      <Badge className={`text-white ${getRoleColor(profile.role)}`}>
+                        {getRoleLabel(profile.role)}
+                      </Badge>
+                    </div>
+                    
+                    {profile.bio && (
+                      <p className="text-muted-foreground max-w-2xl leading-relaxed text-sm md:text-base">
+                        {profile.bio}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                
-                {profile.bio && (
-                  <p className="text-muted-foreground max-w-2xl leading-relaxed">
-                    {profile.bio}
-                  </p>
+
+                {user?.id !== profile.user_id && (
+                  <Button 
+                    onClick={handleToggleFollow} 
+                    disabled={followLoading}
+                    variant={isFollowing ? 'outline' : 'default'}
+                    className="flex-shrink-0"
+                  >
+                    {isFollowing ? (
+                      <>
+                        <UserMinus className="h-4 w-4 mr-2" />
+                        Non seguire
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="h-4 w-4 mr-2" />
+                        Segui
+                      </>
+                    )}
+                  </Button>
                 )}
               </div>
 
-              {user?.id !== profile.user_id && (
-                <Button 
-                  onClick={handleToggleFollow} 
-                  disabled={followLoading}
-                  variant={isFollowing ? 'outline' : 'default'}
-                  className="flex-shrink-0"
-                >
-                  {isFollowing ? (
-                    <>
-                      <UserMinus className="h-4 w-4 mr-2" />
-                      Non seguire
-                    </>
-                  ) : (
-                    <>
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Segui
-                    </>
+              {/* Statistiche Utente */}
+              <Card className="bg-card/50 border-border/50">
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center">
+                        <FileText className="h-4 w-4 text-primary mr-1" />
+                        <span className="font-bold text-lg text-foreground">{stats?.posts_count ?? 0}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Articoli</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center">
+                        <Users className="h-4 w-4 text-primary mr-1" />
+                        <span className="font-bold text-lg text-foreground">{followerCount}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Follower</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center">
+                        <Users className="h-4 w-4 text-primary mr-1" />
+                        <span className="font-bold text-lg text-foreground">{followingCount}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Seguiti</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center">
+                        <Heart className="h-4 w-4 text-primary mr-1" />
+                        <span className="font-bold text-lg text-foreground">{stats?.likes_received ?? 0}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Like ricevuti</p>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="flex items-center justify-center">
+                        <MessageCircle className="h-4 w-4 text-primary mr-1" />
+                        <span className="font-bold text-lg text-foreground">{stats?.comments_received ?? 0}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">Commenti</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Informazioni Dettagliate */}
+              <Card className="bg-card/50 border-border/50">
+                <CardContent className="p-4 space-y-4">
+                  {/* Informazioni personali */}
+                  <div className="flex flex-wrap gap-4 text-sm">
+                    {getPrivacySetting('location') && profile.location && (
+                      <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                        <MapPin className="h-4 w-4 text-primary" />
+                        <span className="text-foreground">{profile.location}</span>
+                      </div>
+                    )}
+                    
+                    {getPrivacySetting('birth_date') && profile.birth_date && (
+                      <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                        <Calendar className="h-4 w-4 text-primary" />
+                        <span className="text-foreground">Nato il {format(new Date(profile.birth_date), 'dd MMMM yyyy', { locale: it })}</span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
+                      <Activity className="h-4 w-4 text-primary" />
+                      <span className="text-foreground">Membro dal {format(new Date(profile.created_at), 'MMMM yyyy', { locale: it })}</span>
+                    </div>
+                  </div>
+
+                  {/* Sport preferiti */}
+                  {profile.preferred_sports && profile.preferred_sports.length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="font-medium text-sm text-foreground">Sport preferiti</h3>
+                      <div className="flex flex-wrap gap-2">
+                        {profile.preferred_sports.map((sport) => (
+                          <Badge key={sport} variant="outline" className="text-xs">
+                            {sport.charAt(0).toUpperCase() + sport.slice(1)}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </Button>
-              )}
+
+                  {/* Link social */}
+                  {profile.social_links && Object.keys(profile.social_links).length > 0 && (
+                    <div className="space-y-2">
+                      <h3 className="font-medium text-sm text-foreground">Social Links</h3>
+                      <div className="flex gap-3">
+                        {Object.entries(profile.social_links).map(([platform, url]) => {
+                          if (!url) return null;
+                          const Icon = platform === 'instagram' ? Instagram : 
+                                      platform === 'twitter' ? Twitter : Globe;
+                          return (
+                            <a
+                              key={platform}
+                              href={url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-muted-foreground hover:text-primary transition-colors bg-muted/50 px-3 py-1 rounded-full"
+                            >
+                              <Icon className="h-4 w-4" />
+                              <span className="text-sm capitalize">{platform}</span>
+                            </a>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-
-            {/* Statistiche */}
-            <div className="flex flex-wrap gap-6 text-sm mb-4">
-              <div className="flex items-center gap-1">
-                <FileText className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{stats?.posts_count ?? 0}</strong> articoli</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{followerCount}</strong> follower</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{followingCount}</strong> seguiti</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Heart className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{stats?.likes_received ?? 0}</strong> like ricevuti</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <MessageCircle className="h-4 w-4 text-primary" />
-                <span><strong className="text-foreground">{stats?.comments_received ?? 0}</strong> commenti</span>
-              </div>
-            </div>
-
-            {/* Informazioni aggiuntive */}
-            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-              {getPrivacySetting('location') && profile.location && (
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-4 w-4" />
-                  <span>{profile.location}</span>
-                </div>
-              )}
-              
-              {getPrivacySetting('birth_date') && profile.birth_date && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="h-4 w-4" />
-                  <span>Nato il {format(new Date(profile.birth_date), 'dd MMMM yyyy', { locale: it })}</span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1">
-                <Activity className="h-4 w-4" />
-                <span>Membro dal {format(new Date(profile.created_at), 'MMMM yyyy', { locale: it })}</span>
-              </div>
-            </div>
-
-            {/* Sport preferiti */}
-            {profile.preferred_sports && profile.preferred_sports.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                <span className="text-sm text-muted-foreground">Sport:</span>
-                {profile.preferred_sports.map((sport) => (
-                  <Badge key={sport} variant="outline" className="text-xs">
-                    {sport.charAt(0).toUpperCase() + sport.slice(1)}
-                  </Badge>
-                ))}
-              </div>
-            )}
-
-            {/* Link social */}
-            {profile.social_links && Object.keys(profile.social_links).length > 0 && (
-              <div className="flex gap-3">
-                {Object.entries(profile.social_links).map(([platform, url]) => {
-                  if (!url) return null;
-                  const Icon = platform === 'instagram' ? Instagram : 
-                              platform === 'twitter' ? Twitter : Globe;
-                  return (
-                    <a
-                      key={platform}
-                      href={url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-primary transition-colors"
-                    >
-                      <Icon className="h-5 w-5" />
-                    </a>
-                  );
-                })}
-              </div>
-            )}
           </div>
 
           <Separator className="my-8" />

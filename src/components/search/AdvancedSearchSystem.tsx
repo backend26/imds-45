@@ -136,9 +136,16 @@ export const AdvancedSearchSystem = ({
         `)
         .eq('status', 'published');
 
-      // Full-text search on title and content
+      // Full-text search on title, content, and hashtags
       if (searchQuery.trim()) {
-        query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%`);
+        // Check if query is a hashtag
+        if (searchQuery.startsWith('#')) {
+          const hashtag = searchQuery.substring(1);
+          query = query.contains('tags', [hashtag]);
+        } else {
+          // Regular search on title, content, excerpt, and tags
+          query = query.or(`title.ilike.%${searchQuery}%,content.ilike.%${searchQuery}%,excerpt.ilike.%${searchQuery}%,tags.cs.{${searchQuery}}`);
+        }
       }
 
       // Category filter

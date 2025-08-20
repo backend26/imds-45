@@ -10,6 +10,7 @@ import { EnhancedProfileSection } from "@/components/account/EnhancedProfileSect
 import { SecuritySection } from "@/components/account/SecuritySection";
 import { PrivacySection } from "@/components/account/PrivacySection";
 import { ActivitySection } from "@/components/account/ActivitySection";
+import { NotificationPreferencesSection } from "@/components/notifications/NotificationPreferencesSection";
 import { 
   User, 
   Shield, 
@@ -215,21 +216,7 @@ export default function Account() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bell className="h-5 w-5 text-primary" />
-                  Preferenze Notifiche
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
-                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                  <p>Sezione notifiche in sviluppo</p>
-                  <p className="text-sm">Sarà disponibile prossimamente</p>
-                </div>
-              </CardContent>
-            </Card>
+            <NotificationPreferencesSection />
           </TabsContent>
 
           <TabsContent value="activity" className="space-y-6">

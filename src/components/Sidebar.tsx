@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { RealTrendingWidget } from './sidebar/RealTrendingWidget';
 import { EventsWidget } from "@/components/sidebar/EventsWidget";
-import { PopularAuthorsWidget } from "@/components/sidebar/PopularAuthorsWidget";
+import { RealPopularAuthorsWidget } from "@/components/sidebar/RealPopularAuthorsWidget";
 import { Separator } from "@/components/ui/separator";
 
 const Sidebar = () => {
@@ -89,7 +89,7 @@ const Sidebar = () => {
       <Separator />
 
       {/* Real Popular Authors Widget */}
-      <PopularAuthorsWidget />
+      <RealPopularAuthorsWidget />
     </aside>
   );
 };
