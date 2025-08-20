@@ -3,12 +3,14 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Moon, Sun, Search, Menu, X, LogOut } from "lucide-react";
+import { User, Moon, Sun, Search, Menu, X, LogOut, PlusCircle, BarChart3, Calendar, FileText, Edit } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
+import { useAdminCheck } from "@/hooks/use-role-check";
 import { toast } from "@/hooks/use-toast";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
 import { CompactNotificationSystem } from '@/components/notifications/CompactNotificationSystem';
+import { supabase } from "@/integrations/supabase/client";
 import { SearchSystem } from "@/components/search/SearchSystem";
 
 const sports = [
@@ -31,7 +33,25 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("Prima Pagina");
   const [isScrolled, setIsScrolled] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const { user, signOut } = useAuth();
+  const { profile: adminProfile } = useAdminCheck();
+
+  // Simple role check effect
+  useEffect(() => {
+    const checkUserRole = async () => {
+      if (user) {
+        const { data } = await supabase.from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        setUserRole(data?.role || null);
+      } else {
+        setUserRole(null);
+      }
+    };
+    checkUserRole();
+  }, [user]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -136,6 +156,55 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
             </Button>
 
             <CompactNotificationSystem />
+
+            {/* Editor/Journalist Menu */}
+            {user && (userRole === 'editor' || userRole === 'journalist' || userRole === 'administrator') && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={cn(
+                      "hover:bg-secondary/60 hover:text-primary transition-all duration-200 hover:scale-105",
+                      "bg-background/50 border border-border/30 backdrop-blur-sm",
+                      "shadow-lg hover:shadow-xl",
+                      "h-8 sm:h-9 w-8 sm:w-9 p-0",
+                      !isScrolled && "drop-shadow-[0_4px_8px_rgba(0,0,0,0.15)] dark:drop-shadow-[0_4px_12px_rgba(0,0,0,0.3)]"
+                    )}
+                  >
+                    <Edit className="h-3 w-3 sm:h-4 sm:w-4 icon-shadow" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 bg-background/95 backdrop-blur-sm border-border/50">
+                  <DropdownMenuItem asChild>
+                    <Link to="/editor/new" className="flex items-center gap-2 cursor-pointer">
+                      <PlusCircle className="h-4 w-4" />
+                      Nuovo Articolo
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/editor" className="flex items-center gap-2 cursor-pointer">
+                      <FileText className="h-4 w-4" />
+                      Dashboard Editor
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/editor/events" className="flex items-center gap-2 cursor-pointer">
+                      <Calendar className="h-4 w-4" />
+                      Gestione Eventi
+                    </Link>
+                  </DropdownMenuItem>
+                  {userRole === 'administrator' && (
+                    <DropdownMenuItem asChild>
+                      <Link to="/admin/dashboard" className="flex items-center gap-2 cursor-pointer">
+                        <BarChart3 className="h-4 w-4" />
+                        Dashboard Admin
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
             {user ? (
               <DropdownMenu>

@@ -106,14 +106,42 @@ export default function Editor() {
       const publishedPosts = postsData?.filter(p => p.status === 'published').length || 0;
       const draftPosts = postsData?.filter(p => p.status === 'draft').length || 0;
 
-      // Get engagement stats (simplified for now)
+      // Get real engagement stats
+      const postIds = postsData?.map(p => p.id).filter(Boolean) || [];
+      let totalViews = 0;
+      let totalComments = 0;
+      let totalLikes = 0;
+
+      if (postIds.length > 0) {
+        // Get post views
+        const { data: views } = await supabase
+          .from('post_views')
+          .select('post_id')
+          .in('post_id', postIds);
+        totalViews = views?.length || 0;
+
+        // Get comments count
+        const { data: comments } = await supabase
+          .from('comments')
+          .select('post_id')
+          .in('post_id', postIds);
+        totalComments = comments?.length || 0;
+
+        // Get likes count
+        const { data: likes } = await supabase
+          .from('post_likes')
+          .select('post_id')
+          .in('post_id', postIds);
+        totalLikes = likes?.length || 0;
+      }
+
       setStats({
         totalPosts,
         publishedPosts,
         draftPosts,
-        totalViews: Math.floor(Math.random() * 1000), // Placeholder
-        totalComments: Math.floor(Math.random() * 100), // Placeholder
-        totalLikes: Math.floor(Math.random() * 500), // Placeholder
+        totalViews,
+        totalComments,
+        totalLikes,
       });
 
     } catch (error) {
@@ -237,11 +265,7 @@ export default function Editor() {
                 <CardContent>
                   <div className="text-2xl font-bold">{stats.totalViews}</div>
                   <p className="text-xs text-muted-foreground">
-                    <span className="text-green-600 flex items-center">
-                      <TrendingUp className="h-3 w-3 mr-1" />
-                      +12%
-                    </span>
-                    rispetto al mese scorso
+                    Visualizzazioni sui tuoi articoli
                   </p>
                 </CardContent>
               </Card>

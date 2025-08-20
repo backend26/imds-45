@@ -239,13 +239,6 @@ const Index = () => {
 
   const filteredArticles = posts;
 
-  // Animate trending counter on load
-  useEffect(() => {
-    const counterElement = document.getElementById('trending-counter');
-    if (counterElement && animateCounter) {
-      animateCounter(counterElement, 24, '%');
-    }
-  }, [animateCounter]);
 
   const featuredArticle = filteredArticles[0];
   const regularArticles = filteredArticles;
@@ -276,7 +269,7 @@ const Index = () => {
               </div>
               <Badge className="bg-gradient-primary text-white animate-scale-in text-xs sm:text-sm">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                <span id="trending-counter">+2.4</span>% oggi
+                Trending
               </Badge>
             </div>
           </div>
