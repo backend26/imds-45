@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Heart, Reply, MoreHorizontal, Trash2, Edit, ChevronDown, ChevronUp, CornerDownRight } from 'lucide-react';
+import { Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send, ChevronDown, ChevronUp, CornerDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -27,36 +27,36 @@ interface Comment {
   depth?: number;
 }
 
-interface AdvancedCommentItemProps {
+interface EnhancedCommentItemProps {
   comment: Comment;
-  currentUser?: any;
-  isAdmin: boolean;
-  onLike: (commentId: string) => Promise<boolean>;
   onReply: (parentId: string, content: string) => Promise<boolean>;
+  onLike: (commentId: string) => Promise<boolean>;
   onEdit: (commentId: string, content: string) => Promise<boolean>;
   onDelete: (commentId: string) => Promise<boolean>;
+  onReport: (commentId: string) => void;
+  currentUserId?: string;
+  isEditor?: boolean;
   depth?: number;
-  replyingToAuthor?: string;
 }
 
-export const AdvancedCommentItem = ({ 
+export const EnhancedCommentItem = ({ 
   comment, 
-  currentUser, 
-  isAdmin,
-  onLike,
   onReply,
+  onLike,
   onEdit,
   onDelete,
-  depth = 0,
-  replyingToAuthor
-}: AdvancedCommentItemProps) => {
+  onReport,
+  currentUserId,
+  isEditor = false,
+  depth = 0
+}: EnhancedCommentItemProps) => {
   const [showReplies, setShowReplies] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   
-  const isOwner = currentUser?.id === comment.author_id;
-  const canModerate = isAdmin || isOwner;
+  const isOwner = currentUserId === comment.author_id;
+  const canModerate = isEditor || isOwner;
   
   // Limit nesting depth (TikTok-style)
   const maxDepth = 3;
@@ -79,15 +79,11 @@ export const AdvancedCommentItem = ({
   };
 
   const handleLike = async () => {
-    if (onLike) {
-      await onLike(comment.id);
-    }
+    await onLike(comment.id);
   };
 
   const handleDelete = async () => {
-    if (onDelete) {
-      await onDelete(comment.id);
-    }
+    await onDelete(comment.id);
   };
 
   return (
@@ -112,12 +108,6 @@ export const AdvancedCommentItem = ({
                 <span className="font-medium text-foreground">
                   {comment.author.display_name}
                 </span>
-                {replyingToAuthor && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <CornerDownRight className="h-3 w-3" />
-                    <span className="text-xs">@{replyingToAuthor}</span>
-                  </div>
-                )}
                 <span className="text-muted-foreground text-xs">
                   {formatDistanceToNow(new Date(comment.created_at), {
                     addSuffix: true,
@@ -131,7 +121,7 @@ export const AdvancedCommentItem = ({
                 )}
               </div>
               
-              {currentUser && canModerate && (
+              {currentUserId && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -139,19 +129,27 @@ export const AdvancedCommentItem = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {isOwner && (
+                    {isOwner && canModerate && (
                       <DropdownMenuItem onClick={() => setIsEditing(true)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Modifica
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem 
-                      onClick={handleDelete} 
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Elimina
-                    </DropdownMenuItem>
+                    {canModerate && (
+                      <DropdownMenuItem 
+                        onClick={handleDelete} 
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Elimina
+                      </DropdownMenuItem>
+                    )}
+                    {!isOwner && (
+                      <DropdownMenuItem onClick={() => onReport(comment.id)}>
+                        <Flag className="h-4 w-4 mr-2" />
+                        Segnala
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -197,7 +195,7 @@ export const AdvancedCommentItem = ({
                   {comment.likes_count}
                 </Button>
                 
-                {currentUser && !isMaxDepth && (
+                {currentUserId && !isMaxDepth && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -249,17 +247,17 @@ export const AdvancedCommentItem = ({
           {showReplies && comment.replies.length > 0 && (
             <div className="mt-4 space-y-4">
               {comment.replies.map(reply => (
-                <AdvancedCommentItem
+                <EnhancedCommentItem
                   key={reply.id}
                   comment={reply}
-                  currentUser={currentUser}
-                  isAdmin={isAdmin}
-                  onLike={onLike}
                   onReply={onReply}
+                  onLike={onLike}
                   onEdit={onEdit}
                   onDelete={onDelete}
+                  onReport={onReport}
+                  currentUserId={currentUserId}
+                  isEditor={isEditor}
                   depth={Math.min(depth + 1, maxDepth)} // Cap depth
-                  replyingToAuthor={comment.author.display_name}
                 />
               ))}
             </div>

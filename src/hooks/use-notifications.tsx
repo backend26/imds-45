@@ -7,7 +7,7 @@ export interface Notification {
   id: string;
   recipient_id: string;
   actor_id: string;
-  type: 'like' | 'comment' | 'new_follower' | 'mention' | 'system' | 'post_published';
+  type: 'like' | 'comment' | 'new_follower' | 'mention' | 'system' | 'post_published' | 'comment_report';
   related_post_id?: string;
   created_at: string;
   is_read: boolean;
@@ -166,6 +166,8 @@ export function useNotifications() {
         return `${actorName} ti ha menzionato in un post`;
       case 'post_published':
         return `Nuovo post pubblicato da ${actorName}`;
+      case 'comment_report':
+        return `Segnalazione commento ricevuta`;
       case 'system':
         return `Notifica di sistema`;
       default:

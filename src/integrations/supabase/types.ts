@@ -1284,7 +1284,12 @@ export type Database = {
     }
     Enums: {
       app_role: "registered_user" | "editor" | "administrator" | "journalist"
-      notification_type: "like" | "comment" | "mention" | "new_follower"
+      notification_type:
+        | "like"
+        | "comment"
+        | "mention"
+        | "new_follower"
+        | "comment_report"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1413,7 +1418,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["registered_user", "editor", "administrator", "journalist"],
-      notification_type: ["like", "comment", "mention", "new_follower"],
+      notification_type: [
+        "like",
+        "comment",
+        "mention",
+        "new_follower",
+        "comment_report",
+      ],
     },
   },
 } as const

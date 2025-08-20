@@ -66,7 +66,23 @@ export const usePostViews = (postId: string) => {
       const userAgent = navigator.userAgent || 'Unknown';
       const ip = '127.0.0.1'; // Default fallback IP
       
-      // Try direct insert to post_views table (simplified approach)
+      // Per utenti anonimi, inserisce sempre una nuova visualizzazione
+      // Per utenti autenticati, verifica prima se esiste già
+      if (user) {
+        // Verifica se l'utente ha già visualizzato il post
+        const { data: existingView } = await supabase
+          .from('post_views')
+          .select('id')
+          .eq('post_id', postId)
+          .eq('user_id', user.id)
+          .single();
+
+        if (existingView) {
+          return false; // Già visualizzato
+        }
+      }
+      
+      // Inserisce una nuova visualizzazione
       const { error: insertError } = await supabase
         .from('post_views')
         .insert({
@@ -83,11 +99,11 @@ export const usePostViews = (postId: string) => {
         }));
         return true;
       } else {
-        console.log('View increment skipped - table may not exist');
+        console.log('View increment skipped:', insertError.message);
       }
 
     } catch (error) {
-      console.log('View tracking temporarily disabled:', error.message);
+      console.log('View tracking error:', error.message);
     }
     
     return false;
