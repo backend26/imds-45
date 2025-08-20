@@ -8,6 +8,7 @@ import { SmartImage } from "@/components/ui/smart-image";
 import { ContentPreview } from "@/components/posts/ContentPreview";
 import { gsap } from "gsap";
 import { usePostInteractions } from "@/hooks/use-post-interactions";
+import { usePostViews } from "@/hooks/use-post-views";
 import { SocialShareModal } from "@/components/posts/SocialShareModal";
 import { PostReportModal } from "@/components/posts/PostReportModal";
 

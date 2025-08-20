@@ -33,10 +33,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { EnhancedBirthdateSelector } from '@/components/account/EnhancedBirthdateSelector';
+import { FavoriteTeamsManager } from '@/components/account/FavoriteTeamsManager';
+import { SocialLinksManager } from '@/components/account/SocialLinksManager';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
 interface SocialLinks {
+  [key: string]: string;
   instagram?: string;
   twitter?: string;
   youtube?: string;
@@ -44,6 +48,7 @@ interface SocialLinks {
 }
 
 interface FavoriteTeams {
+  [key: string]: string[] | string;
   calcio?: string;
   tennis?: string;
   f1?: string;
@@ -483,92 +488,8 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
           </datalist>
         </div>
 
-        {/* Social Links */}
-        <div className="space-y-3">
-          <Label className="flex items-center gap-2">
-            <LinkIcon className="h-4 w-4" />
-            Link Social
-          </Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="space-y-1">
-              <Label htmlFor="instagram" className="text-xs text-muted-foreground flex items-center gap-1">
-                <Instagram className="h-3 w-3" />
-                Instagram
-              </Label>
-              <Input
-                id="instagram"
-                value={socialLinks.instagram || ''}
-                onChange={(e) => handleSocialLinkChange('instagram', e.target.value)}
-                placeholder="https://instagram.com/username"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="twitter" className="text-xs text-muted-foreground flex items-center gap-1">
-                <Twitter className="h-3 w-3" />
-                Twitter/X
-              </Label>
-              <Input
-                id="twitter"
-                value={socialLinks.twitter || ''}
-                onChange={(e) => handleSocialLinkChange('twitter', e.target.value)}
-                placeholder="https://twitter.com/username"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="youtube" className="text-xs text-muted-foreground flex items-center gap-1">
-                <Youtube className="h-3 w-3" />
-                YouTube
-              </Label>
-              <Input
-                id="youtube"
-                value={socialLinks.youtube || ''}
-                onChange={(e) => handleSocialLinkChange('youtube', e.target.value)}
-                placeholder="https://youtube.com/@username"
-              />
-            </div>
-            <div className="space-y-1">
-              <Label htmlFor="website" className="text-xs text-muted-foreground flex items-center gap-1">
-                <Globe className="h-3 w-3" />
-                Sito Web
-              </Label>
-              <Input
-                id="website"
-                value={socialLinks.website || ''}
-                onChange={(e) => handleSocialLinkChange('website', e.target.value)}
-                placeholder="https://tuosito.com"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Favorite Teams */}
-        <div className="space-y-3">
-          <Label className="flex items-center gap-2">
-            <Heart className="h-4 w-4" />
-            Squadre del Cuore
-          </Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {Object.entries(sportsTeams).map(([sport, teams]) => (
-              <div key={sport} className="space-y-1">
-                <Label className="text-xs text-muted-foreground capitalize">{sport}</Label>
-                <Select
-                  value={favoriteTeams[sport as keyof FavoriteTeams] || 'none'}
-                  onValueChange={(value) => handleFavoriteTeamChange(sport as keyof FavoriteTeams, value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={`Seleziona squadra ${sport}`} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Nessuna preferenza</SelectItem>
-                    {teams.map((team) => (
-                      <SelectItem key={team} value={team}>{team}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Remove duplicate social links and favorite teams sections */}
+      {/* These are now handled by the separate managers below */}
 
         {/* Save Button */}
         <div className="flex justify-end pt-6 border-t border-border/50">
@@ -591,6 +512,22 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
           </Button>
         </div>
       </CardContent>
+
+      {/* Social Links Manager */}
+      <div className="px-6 pb-4">
+        <SocialLinksManager 
+          socialLinks={socialLinks}
+          onChange={(links) => setSocialLinks(links)}
+        />
+      </div>
+
+      {/* Favorite Teams Manager */}
+      <div className="px-6 pb-6">
+        <FavoriteTeamsManager
+          favoriteTeams={favoriteTeams as Record<string, string[]>}
+          onChange={(teams) => setFavoriteTeams(teams as FavoriteTeams)}
+        />
+      </div>
 
       {showAvatarEditor && (
         <AvatarEditor 

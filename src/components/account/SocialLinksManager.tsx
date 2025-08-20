@@ -1,273 +1,144 @@
-import { useState, useEffect } from 'react';
-import { Plus, X, ExternalLink, Instagram, Twitter, Youtube, Facebook, Linkedin } from 'lucide-react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { useAuth } from '@/hooks/use-auth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { Plus, X, ExternalLink, Globe } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface SocialLink {
-  platform: string;
-  username: string;
-  url: string;
+interface SocialLinksManagerProps {
+  socialLinks: Record<string, string>;
+  onChange: (links: Record<string, string>) => void;
 }
 
-const PLATFORMS = [
-  { id: 'instagram', name: 'Instagram', icon: Instagram, color: 'text-pink-500', baseUrl: 'https://instagram.com/' },
-  { id: 'twitter', name: 'Twitter/X', icon: Twitter, color: 'text-blue-400', baseUrl: 'https://twitter.com/' },
-  { id: 'youtube', name: 'YouTube', icon: Youtube, color: 'text-red-500', baseUrl: 'https://youtube.com/@' },
-  { id: 'facebook', name: 'Facebook', icon: Facebook, color: 'text-blue-600', baseUrl: 'https://facebook.com/' },
-  { id: 'linkedin', name: 'LinkedIn', icon: Linkedin, color: 'text-blue-700', baseUrl: 'https://linkedin.com/in/' },
+const socialPlatforms = [
+  { value: 'instagram', label: 'Instagram', icon: '📷' },
+  { value: 'twitter', label: 'Twitter/X', icon: '🐦' },
+  { value: 'facebook', label: 'Facebook', icon: '📘' },
+  { value: 'linkedin', label: 'LinkedIn', icon: '💼' },
+  { value: 'youtube', label: 'YouTube', icon: '🎥' },
+  { value: 'twitch', label: 'Twitch', icon: '🎮' },
+  { value: 'tiktok', label: 'TikTok', icon: '🎵' },
+  { value: 'website', label: 'Sito Web', icon: '🌐' }
 ];
 
-export const SocialLinksManager = () => {
-  const { user } = useAuth();
-  const [socialLinks, setSocialLinks] = useState<SocialLink[]>([]);
-  const [newLink, setNewLink] = useState({ platform: '', username: '' });
-  const [loading, setLoading] = useState(false);
+export const SocialLinksManager = ({ socialLinks, onChange }: SocialLinksManagerProps) => {
+  const [selectedPlatform, setSelectedPlatform] = useState<string>('');
+  const [linkUrl, setLinkUrl] = useState('');
 
-  useEffect(() => {
-    loadSocialLinks();
-  }, [user]);
+  const addLink = () => {
+    if (!selectedPlatform || !linkUrl.trim()) return;
 
-  const loadSocialLinks = async () => {
-    if (!user) return;
+    const updated = { ...socialLinks };
+    updated[selectedPlatform] = linkUrl.trim();
+    onChange(updated);
     
-    try {
-      const { data } = await supabase
-        .from('profiles')
-        .select('social_links')
-        .eq('user_id', user.id)
-        .single();
-      
-      if (data?.social_links) {
-        const links = Object.entries(data.social_links as Record<string, string>).map(([platform, username]) => {
-          const platformData = PLATFORMS.find(p => p.id === platform);
-          return {
-            platform,
-            username: username as string,
-            url: platformData ? `${platformData.baseUrl}${username}` : `https://${platform}.com/${username}`
-          };
-        });
-        setSocialLinks(links);
-      }
-    } catch (error) {
-      console.error('Error loading social links:', error);
-    }
+    setLinkUrl('');
+    setSelectedPlatform('');
   };
 
-  const saveSocialLinks = async () => {
-    if (!user) return;
-    
-    setLoading(true);
-    try {
-      const socialLinksObj = socialLinks.reduce((acc, link) => {
-        acc[link.platform] = link.username;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const { error } = await supabase
-        .from('profiles')
-        .update({ social_links: socialLinksObj })
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast({
-        title: "Social media aggiornati",
-        description: "I tuoi link social sono stati salvati con successo"
-      });
-    } catch (error) {
-      console.error('Error saving social links:', error);
-      toast({
-        title: "Errore",
-        description: "Impossibile salvare i link social",
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const removeLink = (platform: string) => {
+    const updated = { ...socialLinks };
+    delete updated[platform];
+    onChange(updated);
   };
 
-  const addSocialLink = () => {
-    if (!newLink.platform || !newLink.username) {
-      toast({
-        title: "Campi richiesti",
-        description: "Seleziona una piattaforma e inserisci il tuo username",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    if (socialLinks.some(link => link.platform === newLink.platform)) {
-      toast({
-        title: "Piattaforma esistente",
-        description: "Hai già aggiunto questa piattaforma",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const platformData = PLATFORMS.find(p => p.id === newLink.platform);
-    if (!platformData) return;
-
-    setSocialLinks(prev => [...prev, {
-      platform: newLink.platform,
-      username: newLink.username,
-      url: `${platformData.baseUrl}${newLink.username}`
-    }]);
-
-    setNewLink({ platform: '', username: '' });
-  };
-
-  const removeSocialLink = (platform: string) => {
-    setSocialLinks(prev => prev.filter(link => link.platform !== platform));
-  };
-
-  const validateUrl = (url: string) => {
-    try {
-      new URL(url);
-      return true;
-    } catch {
-      return false;
-    }
-  };
+  const availablePlatforms = socialPlatforms.filter(
+    platform => !socialLinks[platform.value]
+  );
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ExternalLink className="h-5 w-5" />
-          Link Social Media
+          Link Social
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Existing Links */}
-        {socialLinks.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">I tuoi profili social</Label>
-            {socialLinks.map((link) => {
-              const platform = PLATFORMS.find(p => p.id === link.platform);
-              const Icon = platform?.icon || ExternalLink;
-              
-              return (
-                <div key={link.platform} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <Icon className={`h-5 w-5 ${platform?.color || 'text-muted-foreground'}`} />
-                    <div>
-                      <p className="font-medium">{platform?.name || link.platform}</p>
-                      <p className="text-sm text-muted-foreground">@{link.username}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => window.open(link.url, '_blank')}
+      <CardContent className="space-y-4">
+        {/* Add new link */}
+        {availablePlatforms.length > 0 && (
+          <div className="flex gap-2">
+            <Select value={selectedPlatform} onValueChange={setSelectedPlatform}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Piattaforma" />
+              </SelectTrigger>
+              <SelectContent>
+                {availablePlatforms.map((platform) => (
+                  <SelectItem key={platform.value} value={platform.value}>
+                    <span className="flex items-center gap-2">
+                      <span>{platform.icon}</span>
+                      {platform.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Input
+              placeholder="https://..."
+              value={linkUrl}
+              onChange={(e) => setLinkUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && addLink()}
+              className="flex-1"
+              type="url"
+            />
+            
+            <Button onClick={addLink} disabled={!selectedPlatform || !linkUrl.trim()}>
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
+
+        {/* Current links */}
+        <div className="space-y-3">
+          {Object.entries(socialLinks).map(([platform, url]) => {
+            const platformInfo = socialPlatforms.find(p => p.value === platform);
+            return (
+              <div key={platform} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center gap-3">
+                  <span className="text-lg">
+                    {platformInfo?.icon || '🔗'}
+                  </span>
+                  <div>
+                    <p className="font-medium">
+                      {platformInfo?.label || platform}
+                    </p>
+                    <a 
+                      href={url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-sm text-muted-foreground hover:text-primary truncate max-w-xs block"
                     >
-                      <ExternalLink className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeSocialLink(link.platform)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                      {url}
+                    </a>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Add New Link */}
-        <div className="space-y-4">
-          <Label className="text-sm font-medium">Aggiungi nuovo profilo social</Label>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="platform">Piattaforma</Label>
-              <Select
-                value={newLink.platform}
-                onValueChange={(value) => setNewLink(prev => ({ ...prev, platform: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleziona piattaforma" />
-                </SelectTrigger>
-                <SelectContent>
-                  {PLATFORMS
-                    .filter(platform => !socialLinks.some(link => link.platform === platform.id))
-                    .map((platform) => {
-                      const Icon = platform.icon;
-                      return (
-                        <SelectItem key={platform.id} value={platform.id}>
-                          <div className="flex items-center gap-2">
-                            <Icon className={`h-4 w-4 ${platform.color}`} />
-                            {platform.name}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={newLink.username}
-                onChange={(e) => setNewLink(prev => ({ ...prev, username: e.target.value }))}
-                placeholder="Il tuo username"
-              />
-            </div>
-          </div>
-          <Button onClick={addSocialLink} className="w-full">
-            <Plus className="h-4 w-4 mr-2" />
-            Aggiungi Profilo Social
-          </Button>
+                
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeLink(platform)}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            );
+          })}
         </div>
 
-        {/* Preview */}
-        {newLink.platform && newLink.username && (
-          <div className="p-3 bg-muted/50 rounded-lg">
-            <Label className="text-sm font-medium mb-2 block">Anteprima link</Label>
-            <div className="flex items-center gap-2">
-              {(() => {
-                const platform = PLATFORMS.find(p => p.id === newLink.platform);
-                const Icon = platform?.icon || ExternalLink;
-                const url = platform ? `${platform.baseUrl}${newLink.username}` : '';
-                const isValid = validateUrl(url);
-                
-                return (
-                  <>
-                    <Icon className={`h-4 w-4 ${platform?.color || 'text-muted-foreground'}`} />
-                    <span className={`text-sm ${isValid ? 'text-foreground' : 'text-destructive'}`}>
-                      {url}
-                    </span>
-                    {isValid ? (
-                      <Badge variant="secondary" className="text-xs">Valido</Badge>
-                    ) : (
-                      <Badge variant="destructive" className="text-xs">Non valido</Badge>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          </div>
+        {Object.keys(socialLinks).length === 0 && (
+          <p className="text-muted-foreground text-center py-4">
+            Nessun link social aggiunto
+          </p>
         )}
 
-        {/* Save Button */}
-        <Button 
-          onClick={saveSocialLinks} 
-          disabled={loading}
-          className="w-full"
-        >
-          {loading ? 'Salvataggio...' : 'Salva Modifiche'}
-        </Button>
+        {availablePlatforms.length === 0 && Object.keys(socialLinks).length > 0 && (
+          <p className="text-muted-foreground text-sm">
+            Hai aggiunto tutti i link social disponibili
+          </p>
+        )}
       </CardContent>
     </Card>
   );

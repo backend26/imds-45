@@ -45,7 +45,7 @@ const emojis = ['😀', '😂', '❤️', '👍', '👎', '😢', '😠', '🎉'
 
 export const EnhancedCommentSystem = ({ postId, className }: EnhancedCommentSystemProps) => {
   const { user } = useAuth();
-  const { isAdmin } = useRoleCheck();
+  const { hasAccess: isAdmin } = useRoleCheck({ allowedRoles: ['administrator'] });
   const navigate = useNavigate();
   const {
     comments: rawComments,
