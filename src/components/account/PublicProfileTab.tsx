@@ -1,6 +1,6 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Shield, Eye } from 'lucide-react';
-import { EnhancedProfileForm } from './EnhancedProfileForm';
+import { EnhancedProfileSection } from './EnhancedProfileSection';
 import { PrivacySettingsForm } from './PrivacySettingsForm';
 import { AvatarUploader } from './AvatarUploader';
 import { IntelligentBanner } from './IntelligentBanner';
@@ -136,8 +136,8 @@ export const PublicProfileTab = ({ onError }: PublicProfileTabProps) => {
         </TabsList>
         
         <TabsContent value="profile" className="mt-6">
-          <EnhancedProfileForm 
-            onError={onError}
+          <EnhancedProfileSection 
+            profile={profile as any}
             onProfileUpdate={refreshProfile}
           />
         </TabsContent>

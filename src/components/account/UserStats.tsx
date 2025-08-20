@@ -40,23 +40,27 @@ export const UserStats = () => {
         .not('published_at', 'is', null);
 
       // Load followers/following counts
-      const [
-        { count: followersCount },
-        { count: followingCount }
-      ] = await Promise.all([
-        supabase
+      let followersCount = 0;
+      let followingCount = 0;
+      try {
+        const followersRes = await (supabase as any)
           .from('follows')
           .select('id', { count: 'exact', head: true })
-          .eq('following_id', user!.id),
-        supabase
+          .eq('following_id', user!.id);
+        followersCount = followersRes?.count || 0;
+      } catch {}
+
+      try {
+        const followingRes = await (supabase as any)
           .from('follows')
           .select('id', { count: 'exact', head: true })
-          .eq('follower_id', user!.id)
-      ]);
+          .eq('follower_id', user!.id);
+        followingCount = followingRes?.count || 0;
+      } catch {}
 
       // Try to get author stats (likes and comments received)
       try {
-        const { data: authorStats } = await supabase
+        const { data: authorStats } = await (supabase as any)
           .rpc('get_author_stats', { author_uuid: user!.id });
         
         if (authorStats && authorStats[0]) {

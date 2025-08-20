@@ -129,7 +129,7 @@ export const AdminModerationCenter: React.FC = () => {
       setPostReports(postReportsData || []);
 
       // Load comment reports - Fix Supabase relation query
-      let commentQuery = supabase
+      let commentQuery = (supabase as any)
         .from('comment_reports')
         .select(`
           id,
@@ -236,7 +236,7 @@ export const AdminModerationCenter: React.FC = () => {
 
   const handleCommentReportAction = async (reportId: string, action: 'approve' | 'dismiss') => {
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('comment_reports')
         .update({
           status: action === 'approve' ? 'resolved' : 'dismissed',
@@ -279,7 +279,7 @@ export const AdminModerationCenter: React.FC = () => {
       if (deleteError) throw deleteError;
 
       // Update report status
-      const { error: updateError } = await supabase
+      const { error: updateError } = await (supabase as any)
         .from('comment_reports')
         .update({
           status: 'resolved',

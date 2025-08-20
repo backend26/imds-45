@@ -35,7 +35,7 @@ export const CommentReportModal = ({ commentId, onClose }: CommentReportModalPro
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('comment_reports')
         .insert({
           comment_id: commentId,
