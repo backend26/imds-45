@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
 import { NotificationSystem } from "@/components/notifications/NotificationSystem";
+import { CompactNotificationSystem } from '@/components/notifications/CompactNotificationSystem';
 import { SearchSystem } from "@/components/search/SearchSystem";
 
 const sports = [
@@ -134,7 +135,7 @@ export const Header = ({ darkMode, toggleTheme }: HeaderProps) => {
               {darkMode ? <Sun className="h-3 w-3 sm:h-4 sm:w-4 icon-shadow" /> : <Moon className="h-3 w-3 sm:h-4 sm:w-4 icon-shadow" />}
             </Button>
 
-            <NotificationSystem />
+            <CompactNotificationSystem />
 
             {user ? (
               <DropdownMenu>

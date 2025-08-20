@@ -71,7 +71,7 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
         <SmartImage
           src={currentArticle?.imageUrl}
           alt={currentArticle?.title || "Hero image"}
-          className="scale-105 group-hover:scale-110 transition-all duration-1000 ease-out"
+          className="object-cover object-center scale-105 group-hover:scale-110 transition-all duration-1000 ease-out"
         />
       </div>
       
