@@ -30,7 +30,7 @@ export const CommentContent = ({
       if (word.startsWith('@')) {
         const username = word.substring(1).replace(/[^\w]/g, '');
         return (
-          <React.Fragment key={index}>
+          <span key={index}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -41,12 +41,12 @@ export const CommentContent = ({
               @{username}
             </button>
             {word.substring(username.length + 1)} {/* Any punctuation after username */}
-          </React.Fragment>
+          </span>
         );
       } else if (word.startsWith('#')) {
         const hashtag = word.substring(1).replace(/[^\w]/g, '');
         return (
-          <React.Fragment key={index}>
+          <span key={index}>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -57,7 +57,7 @@ export const CommentContent = ({
               #{hashtag}
             </button>
             {word.substring(hashtag.length + 1)} {/* Any punctuation after hashtag */}
-          </React.Fragment>
+          </span>
         );
       } else {
         return <span key={index}>{word} </span>;
@@ -67,7 +67,7 @@ export const CommentContent = ({
 
   return (
     <div className={className}>
-      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
+      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
         {parseContent(displayContent)}
       </div>
       

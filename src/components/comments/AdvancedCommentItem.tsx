@@ -93,8 +93,10 @@ export const AdvancedCommentItem = ({
   return (
     <div className={cn(
       "space-y-3",
-      depth > 0 && "ml-8 border-l-2 border-l-muted pl-4",
-      depth > maxDepth && "ml-0 border-l-0 pl-0" // Reset nesting after max depth
+      // Limit visual nesting to prevent staircase effect
+      depth === 1 && "ml-4 border-l-2 border-l-muted/60 pl-3",
+      depth === 2 && "ml-6 border-l-2 border-l-muted/40 pl-2",
+      depth >= 3 && "ml-8 border-l-2 border-l-muted/20 pl-2"
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -105,7 +107,7 @@ export const AdvancedCommentItem = ({
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <div className="bg-card rounded-lg border p-3">
+          <div className="bg-card/50 rounded-lg border border-border/50 p-3 hover:bg-card transition-colors">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm">
@@ -163,6 +165,7 @@ export const AdvancedCommentItem = ({
                 onSubmit={handleEditSubmit}
                 placeholder="Modifica il tuo commento..."
                 onCancel={() => setIsEditing(false)}
+                initialValue={comment.content}
                 className="mt-2"
               />
             ) : (

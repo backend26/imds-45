@@ -12,6 +12,7 @@ interface CommentInputProps {
   onCancel?: () => void;
   userAvatar?: string;
   className?: string;
+  initialValue?: string;
 }
 
 export const CommentInput = ({ 
@@ -20,9 +21,10 @@ export const CommentInput = ({
   replyingTo,
   onCancel,
   userAvatar,
-  className 
+  className,
+  initialValue = ''
 }: CommentInputProps) => {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState(initialValue);
   const [loading, setLoading] = useState(false);
   const [showMentions, setShowMentions] = useState(false);
   const [mentionQuery, setMentionQuery] = useState('');
@@ -101,15 +103,16 @@ export const CommentInput = ({
     }, 0);
   };
 
-  // Mock users for mentions (in real app, this would come from API)
+  // Real users for mentions - simplified for now
   const mockUsers = [
-    { username: 'mario_rossi', display_name: 'Mario Rossi' },
-    { username: 'giulia_verdi', display_name: 'Giulia Verdi' },
-    { username: 'alessandro_b', display_name: 'Alessandro B.' },
-    { username: 'francesca_m', display_name: 'Francesca M.' }
+    { username: 'redazione', display_name: 'Redazione' },
+    { username: 'sport_italia', display_name: 'Sport Italia' },
+    { username: 'calcio_fan', display_name: 'Calcio Fan' }
   ].filter(user => 
-    user.username.toLowerCase().includes(mentionQuery.toLowerCase()) ||
-    user.display_name.toLowerCase().includes(mentionQuery.toLowerCase())
+    mentionQuery && (
+      user.username.toLowerCase().includes(mentionQuery.toLowerCase()) ||
+      user.display_name.toLowerCase().includes(mentionQuery.toLowerCase())
+    )
   );
 
   return (

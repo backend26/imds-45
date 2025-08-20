@@ -47,7 +47,6 @@ export const AdvancedCommentSystem = ({ postId, className }: AdvancedCommentSyst
   const isEditor = ['administrator', 'journalist', 'editor'].includes(userRole || '');
   const navigate = useNavigate();
   
-  const [newComment, setNewComment] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('recent');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [reportingComment, setReportingComment] = useState<string | null>(null);
@@ -92,15 +91,12 @@ export const AdvancedCommentSystem = ({ postId, className }: AdvancedCommentSyst
     return sortComments(comments);
   }, [comments, sortBy]);
 
-  const handleAddComment = useCallback(async (): Promise<boolean> => {
-    if (!newComment.trim() || !user) return false;
+  const handleAddComment = useCallback(async (content: string): Promise<boolean> => {
+    if (!content.trim() || !user) return false;
 
-    const success = await addComment(newComment.trim());
-    if (success) {
-      setNewComment('');
-    }
+    const success = await addComment(content.trim());
     return success;
-  }, [newComment, user, addComment]);
+  }, [user, addComment]);
 
   const handleReply = useCallback(async (parentId: string, content: string): Promise<boolean> => {
     if (!user) return false;
