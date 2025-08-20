@@ -272,14 +272,6 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
     'Genova, Italia', 'Bologna, Italia', 'Firenze, Italia', 'Bari, Italia', 'Catania, Italia'
   ];
 
-  const sportsTeams = {
-    calcio: ['Juventus', 'Inter', 'Milan', 'Napoli', 'Roma', 'Lazio', 'Fiorentina', 'Atalanta'],
-    basket: ['Lakers', 'Warriors', 'Celtics', 'Heat', 'Bulls', 'Spurs', 'Pistons', 'Nets'],
-    tennis: ['Djokovic', 'Nadal', 'Federer', 'Sinner', 'Alcaraz', 'Medvedev', 'Tsitsipas'],
-    f1: ['Ferrari', 'Mercedes', 'Red Bull', 'McLaren', 'Alpine', 'Aston Martin', 'Williams'],
-    nfl: ['Chiefs', 'Patriots', 'Cowboys', 'Packers', '49ers', 'Steelers', 'Giants', 'Eagles']
-  };
-
   return (
     <Card className="border-border/50 bg-gradient-to-br from-card/80 to-card/60 backdrop-blur-sm shadow-elegant overflow-hidden animate-fade-in">
       {/* Banner Section */}
@@ -485,15 +477,24 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
           </datalist>
         </div>
 
-      {/* Remove duplicate social links and favorite teams sections */}
-      {/* These are now handled by the separate managers below */}
+        {/* Social Links Manager */}
+        <SocialLinksManager 
+          socialLinks={socialLinks}
+          onChange={(links) => setSocialLinks(links)}
+        />
 
-        {/* Save Button */}
-        <div className="flex justify-end pt-6 border-t border-border/50">
+        {/* Favorite Teams Manager */}
+        <FavoriteTeamsManager
+          favoriteTeams={favoriteTeams as Record<string, string[]>}
+          onChange={(teams) => setFavoriteTeams(teams as FavoriteTeams)}
+        />
+
+        {/* Save Button - Moved to bottom */}
+        <div className="pt-6 border-t border-border/50">
           <Button 
             onClick={handleSave} 
             disabled={loading || displayNameRemaining < 0 || bioRemaining < 0 || usernameValid === false}
-            className="min-w-[140px] bg-gradient-primary hover:bg-gradient-primary/90 text-white shadow-elegant transition-all duration-300 hover:scale-105"
+            className="w-full min-w-[140px] bg-gradient-primary hover:bg-gradient-primary/90 text-white shadow-elegant transition-all duration-300 hover:scale-105"
           >
             {loading ? (
               <>
@@ -509,22 +510,6 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
           </Button>
         </div>
       </CardContent>
-
-      {/* Social Links Manager */}
-      <div className="px-6 pb-4">
-        <SocialLinksManager 
-          socialLinks={socialLinks}
-          onChange={(links) => setSocialLinks(links)}
-        />
-      </div>
-
-      {/* Favorite Teams Manager */}
-      <div className="px-6 pb-6">
-        <FavoriteTeamsManager
-          favoriteTeams={favoriteTeams as Record<string, string[]>}
-          onChange={(teams) => setFavoriteTeams(teams as FavoriteTeams)}
-        />
-      </div>
 
       {showAvatarEditor && (
         <AvatarEditor 
