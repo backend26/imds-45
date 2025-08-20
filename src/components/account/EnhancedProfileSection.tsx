@@ -510,21 +510,21 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         </div>
       </CardContent>
 
-      {/* Social Links Manager - Temporarily disabled */}
-      {/* <div className="px-6 pb-4">
+      {/* Social Links Manager */}
+      <div className="px-6 pb-4">
         <SocialLinksManager 
           socialLinks={socialLinks}
           onChange={(links) => setSocialLinks(links)}
         />
-      </div> */}
+      </div>
 
-      {/* Favorite Teams Manager - Temporarily disabled */}
-      {/* <div className="px-6 pb-6">
+      {/* Favorite Teams Manager */}
+      <div className="px-6 pb-6">
         <FavoriteTeamsManager
           favoriteTeams={favoriteTeams as Record<string, string[]>}
           onChange={(teams) => setFavoriteTeams(teams as FavoriteTeams)}
         />
-      </div> */}
+      </div>
 
       {showAvatarEditor && (
         <AvatarEditor 

@@ -64,6 +64,7 @@ const Index = () => {
     const fetchData = async () => {
       try {
         setLoadingPosts(true);
+        console.log('🔄 Fetching posts and hero articles...');
         // Hero posts for carousel - with fallback to recent posts
         let { data: heroData } = await supabase
           .from('posts')
@@ -217,6 +218,12 @@ const Index = () => {
         setFeatured(mappedHeroArticles);
       } catch (e) {
         console.error('Error fetching posts', e);
+        
+        // Provide fallback data when Supabase fails
+        console.warn('🔄 Using fallback articles due to fetch error');
+        setPosts([]);
+        setFeatured([]);
+        
         // On error, try to invalidate cache and retry once
         invalidatePosts();
       } finally {
