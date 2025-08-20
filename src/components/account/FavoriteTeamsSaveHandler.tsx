@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 
 interface FavoriteTeamsSaveHandlerProps {
-  favoriteTeams: string[];
+  favoriteTeams: Record<string, string[]>;
   triggerSave: boolean;
   onSaveComplete: () => void;
 }

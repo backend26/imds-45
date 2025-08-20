@@ -78,10 +78,9 @@ export const ModernCommentSystem = ({ postId, className }: ModernCommentSystemPr
 
       if (error) throw error;
 
-      // Load comment likes for each comment (fallback since comment_likes table doesn't exist)
+      // Load comment likes - temporarily disable since comment_likes table doesn't exist
       const commentIds = commentsData?.map(c => c.id) || [];
-      // Fallback: No likes data since table doesn't exist
-      const likesData: any[] = [];
+      const likesData: any[] = []; // Empty array for now
 
       const processedComments = (commentsData || []).map((comment: any) => {
         const commentLikes = likesData?.filter(l => l.comment_id === comment.id) || [];
@@ -212,11 +211,11 @@ export const ModernCommentSystem = ({ postId, className }: ModernCommentSystemPr
       if (!comment) return;
 
       if (comment.user_has_liked) {
-        // Remove like (fallback - no DB operation)
-        console.warn('Like removal requires comment_likes table');
+        // Comment likes temporarily disabled
+        console.log('Comment like removal - feature disabled');
       } else {
-        // Add like (fallback - no DB operation) 
-        console.warn('Like addition requires comment_likes table');
+        // Comment likes temporarily disabled  
+        console.log('Comment like addition - feature disabled');
       }
 
       await loadComments();

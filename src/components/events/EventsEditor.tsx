@@ -83,8 +83,8 @@ export const EventsEditor: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      // Fallback: No sports_events table, use empty array
-      console.warn('Events fetching requires sports_events table to be created');
+      // Fallback: Empty events until sports_events table is created
+      console.log('Events disabled - sports_events table not available');
       setEvents([]);
     } catch (error) {
       console.error('Error fetching events:', error);
