@@ -48,7 +48,7 @@ export const useRealDashboardData = () => {
         { count: totalComments },
         { count: totalEvents },
         { count: pendingPostReports },
-        { count: pendingCommentReports }
+        { count: pendingCommentReports = 0 }
       ] = await Promise.all([
         supabase.from('profiles').select('*', { count: 'exact', head: true }),
         supabase.from('posts').select('*', { count: 'exact', head: true }),
@@ -56,7 +56,7 @@ export const useRealDashboardData = () => {
         supabase.from('comments').select('*', { count: 'exact', head: true }),
         supabase.from('sports_events').select('*', { count: 'exact', head: true }),
         supabase.from('post_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-        supabase.from('comment_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending')
+        (supabase as any).from('comment_reports').select('*', { count: 'exact', head: true }).eq('status', 'pending')
       ]);
 
       // Get recent posts (last 30 days)
