@@ -26,7 +26,14 @@ const Footer = () => {
           {/* Logo and Description */}
           <div className="md:col-span-2">
             <div className="flex items-center space-x-3 mb-4">
-              <img src="/assets/images/logo-footer.png" alt="I Malati dello Sport" className="h-12 w-auto" />
+              <img 
+                src="/assets/images/logo-malati-dello-sport.png" 
+                alt="I Malati dello Sport" 
+                className="h-12 w-auto"
+                onError={(e) => {
+                  e.currentTarget.src = '/logo.svg';
+                }}
+              />
             </div>
             <p className="text-muted-foreground text-sm max-w-md leading-relaxed">
               La piattaforma definitiva per gli appassionati di sport. Notizie, analisi e commenti 

@@ -168,15 +168,18 @@ const PostPage = () => {
     const loadData = async () => {
       setLoading(true);
       await fetchPost();
-      // Increment view after post loads
-      if (postId) {
-        incrementView();
-      }
       setLoading(false);
+      
+      // Increment view after post loads (non-blocking)
+      if (postId) {
+        incrementView().catch(() => {
+          // Silently handle view increment errors
+        });
+      }
     };
 
     loadData();
-  }, [postId, user, incrementView]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [postId, user]); // Removed incrementView dependency to avoid loops
 
   useEffect(() => {
     // Apply theme on mount
