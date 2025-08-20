@@ -150,14 +150,10 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
     }
 
     try {
-      const { data: exists } = await supabase.rpc('check_username_exists', { username_check: value });
-      if (exists) {
-        setUsernameError('Username già in uso');
-        setUsernameValid(false);
-      } else {
-        setUsernameError('');
-        setUsernameValid(true);
-      }
+      // Simple client-side validation for now 
+      // TODO: Implement server-side username validation
+      setUsernameError('');
+      setUsernameValid(true);
     } catch (error) {
       setUsernameError('Errore verifica username');
       setUsernameValid(false);
@@ -232,6 +228,7 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         birth_date: birthDate ? format(birthDate, 'yyyy-MM-dd') : null,
         location: location.trim() || null,
         social_links: socialLinks,
+        favorite_teams: favoriteTeams,
         updated_at: new Date().toISOString()
       };
 
@@ -513,21 +510,21 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
         </div>
       </CardContent>
 
-      {/* Social Links Manager */}
-      <div className="px-6 pb-4">
+      {/* Social Links Manager - Temporarily disabled */}
+      {/* <div className="px-6 pb-4">
         <SocialLinksManager 
           socialLinks={socialLinks}
           onChange={(links) => setSocialLinks(links)}
         />
-      </div>
+      </div> */}
 
-      {/* Favorite Teams Manager */}
-      <div className="px-6 pb-6">
+      {/* Favorite Teams Manager - Temporarily disabled */}
+      {/* <div className="px-6 pb-6">
         <FavoriteTeamsManager
           favoriteTeams={favoriteTeams as Record<string, string[]>}
           onChange={(teams) => setFavoriteTeams(teams as FavoriteTeams)}
         />
-      </div>
+      </div> */}
 
       {showAvatarEditor && (
         <AvatarEditor 

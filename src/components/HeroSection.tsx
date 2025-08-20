@@ -83,23 +83,24 @@ export const HeroSection = ({ heroArticles: dbHeroArticles }: HeroSectionProps) 
         <div className="max-w-full sm:max-w-2xl lg:max-w-3xl animate-fade-in scroll-animate">
           <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
             <Badge className="bg-primary text-primary-foreground animate-scale-in text-xs sm:text-sm">
-              {currentArticle.category}
+              {currentArticle?.category || 'Notizia'}
             </Badge>
           </div>
 
           <h1 className="text-2xl sm:text-4xl lg:text-6xl font-bold text-white mb-4 sm:mb-6 leading-tight">
-            {currentArticle.title}
+            {currentArticle?.title || 'Articolo in caricamento...'}
           </h1>
           
           <p className="text-base sm:text-lg lg:text-xl text-white/80 mb-6 sm:mb-8 leading-relaxed line-clamp-3 sm:line-clamp-none">
-            {currentArticle.excerpt}
+            {currentArticle?.excerpt || 'Caricamento contenuto...'}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-stretch sm:items-start">
             <Button 
               size="lg" 
-              onClick={() => window.location.href = `/post/${currentArticle.id}`}
-              className="bg-gradient-primary hover:bg-gradient-hover text-white font-semibold px-6 sm:px-8 py-3 hover-lift transition-all duration-300 w-full sm:w-auto"
+              onClick={() => currentArticle?.id && (window.location.href = `/post/${currentArticle.id}`)}
+              disabled={!currentArticle?.id}
+              className="bg-gradient-primary hover:bg-gradient-hover text-white font-semibold px-6 sm:px-8 py-3 hover-lift transition-all duration-300 w-full sm:w-auto disabled:opacity-50"
             >
               Leggi l'Articolo
             </Button>

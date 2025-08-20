@@ -111,8 +111,10 @@ self.addEventListener('fetch', (event) => {
         })
         .catch((error) => {
           console.warn('[SW] Network failed for API:', error);
-          // Fallback to cache
-          return caches.match(request);
+          // Fallback to cache, return null if not found
+          return caches.match(request)
+            .then(response => response || null)
+            .catch(() => null);
         })
     );
     return;

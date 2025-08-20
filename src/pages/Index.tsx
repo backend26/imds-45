@@ -189,11 +189,28 @@ const Index = () => {
         
         // Map hero articles for HeroSection using getCoverImageFromPost
         const mappedHeroArticles = (heroData || []).map((post: any) => {
+          // Extract first image from cover_images array
+          let imageUrl = '/assets/images/default-banner.jpg';
+          
+          try {
+            if (post.cover_images) {
+              const images = typeof post.cover_images === 'string' 
+                ? JSON.parse(post.cover_images) 
+                : post.cover_images;
+              
+              if (Array.isArray(images) && images.length > 0) {
+                imageUrl = images[0];
+              }
+            }
+          } catch (error) {
+            console.warn('Error parsing cover_images:', error);
+          }
+
           return {
             id: post.id,
             title: post.title,
             excerpt: post.excerpt || '',
-            imageUrl: post.cover_images,
+            imageUrl,
             category: post.categories?.name || 'News',
           };
         });

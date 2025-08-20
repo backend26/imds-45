@@ -9,7 +9,6 @@ import { Footer } from "@/components/Footer";
 import { EnhancedProfileSection } from "@/components/account/EnhancedProfileSection";
 import { SecuritySection } from "@/components/account/SecuritySection";
 import { PrivacySection } from "@/components/account/PrivacySection";
-import { NotificationSection } from "@/components/account/NotificationSection";
 import { ActivitySection } from "@/components/account/ActivitySection";
 import { 
   User, 
@@ -224,7 +223,11 @@ export default function Account() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <NotificationSection />
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                  <p>Sezione notifiche in sviluppo</p>
+                  <p className="text-sm">Sarà disponibile prossimamente</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
