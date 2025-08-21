@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
 import { ArticleCard } from "@/components/ArticleCard";
-import { EnhancedHorizontalArticleCard } from "@/components/posts/EnhancedHorizontalArticleCard";
+import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
 import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import { SortingControls } from "@/components/SortingControls";

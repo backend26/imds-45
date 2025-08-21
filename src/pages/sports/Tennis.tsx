@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArticleCard } from "@/components/ArticleCard";
-import { EnhancedHorizontalArticleCard } from "@/components/posts/EnhancedHorizontalArticleCard";
+import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
 import { SportFilters } from "@/components/SportFilters";
 import { Badge } from "@/components/ui/badge";
 import { mockArticles } from "@/data/articles";
@@ -67,9 +67,13 @@ export default function Tennis() {
         {otherArticles.length > 0 && (
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-6">Altri Articoli</h2>
-            <div className="space-y-6">
+            <div className="space-y-4">
               {otherArticles.map((article, index) => (
-                <EnhancedHorizontalArticleCard key={index} {...article} />
+                <UltraModernNewsCard 
+                  key={index} 
+                  {...article} 
+                  views={article.views || Math.floor(Math.random() * 1000) + 100}
+                />
               ))}
             </div>
           </section>

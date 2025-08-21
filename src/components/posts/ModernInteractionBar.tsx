@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
-  Heart, MessageCircle, Share2, Bookmark, Eye, MoreHorizontal,
+  Heart, MessageCircle, Share2, Bookmark, Eye,
   ThumbsUp, Users, TrendingUp, Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -302,13 +302,6 @@ export const ModernInteractionBar: React.FC<ModernInteractionBarProps> = ({
           </Button>
         )}
 
-        <PostReportModal
-          postId={id}
-          onReport={async (reason, description) => {
-            console.log('Report:', reason, description);
-          }}
-          isLoading={isLoading}
-        />
       </div>
     </div>
   );
