@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { UltraModernArticleCard } from "@/components/posts/UltraModernArticleCard";
+import { OptimizedArticleCard } from "@/components/posts/OptimizedArticleCard";
 import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
 import { SportFilters } from "@/components/SportFilters";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,7 @@ export default function Tennis() {
             <h2 className="text-2xl font-bold text-foreground mb-6">Articoli in Evidenza</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article, index) => (
-                <UltraModernArticleCard key={index} {...article} />
+                <OptimizedArticleCard key={index} {...article} />
               ))}
             </div>
           </section>

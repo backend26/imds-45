@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
-import { UltraModernArticleCard } from "@/components/posts/UltraModernArticleCard";
+import { OptimizedArticleCard } from "@/components/posts/OptimizedArticleCard";
 import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import { SortingControls } from "@/components/SortingControls";
@@ -294,7 +294,7 @@ const Index = () => {
           {/* Featured Article - Only First One */}
           {featuredArticle && (
             <div className="mb-8 article-card">
-              <UltraModernArticleCard
+                <OptimizedArticleCard
                 {...mapPostToCard(featuredArticle)}
                 featured={true}
                 className="w-full"
@@ -307,7 +307,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {regularArticles.slice(1, visibleArticles).map((article: any) => (
               <div key={article.id} className="article-card h-full">
-                <UltraModernArticleCard
+                <OptimizedArticleCard
                   {...mapPostToCard(article)}
                   className="h-full"
                   onClick={() => navigate(`/post/${article.id}`)}
