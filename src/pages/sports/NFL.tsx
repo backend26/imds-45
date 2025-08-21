@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArticleCard } from "@/components/ArticleCard";
-import { HorizontalArticleCard } from "@/components/HorizontalArticleCard";
+import { EnhancedHorizontalArticleCard } from "@/components/posts/EnhancedHorizontalArticleCard";
 import { SportFilters } from "@/components/SportFilters";
 import { Badge } from "@/components/ui/badge";
 import { mockArticles } from "@/data/articles";
@@ -69,7 +69,7 @@ export default function NFL() {
             <h2 className="text-2xl font-bold text-foreground mb-6">Altri Articoli</h2>
             <div className="space-y-6">
               {otherArticles.map((article, index) => (
-                <HorizontalArticleCard key={index} {...article} />
+                <EnhancedHorizontalArticleCard key={index} {...article} />
               ))}
             </div>
           </section>
