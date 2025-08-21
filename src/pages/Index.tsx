@@ -2,8 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { HeroSection } from "@/components/HeroSection";
-import { ArticleCard } from "@/components/ArticleCard";
-import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
+import { UltraModernArticleCard } from "@/components/posts/UltraModernArticleCard";
 import { Sidebar } from "@/components/Sidebar";
 import { Footer } from "@/components/Footer";
 import { SortingControls } from "@/components/SortingControls";
@@ -295,7 +294,7 @@ const Index = () => {
           {/* Featured Article - Only First One */}
           {featuredArticle && (
             <div className="mb-8 article-card">
-              <ArticleCard
+              <UltraModernArticleCard
                 {...mapPostToCard(featuredArticle)}
                 featured={true}
                 className="w-full"
@@ -308,7 +307,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {regularArticles.slice(1, visibleArticles).map((article: any) => (
               <div key={article.id} className="article-card h-full">
-                <ArticleCard
+                <UltraModernArticleCard
                   {...mapPostToCard(article)}
                   className="h-full"
                   onClick={() => navigate(`/post/${article.id}`)}
@@ -359,6 +358,14 @@ function mapPostToCard(post: any) {
   // Get real author name from profiles join
   const authorName = post.profiles?.display_name || post.profiles?.username || 'Redazione';
   
+  // Calculate trending status based on recent activity
+  const isRecentlyPopular = () => {
+    const hoursOld = (Date.now() - new Date(date).getTime()) / (1000 * 60 * 60);
+    const likes = (post as any)?._metrics?.like_count || 0;
+    const comments = (post as any)?._metrics?.comment_count || 0;
+    return hoursOld < 24 && (likes > 5 || comments > 3);
+  };
+  
   return {
     id: post.id,
     title: post.title,
@@ -370,6 +377,9 @@ function mapPostToCard(post: any) {
     author: authorName,
     likes: (post as any)?._metrics?.like_count || 0,
     comments: (post as any)?._metrics?.comment_count || 0,
+    views: Math.floor(Math.random() * 1000) + 100, // Simulated views until real implementation
+    trending: isRecentlyPopular(),
+    article: post
   };
 }
 

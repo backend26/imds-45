@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArticleCard } from "@/components/ArticleCard";
+import { UltraModernArticleCard } from "@/components/posts/UltraModernArticleCard";
 import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
 import { SportFilters } from "@/components/SportFilters";
 import { Badge } from "@/components/ui/badge";
@@ -57,7 +57,7 @@ export default function Basket() {
             <h2 className="text-2xl font-bold text-foreground mb-6">Articoli in Evidenza</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article, index) => (
-                <ArticleCard key={index} {...article} />
+                <UltraModernArticleCard key={index} {...article} />
               ))}
             </div>
           </section>
