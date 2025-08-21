@@ -362,10 +362,10 @@ export default function Editor() {
                         <h3 className="font-medium">{post.title}</h3>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           <span>{post.categories?.name || 'Nessuna categoria'}</span>
-                          <span>{format(new Date(post.created_at), 'dd MMM yyyy', { locale: it })}</span>
+                          <span>{format(new Date(post.created_at), 'dd MMM yyyy')}</span>
                           {post.published_at && (
                             <span className="text-green-600">
-                              Pubblicato: {format(new Date(post.published_at), 'dd MMM yyyy', { locale: it })}
+                              Pubblicato: {format(new Date(post.published_at), 'dd MMM yyyy')}
                             </span>
                           )}
                         </div>

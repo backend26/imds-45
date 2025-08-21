@@ -441,7 +441,7 @@ export default function PublicProfile() {
 
                     <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
                       <Activity className="h-4 w-4 text-primary" />
-                      <span className="text-foreground">Membro dal {format(new Date(profile.created_at), 'MMMM yyyy', { locale: it })}</span>
+                      <span className="text-foreground">Membro dal {format(new Date(profile.created_at), 'MMMM yyyy')}</span>
                     </div>
                   </div>
 
@@ -524,7 +524,7 @@ export default function PublicProfile() {
                           </p>
                         )}
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <span>{format(new Date(post.published_at), 'dd MMM yyyy', { locale: it })}</span>
+                          <span>{format(new Date(post.published_at), 'dd MMM yyyy')}</span>
                           <Button
                             variant="ghost"
                             size="sm"
