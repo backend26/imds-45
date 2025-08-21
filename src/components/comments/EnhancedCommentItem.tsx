@@ -3,8 +3,7 @@ import { Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send, ChevronDown, Ch
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatDistanceToNow } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { CommentContent } from './CommentContent';
 import { CommentInput } from './CommentInput';
 import { cn } from '@/lib/utils';
@@ -110,8 +109,7 @@ export const EnhancedCommentItem = ({
                 </span>
                 <span className="text-muted-foreground text-xs">
                   {formatDistanceToNow(new Date(comment.created_at), {
-                    addSuffix: true,
-                    locale: it
+                    addSuffix: true
                   })}
                 </span>
                 {comment.updated_at !== comment.created_at && (

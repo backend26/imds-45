@@ -6,8 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar as CalendarIcon, MapPin, User, Save, Loader2 } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { format } from '@/utils/dateUtilsV3';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,7 +143,7 @@ export const PersonalInfoSection = ({ profile, onProfileUpdate }: PersonalInfoSe
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {birthDate ? (
-                  format(birthDate, "dd MMMM yyyy", { locale: it })
+                  format(birthDate, "dd MMMM yyyy")
                 ) : (
                   "Seleziona data di nascita"
                 )}

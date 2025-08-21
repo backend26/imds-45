@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 import { invalidateRoleCache } from '@/hooks/use-role-check-cached';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 type UserRole = Database['public']['Enums']['app_role'];
@@ -289,7 +289,7 @@ export const AdminUserManager: React.FC = () => {
                       <p className="font-medium">{user.display_name}</p>
                       <p className="text-sm text-muted-foreground">@{user.username}</p>
                       <p className="text-xs text-muted-foreground">
-                        Registrato: {format(new Date(user.created_at), 'dd MMM yyyy', { locale: it })}
+                        Registrato: {format(new Date(user.created_at), 'dd MMM yyyy')}
                       </p>
                     </div>
                     <Badge className={roleColors[user.role]}>{user.role}</Badge>
@@ -402,7 +402,7 @@ export const AdminUserManager: React.FC = () => {
                       <span className="text-sm font-medium">Registrato:</span>
                     </div>
                     <p className="text-sm text-muted-foreground ml-6">
-                      {format(new Date(selectedUser.created_at), 'dd MMMM yyyy', { locale: it })}
+                      {format(new Date(selectedUser.created_at), 'dd MMMM yyyy')}
                     </p>
                   </div>
 
@@ -413,7 +413,7 @@ export const AdminUserManager: React.FC = () => {
                         <span className="text-sm font-medium">Ultimo accesso:</span>
                       </div>
                       <p className="text-sm text-muted-foreground ml-6">
-                        {format(new Date(selectedUser.last_login), 'dd MMMM yyyy', { locale: it })}
+                        {format(new Date(selectedUser.last_login), 'dd MMMM yyyy')}
                       </p>
                     </div>
                   )}

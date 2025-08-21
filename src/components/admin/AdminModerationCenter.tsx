@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Shield, Flag, MessageSquare, User, Search, CheckCircle, XCircle, Trash2, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface PostReport {
@@ -429,7 +429,7 @@ export const AdminModerationCenter: React.FC = () => {
                           {report.description && (
                             <p><strong>Descrizione:</strong> {report.description}</p>
                           )}
-                          <p><strong>Data:</strong> {format(new Date(report.created_at), 'dd MMM yyyy HH:mm', { locale: it })}</p>
+                          <p><strong>Data:</strong> {format(new Date(report.created_at), 'dd MMM yyyy HH:mm')}</p>
                         </div>
                       </div>
                       
@@ -491,7 +491,7 @@ export const AdminModerationCenter: React.FC = () => {
                           {report.description && (
                             <p><strong>Descrizione:</strong> {report.description}</p>
                           )}
-                          <p><strong>Data:</strong> {format(new Date(report.created_at), 'dd MMM yyyy HH:mm', { locale: it })}</p>
+                          <p><strong>Data:</strong> {format(new Date(report.created_at), 'dd MMM yyyy HH:mm')}</p>
                         </div>
 
                         <div className="bg-muted/50 p-3 rounded text-sm mt-2">

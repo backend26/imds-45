@@ -23,7 +23,7 @@ import {
   Eye,
   RefreshCw
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';

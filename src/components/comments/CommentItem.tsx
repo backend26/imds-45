@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface Comment {
@@ -92,10 +92,9 @@ export const CommentItem = ({
                     {comment.author.display_name}
                   </span>
                   <span className="text-muted-foreground text-xs">
-                    {formatDistanceToNow(new Date(comment.created_at), {
-                      addSuffix: true,
-                      locale: it
-                    })}
+        {formatDistanceToNow(new Date(comment.created_at), {
+          addSuffix: true
+        })}
                   </span>
                   {comment.updated_at !== comment.created_at && (
                     <span className="text-muted-foreground text-xs italic">

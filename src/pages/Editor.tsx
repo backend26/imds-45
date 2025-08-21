@@ -21,7 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { EventsEditor } from '@/components/events/EventsEditor';
 
@@ -310,7 +310,7 @@ export default function Editor() {
                         <h3 className="font-medium">{post.title}</h3>
                         <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
                           <span>{post.categories?.name || 'Nessuna categoria'}</span>
-                          <span>{format(new Date(post.created_at), 'dd MMM yyyy', { locale: it })}</span>
+                          <span>{format(new Date(post.created_at), 'dd MMM yyyy')}</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-2">

@@ -32,7 +32,7 @@ import {
   Info,
   AlertCircle
 } from 'lucide-react';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { EnhancedBirthdateSelector } from '@/components/account/EnhancedBirthdateSelector';
 import { FavoriteTeamsManager } from '@/components/account/FavoriteTeamsManager';
 import { SocialLinksManager } from '@/components/account/SocialLinksManager';
@@ -420,7 +420,7 @@ export const EnhancedProfileSection = ({ profile, onProfileUpdate }: EnhancedPro
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {birthDate ? (
-                  format(birthDate, "dd MMMM yyyy", { locale: it })
+                  format(birthDate, "dd MMMM yyyy")
                 ) : (
                   "Seleziona data di nascita"
                 )}

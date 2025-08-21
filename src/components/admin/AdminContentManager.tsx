@@ -10,7 +10,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Search, FileText, Eye, Edit, Trash2, CheckCircle, XCircle, Calendar, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface Post {
@@ -287,11 +287,11 @@ export const AdminContentManager: React.FC = () => {
                       </span>
                       <span className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {format(new Date(post.created_at), 'dd MMM yyyy', { locale: it })}
+                        {format(new Date(post.created_at), 'dd MMM yyyy')}
                       </span>
                       {post.published_at && (
                         <span className="text-green-600">
-                          Pubblicato: {format(new Date(post.published_at), 'dd MMM yyyy', { locale: it })}
+                          Pubblicato: {format(new Date(post.published_at), 'dd MMM yyyy')}
                         </span>
                       )}
                     </div>
@@ -398,11 +398,11 @@ export const AdminContentManager: React.FC = () => {
                       <strong>Categoria:</strong> {selectedPost.categories?.name || 'Nessuna'}
                     </div>
                     <div>
-                      <strong>Creato:</strong> {format(new Date(selectedPost.created_at), 'dd MMMM yyyy HH:mm', { locale: it })}
+                      <strong>Creato:</strong> {format(new Date(selectedPost.created_at), 'dd MMMM yyyy HH:mm')}
                     </div>
                     {selectedPost.published_at && (
                       <div>
-                        <strong>Pubblicato:</strong> {format(new Date(selectedPost.published_at), 'dd MMMM yyyy HH:mm', { locale: it })}
+                        <strong>Pubblicato:</strong> {format(new Date(selectedPost.published_at), 'dd MMMM yyyy HH:mm')}
                       </div>
                     )}
                   </div>

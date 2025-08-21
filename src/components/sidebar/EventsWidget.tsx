@@ -4,8 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
-import { it } from 'date-fns/locale';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import type { Database } from '@/integrations/supabase/types';
 
 type SportsEvent = Database['public']['Tables']['sports_events']['Row'];
@@ -82,7 +81,7 @@ export const EventsWidget = () => {
     
     if (diff < 0) return 'In corso';
     if (diff < 24 * 60 * 60 * 1000) {
-      return `Tra ${formatDistanceToNow(date, { locale: it })}`;
+      return `Tra ${formatDistanceToNow(date)}`;
     }
     return date.toLocaleDateString('it-IT', { 
       day: 'numeric', 

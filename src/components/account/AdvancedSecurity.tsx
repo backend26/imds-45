@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface Session {
@@ -420,8 +420,7 @@ export const AdvancedSecurity = () => {
                           </p>
                           <p className="text-xs text-muted-foreground">
                             Ultimo accesso: {formatDistanceToNow(new Date(session.last_seen), {
-                              addSuffix: true,
-                              locale: it
+                              addSuffix: true
                             })}
                           </p>
                         </div>

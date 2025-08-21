@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -398,7 +398,7 @@ export const EnhancedPostMetrics = ({
         {/* Publication Date */}
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Calendar className="h-3 w-3" />
-          {formatDistanceToNow(new Date(publishedAt), { addSuffix: true, locale: it })}
+          {formatDistanceToNow(new Date(publishedAt), { addSuffix: true })}
         </div>
 
         {/* Metrics Grid */}

@@ -23,7 +23,7 @@ import {
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface DataExport {
@@ -271,8 +271,7 @@ export const DataManagement = () => {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Richiesta {formatDistanceToNow(new Date(exportData.created_at), {
-                            addSuffix: true,
-                            locale: it
+                            addSuffix: true
                           })}
                         </p>
                         {exportData.file_size_bytes && (
@@ -354,8 +353,7 @@ export const DataManagement = () => {
                         </p>
                         <p className="text-xs text-muted-foreground">
                           Inviata {formatDistanceToNow(new Date(deletion.created_at), {
-                            addSuffix: true,
-                            locale: it
+                            addSuffix: true
                           })}
                         </p>
                       </div>

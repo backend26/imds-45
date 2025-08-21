@@ -9,7 +9,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, MapPin, Mail, Activity, Heart, MessageCircle, FileText, Users, UserPlus, UserMinus, ExternalLink, Instagram, Twitter, Globe } from "lucide-react";
-import { format } from "date-fns";
+import { format } from '@/utils/dateUtilsV3';
 import { it } from "date-fns/locale";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/hooks/use-toast";
@@ -435,7 +435,7 @@ export default function PublicProfile() {
                     {getPrivacySetting('birth_date') && profile.birth_date && (
                       <div className="flex items-center gap-2 bg-muted/50 px-3 py-1 rounded-full">
                         <Calendar className="h-4 w-4 text-primary" />
-                        <span className="text-foreground">Nato il {format(new Date(profile.birth_date), 'dd MMMM yyyy', { locale: it })}</span>
+                        <span className="text-foreground">Nato il {format(new Date(profile.birth_date), 'dd MMMM yyyy')}</span>
                       </div>
                     )}
 

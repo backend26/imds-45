@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Heart, MessageCircle, Bookmark, Star, Flag, Users, Calendar, Clock, FileCheck } from 'lucide-react';
 import { useAuth } from '@/hooks/use-auth';
 import { supabase } from '@/integrations/supabase/client';
-import { format } from 'date-fns';
+import { format } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 
@@ -269,7 +269,7 @@ export const UserActivitySection = () => {
                       </p>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(activity.created_at), 'dd MMM yyyy - HH:mm', { locale: it })}
+                          {format(new Date(activity.created_at), 'dd MMM yyyy - HH:mm')}
                         </span>
                         {activity.post_id && (
                           <Button
@@ -341,7 +341,7 @@ export const UserActivitySection = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Membro dal</span>
             <span className="text-sm font-medium">
-              {user?.created_at && format(new Date(user.created_at), 'dd MMMM yyyy', { locale: it })}
+              {user?.created_at && format(new Date(user.created_at), 'dd MMMM yyyy')}
             </span>
           </div>
           
@@ -350,7 +350,7 @@ export const UserActivitySection = () => {
           <div className="flex items-center justify-between">
             <span className="text-sm text-muted-foreground">Ultimo accesso</span>
             <span className="text-sm font-medium">
-              {user?.last_sign_in_at && format(new Date(user.last_sign_in_at), 'dd MMM yyyy - HH:mm', { locale: it })}
+              {user?.last_sign_in_at && format(new Date(user.last_sign_in_at), 'dd MMM yyyy - HH:mm')}
             </span>
           </div>
         </CardContent>

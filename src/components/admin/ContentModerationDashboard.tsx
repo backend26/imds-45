@@ -25,7 +25,7 @@ import {
   FileText,
   MessageSquare
 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface Report {
@@ -388,7 +388,7 @@ export const ContentModerationDashboard = () => {
                               {report.description && (
                                 <p><strong>Descrizione:</strong> {report.description}</p>
                               )}
-                              <p><strong>Data:</strong> {formatDistanceToNow(new Date(report.created_at), { addSuffix: true, locale: it })}</p>
+                              <p><strong>Data:</strong> {formatDistanceToNow(new Date(report.created_at), { addSuffix: true })}</p>
                             </div>
                           </div>
                           
@@ -458,7 +458,7 @@ export const ContentModerationDashboard = () => {
                             <div className="text-sm text-muted-foreground space-y-1">
                               <p><strong>Autore:</strong> {content.author_name}</p>
                               <p><strong>Anteprima:</strong> {content.content}</p>
-                              <p><strong>Creato:</strong> {formatDistanceToNow(new Date(content.created_at), { addSuffix: true, locale: it })}</p>
+                              <p><strong>Creato:</strong> {formatDistanceToNow(new Date(content.created_at), { addSuffix: true })}</p>
                             </div>
                           </div>
                           

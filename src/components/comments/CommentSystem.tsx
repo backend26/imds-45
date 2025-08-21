@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 
 interface Comment {
@@ -232,8 +232,7 @@ export const CommentSystem: React.FC<CommentSystemProps> = ({ postId, className 
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {formatDistanceToNow(new Date(comment.created_at), { 
-                      addSuffix: true, 
-                      locale: it 
+                      addSuffix: true
                     })}
                   </p>
                 </div>

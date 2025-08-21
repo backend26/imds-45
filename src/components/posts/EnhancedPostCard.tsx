@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useEnhancedPostInteractions } from '@/hooks/use-enhanced-post-interactions';
 import { PostRatingSystem } from './PostRatingSystem';
 import { PostReportModal } from './PostReportModal';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 
@@ -116,8 +116,7 @@ export const EnhancedPostCard: React.FC<EnhancedPostCardProps> = ({
               <p className="text-sm font-medium truncate">{authorName}</p>
               <p className="text-xs text-muted-foreground">
                 {formatDistanceToNow(new Date(publishedAt), { 
-                  addSuffix: true, 
-                  locale: it 
+                  addSuffix: true
                 })}
               </p>
             </div>

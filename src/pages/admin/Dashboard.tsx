@@ -36,7 +36,7 @@ import {
   RefreshCw,
   Download
 } from 'lucide-react';
-import { formatDistanceToNow, format } from 'date-fns';
+import { format, formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { it } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -705,8 +705,7 @@ function AdminDashboardContentOld() {
                                     <label className="text-sm font-medium">Ultimo accesso</label>
                                     <p className="text-sm text-muted-foreground">
                                       {user.last_login ? formatDistanceToNow(new Date(user.last_login), {
-                                        addSuffix: true,
-                                        locale: it
+                                        addSuffix: true
                                       }) : 'Mai effettuato'}
                                     </p>
                                   </div>
@@ -714,8 +713,7 @@ function AdminDashboardContentOld() {
                                     <label className="text-sm font-medium">Registrato</label>
                                     <p className="text-sm text-muted-foreground">
                                       {formatDistanceToNow(new Date(user.created_at), {
-                                        addSuffix: true,
-                                        locale: it
+                                        addSuffix: true
                                       })}
                                     </p>
                                   </div>
@@ -819,7 +817,7 @@ function AdminDashboardContentOld() {
                                 {post.categories?.name || 'Senza categoria'}
                               </span>
                               <span className="text-xs text-muted-foreground">
-                                {format(new Date(post.created_at), 'dd/MM/yyyy', { locale: it })}
+                                {format(new Date(post.created_at), 'dd/MM/yyyy')}
                               </span>
                             </div>
                           </div>
@@ -943,7 +941,7 @@ function AdminDashboardContentOld() {
                                  report.status === 'approved' ? 'Approvata' : 'Respinta'}
                               </Badge>
                               <span className="text-xs text-muted-foreground">
-                                {format(new Date(report.created_at), 'dd/MM/yyyy HH:mm', { locale: it })}
+                                {format(new Date(report.created_at), 'dd/MM/yyyy HH:mm')}
                               </span>
                             </div>
                             <div className="mt-2">
