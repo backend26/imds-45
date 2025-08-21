@@ -94,7 +94,7 @@ export const AdvancedCommentItem = ({
   return (
     <div className={cn(
       "space-y-3",
-      depth > 0 && "ml-6 border-l-2 border-l-muted/30 pl-4",
+      depth === 1 && "ml-6 border-l-2 border-l-muted/30 pl-4",
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">

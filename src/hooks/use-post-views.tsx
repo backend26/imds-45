@@ -75,35 +75,55 @@ export const usePostViews = (postId: string) => {
           .select('id')
           .eq('post_id', postId)
           .eq('user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (existingView) {
           return false; // Già visualizzato
         }
       }
       
-      // Inserisce una nuova visualizzazione
-      const { error: insertError } = await supabase
-        .from('post_views')
-        .insert({
-          post_id: postId,
-          user_id: user?.id || null,
-          ip_address: ip,
-          user_agent: userAgent
+      // Usa la funzione RPC per incrementare la visualizzazione
+      const { data: success, error: rpcError } = await supabase
+        .rpc('increment_post_view', {
+          p_post_id: postId,
+          p_ip_address: ip,
+          p_user_agent: userAgent
         });
 
-      if (!insertError) {
+      if (!rpcError && success) {
         setViewData(prev => ({
           viewCount: prev.viewCount + 1,
           hasViewed: true
         }));
         return true;
-      } else {
-        console.log('View increment skipped:', insertError.message);
+      } 
+
+      // Fallback to direct insert if RPC fails
+      if (rpcError) {
+        console.log('RPC failed, trying direct insert:', rpcError.message);
+        
+        const { error: insertError } = await supabase
+          .from('post_views')
+          .insert({
+            post_id: postId,
+            user_id: user?.id || null,
+            ip_address: ip,
+            user_agent: userAgent
+          });
+
+        if (!insertError) {
+          setViewData(prev => ({
+            viewCount: prev.viewCount + 1,
+            hasViewed: true
+          }));
+          return true;
+        } else {
+          console.log('Direct insert also failed:', insertError.message);
+        }
       }
 
-    } catch (error) {
-      console.log('View tracking error:', error.message);
+    } catch (error: any) {
+      console.log('View tracking error:', error?.message || 'Unknown error');
     }
     
     return false;
