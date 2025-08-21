@@ -40,9 +40,9 @@ export const CommentContent = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(`/profile/${username}`);
+                  navigate(`/@${username}`);
                 }}
-                className="text-primary font-medium hover:underline"
+                className="text-primary font-medium hover:underline hover:text-primary/80"
                 title={userProfile.display_name}
               >
                 @{username}
@@ -61,9 +61,9 @@ export const CommentContent = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/search?q=${encodeURIComponent(`#${hashtag}`)}`);
+                navigate(`/search?q=%23${hashtag}`);
               }}
-              className="text-blue-500 font-medium hover:underline"
+              className="text-blue-500 font-medium hover:underline hover:text-blue-600 dark:hover:text-blue-400"
             >
               #{hashtag}
             </button>

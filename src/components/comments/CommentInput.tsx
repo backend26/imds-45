@@ -3,6 +3,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Send, AtSign, Hash, User } from 'lucide-react';
+import { useRealProfiles } from '@/hooks/use-real-profiles';
 import { cn } from '@/lib/utils';
 
 interface CommentInputProps {
@@ -30,6 +31,7 @@ export const CommentInput = ({
   const [mentionQuery, setMentionQuery] = useState('');
   const [cursorPosition, setCursorPosition] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const { profiles } = useRealProfiles();
 
   // Character limit for comments
   const MAX_CHARACTERS = 300;
@@ -103,17 +105,13 @@ export const CommentInput = ({
     }, 0);
   };
 
-  // Real users for mentions - simplified for now
-  const mockUsers = [
-    { username: 'redazione', display_name: 'Redazione' },
-    { username: 'sport_italia', display_name: 'Sport Italia' },
-    { username: 'calcio_fan', display_name: 'Calcio Fan' }
-  ].filter(user => 
+  // Real users for mentions from database
+  const availableUsers = profiles.filter(user => 
     mentionQuery && (
       user.username.toLowerCase().includes(mentionQuery.toLowerCase()) ||
       user.display_name.toLowerCase().includes(mentionQuery.toLowerCase())
     )
-  );
+  ).slice(0, 5); // Limit to 5 suggestions
 
   return (
     <div className={cn("space-y-3", className)}>
@@ -160,9 +158,9 @@ export const CommentInput = ({
           </div>
 
           {/* Mentions dropdown */}
-          {showMentions && mockUsers.length > 0 && (
+          {showMentions && availableUsers.length > 0 && (
             <div className="absolute z-10 w-full bg-popover border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-              {mockUsers.map((user) => (
+              {availableUsers.map((user) => (
                 <button
                   key={user.username}
                   className="w-full px-3 py-2 text-left hover:bg-muted flex items-center gap-2"

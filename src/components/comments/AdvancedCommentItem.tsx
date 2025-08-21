@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Heart, Reply, MoreHorizontal, Trash2, Edit, ChevronDown, ChevronUp, CornerDownRight } from 'lucide-react';
+import { Heart, Reply, MoreHorizontal, Trash2, Edit, ChevronDown, ChevronUp, CornerDownRight, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { formatTimeAgo } from '@/utils/timeFormat';
 import { CommentContent } from './CommentContent';
 import { CommentInput } from './CommentInput';
+import { CommentReportModal } from './CommentReportModal';
 import { cn } from '@/lib/utils';
 
 interface Comment {
@@ -53,6 +54,7 @@ export const AdvancedCommentItem = ({
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
+  const [showReportModal, setShowReportModal] = useState(false);
   
   const isOwner = currentUser?.id === comment.author_id;
   const canModerate = isAdmin || isOwner;
@@ -93,7 +95,6 @@ export const AdvancedCommentItem = ({
     <div className={cn(
       "space-y-3",
       depth > 0 && "ml-6 border-l-2 border-l-muted/30 pl-4",
-      depth > 1 && "ml-6", // All nested replies at same level
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -127,7 +128,7 @@ export const AdvancedCommentItem = ({
                 )}
               </div>
               
-              {currentUser && canModerate && (
+              {currentUser && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -141,13 +142,21 @@ export const AdvancedCommentItem = ({
                         Modifica
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem 
-                      onClick={handleDelete} 
-                      className="text-destructive"
-                    >
-                      <Trash2 className="h-4 w-4 mr-2" />
-                      Elimina
-                    </DropdownMenuItem>
+                    {canModerate && (
+                      <DropdownMenuItem 
+                        onClick={handleDelete} 
+                        className="text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Elimina
+                      </DropdownMenuItem>
+                    )}
+                    {!isOwner && (
+                      <DropdownMenuItem onClick={() => setShowReportModal(true)}>
+                        <Flag className="h-4 w-4 mr-2" />
+                        Segnala
+                      </DropdownMenuItem>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
@@ -178,10 +187,8 @@ export const AdvancedCommentItem = ({
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-7 px-2 text-xs",
-                    comment.user_has_liked 
-                      ? 'text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900' 
-                      : 'hover:bg-muted'
+                    "h-7 px-2 text-xs hover:bg-muted",
+                    comment.user_has_liked && 'text-red-500'
                   )}
                   onClick={handleLike}
                 >
@@ -255,7 +262,7 @@ export const AdvancedCommentItem = ({
                   onReply={onReply}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  depth={depth > 0 ? 2 : 1} // Consistent depth for all replies
+                  depth={1} // All replies at same indentation level
                   replyingToAuthor={comment.author.display_name}
                 />
               ))}
@@ -263,6 +270,14 @@ export const AdvancedCommentItem = ({
           )}
         </div>
       </div>
+      
+      {/* Report Modal */}
+      {showReportModal && (
+        <CommentReportModal
+          commentId={comment.id}
+          onClose={() => setShowReportModal(false)}
+        />
+      )}
     </div>
   );
 };
