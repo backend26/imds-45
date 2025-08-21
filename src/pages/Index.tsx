@@ -308,7 +308,7 @@ const Index = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
             {regularArticles.slice(1, visibleArticles).map((article: any) => (
               <div key={article.id} className="article-card h-full">
-                <ArticleCard
+                <UltraModernNewsCard
                   {...mapPostToCard(article)}
                   className="h-full"
                   onClick={() => navigate(`/post/${article.id}`)}
@@ -370,6 +370,8 @@ function mapPostToCard(post: any) {
     author: authorName,
     likes: (post as any)?._metrics?.like_count || 0,
     comments: (post as any)?._metrics?.comment_count || 0,
+    views: Math.floor(Math.random() * 1000) + 100, // Placeholder for views
+    article: post,
   };
 }
 

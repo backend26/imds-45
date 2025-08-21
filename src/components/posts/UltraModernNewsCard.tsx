@@ -8,8 +8,11 @@ import { ArticlePreviewModal } from '@/components/posts/ArticlePreviewModal';
 import { Heart, MessageCircle, Eye, Share2, Bookmark, Clock, User } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { gsap } from 'gsap';
+import { usePostInteractions } from '@/hooks/use-post-interactions';
+import { usePostViews } from '@/hooks/use-post-views';
 
 interface UltraModernNewsCardProps {
+  id?: string;
   title: string;
   excerpt: string;
   imageUrl?: string;
@@ -27,6 +30,7 @@ interface UltraModernNewsCardProps {
 }
 
 export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
+  id,
   title,
   excerpt,
   imageUrl,
@@ -42,13 +46,33 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
   article,
   onClick
 }) => {
-  const [isLiked, setIsLiked] = useState(false);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [showPreview, setShowPreview] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  
+  // Real Supabase interactions
+  const { viewCount } = usePostViews(id || '');
+  const {
+    isLiked,
+    isBookmarked,
+    likesCount,
+    commentsCount,
+    userRating,
+    isLoading,
+    toggleLike,
+    toggleBookmark,
+    setRating,
+    reportPost
+  } = usePostInteractions(id || '', {
+    isLiked: false,
+    isBookmarked: false,
+    likesCount: likes,
+    commentsCount: comments
+  });
+
+  const displayViews = viewCount || views;
 
   useEffect(() => {
     const card = cardRef.current;
@@ -99,8 +123,6 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
     e.stopPropagation();
     const button = e.currentTarget as HTMLElement;
     
-    setIsLiked(!isLiked);
-    
     // Heart burst animation
     gsap.timeline()
       .to(button, {
@@ -140,13 +162,13 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
         })
         .call(() => button.removeChild(heart));
     }
+    
+    await toggleLike();
   };
 
   const handleBookmark = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const button = e.currentTarget as HTMLElement;
-    
-    setIsBookmarked(!isBookmarked);
     
     gsap.timeline()
       .to(button, {
@@ -161,6 +183,8 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
         duration: 0.2,
         ease: "power2.inOut"
       });
+    
+    await toggleBookmark();
   };
 
   const handleShare = (e: React.MouseEvent) => {
@@ -289,7 +313,7 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
               {/* Interaction bar */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  {/* Like button */}
+                   {/* Like button */}
                   <Button
                     variant="ghost"
                     size="sm"
@@ -298,12 +322,13 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
                       isLiked ? "text-red-500 bg-red-50 dark:bg-red-950/30" : "hover:text-red-500"
                     )}
                     onClick={handleLike}
+                    disabled={isLoading}
                   >
                     <Heart className={cn(
                       "h-3 w-3 mr-1 transition-all duration-200",
                       isLiked ? "fill-current" : ""
                     )} />
-                    <span className="text-xs font-medium">{formatNumber(likes)}</span>
+                    <span className="text-xs font-medium">{formatNumber(likesCount)}</span>
                   </Button>
                   
                   {/* Comments */}
@@ -314,13 +339,13 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
                     onClick={(e) => e.stopPropagation()}
                   >
                     <MessageCircle className="h-3 w-3 mr-1" />
-                    <span className="text-xs font-medium">{formatNumber(comments)}</span>
+                    <span className="text-xs font-medium">{formatNumber(commentsCount)}</span>
                   </Button>
 
                   {/* Views with eye icon */}
                   <div className="flex items-center gap-1 text-xs text-muted-foreground">
                     <Eye className="h-3 w-3" />
-                    <span className="font-medium">{formatNumber(views)}</span>
+                    <span className="font-medium">{formatNumber(displayViews)}</span>
                   </div>
                 </div>
 
@@ -343,6 +368,7 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
                       isBookmarked ? "text-yellow-500 bg-yellow-50 dark:bg-yellow-950/30" : "hover:text-yellow-500"
                     )}
                     onClick={handleBookmark}
+                    disabled={isLoading}
                   >
                     <Bookmark className={cn(
                       "h-3 w-3 transition-all duration-200",
@@ -368,9 +394,9 @@ export const UltraModernNewsCard: React.FC<UltraModernNewsCardProps> = ({
             author,
             publishedAt,
             content: article.content || excerpt,
-            likes,
-            comments,
-            views,
+            likes: likesCount,
+            comments: commentsCount,
+            views: displayViews,
             readTime
           }}
           isOpen={showPreview}
