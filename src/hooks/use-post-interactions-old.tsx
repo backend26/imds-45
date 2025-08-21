@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -26,66 +26,6 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
 
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load initial interaction state from database
-  const loadInteractionState = useCallback(async () => {
-    if (!postId || !user) return;
-
-    try {
-      // Get likes count and user's like status
-      const { data: likesData } = await supabase
-        .from('post_likes')
-        .select('user_id')
-        .eq('post_id', postId);
-
-      const likesCount = likesData?.length || 0;
-      const isLiked = user ? likesData?.some(like => like.user_id === user.id) || false : false;
-
-      // Get bookmarks status
-      const { data: bookmarkData } = await supabase
-        .from('bookmarked_posts')
-        .select('user_id')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const isBookmarked = !!bookmarkData;
-
-      // Get comments count
-      const { data: commentsData } = await supabase
-        .from('comments')
-        .select('id')
-        .eq('post_id', postId);
-
-      const commentsCount = commentsData?.length || 0;
-
-      // Get user's rating
-      const { data: ratingData } = await supabase
-        .from('post_ratings')
-        .select('rating')
-        .eq('post_id', postId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      const userRating = ratingData?.rating || null;
-
-      setState(prev => ({
-        ...prev,
-        isLiked,
-        isBookmarked,
-        likesCount,
-        commentsCount,
-        userRating
-      }));
-    } catch (error) {
-      console.error('Error loading interaction state:', error);
-    }
-  }, [postId, user]);
-
-  // Load interaction state on mount and when user changes
-  useEffect(() => {
-    loadInteractionState();
-  }, [loadInteractionState]);
-
   const toggleLike = useCallback(async () => {
     if (!user) {
       toast({
@@ -106,7 +46,7 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
           .eq('post_id', postId)
           .eq('user_id', user.id);
 
-        if (error && error.code !== '23503') throw error; // Ignore foreign key constraint errors
+        if (error) throw error;
 
         setState(prev => ({
           ...prev,
@@ -114,18 +54,15 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
           likesCount: Math.max(0, prev.likesCount - 1)
         }));
       } else {
-        // Add like using upsert to handle duplicates gracefully
+        // Add like
         const { error } = await supabase
           .from('post_likes')
-          .upsert({
+          .insert({
             post_id: postId,
             user_id: user.id
-          }, {
-            onConflict: 'post_id,user_id'
           });
 
-        // Ignore 409 conflicts as they mean the like already exists (idempotent)
-        if (error && error.code !== '23505') throw error;
+        if (error) throw error;
 
         setState(prev => ({
           ...prev,
@@ -165,7 +102,7 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
           .eq('post_id', postId)
           .eq('user_id', user.id);
 
-        if (error && error.code !== '23503') throw error; // Ignore foreign key constraint errors
+        if (error) throw error;
 
         setState(prev => ({ ...prev, isBookmarked: false }));
         
@@ -174,18 +111,15 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
           description: "Articolo rimosso dalla tua lista"
         });
       } else {
-        // Add bookmark using upsert to handle duplicates gracefully
+        // Add bookmark
         const { error } = await supabase
           .from('bookmarked_posts')
-          .upsert({
+          .insert({
             post_id: postId,
             user_id: user.id
-          }, {
-            onConflict: 'post_id,user_id'
           });
 
-        // Ignore 409 conflicts as they mean the bookmark already exists (idempotent)
-        if (error && error.code !== '23505') throw error;
+        if (error) throw error;
 
         setState(prev => ({ ...prev, isBookmarked: true }));
         

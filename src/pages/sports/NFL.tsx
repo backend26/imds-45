@@ -95,6 +95,15 @@ export default function NFL() {
               Si è verificato un errore nel caricamento degli articoli. Riprova più tardi.
             </p>
           </div>
+        ) : transformedPosts.length === 0 ? (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-muted-foreground mb-4">
+              Nessun articolo disponibile
+            </h2>
+            <p className="text-muted-foreground">
+              Non ci sono ancora articoli NFL disponibili. Torna presto per gli aggiornamenti!
+            </p>
+          </div>
         ) : otherArticles.length > 0 ? (
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-6">Altri Articoli</h2>
@@ -107,16 +116,7 @@ export default function NFL() {
               ))}
             </div>
           </section>
-        ) : (
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-bold text-muted-foreground mb-4">
-              Nessun articolo disponibile
-            </h2>
-            <p className="text-muted-foreground">
-              Non ci sono ancora articoli NFL disponibili. Torna presto per gli aggiornamenti!
-            </p>
-          </div>
-        )}
+        ) : null}
       </main>
 
       <Footer />

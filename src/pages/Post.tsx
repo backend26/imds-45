@@ -179,6 +179,21 @@ const PostPage = () => {
     };
 
     loadData();
+    
+    // Handle navigation to comments section
+    if (window.location.hash === '#comments') {
+      setTimeout(() => {
+        const commentsSection = document.getElementById('comments');
+        if (commentsSection) {
+          commentsSection.scrollIntoView({ behavior: 'smooth' });
+          // Focus comment input if available
+          const commentInput = commentsSection.querySelector('textarea');
+          if (commentInput) {
+            commentInput.focus();
+          }
+        }
+      }, 500); // Small delay to ensure content is loaded
+    }
   }, [postId, user]); // Removed incrementView dependency to avoid loops
 
   useEffect(() => {
@@ -410,7 +425,7 @@ const PostPage = () => {
 
           {/* Comments Sidebar */}
           <aside className="lg:col-span-1">
-            <div className="sticky top-24">
+            <div className="sticky top-24" id="comments">
               <EnhancedCommentSystem postId={postId!} />
             </div>
           </aside>

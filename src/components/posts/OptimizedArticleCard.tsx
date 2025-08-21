@@ -257,7 +257,10 @@ export const OptimizedArticleCard: React.FC<OptimizedArticleCardProps> = ({
                         variant="ghost"
                         size="sm"
                         className="h-9 px-3 bg-black/20 backdrop-blur-sm hover:bg-black/30 hover:text-blue-400 text-white border-0"
-                        onClick={(e) => e.stopPropagation()}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/post/${id}#comments`;
+                        }}
                       >
                         <MessageCircle className="h-4 w-4 mr-2" />
                         <span className="font-medium">{formatNumber(commentsCount)}</span>
@@ -335,29 +338,32 @@ export const OptimizedArticleCard: React.FC<OptimizedArticleCardProps> = ({
             )}
           </div>
 
-          {/* Content section with more padding */}
-          <div className="p-5 space-y-4">
-            {/* Title - more prominent */}
-            <h3 className={cn(
-              "font-bold text-lg leading-tight line-clamp-2",
-              "group-hover:text-primary transition-colors duration-300",
-              "text-foreground"
-            )}>
-              {title}
-            </h3>
-            
-            {/* Excerpt */}
-            <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
-              {excerpt}
-            </p>
+            {/* Content section with more padding */}
+            <div className="p-5 space-y-3">
+              {/* Title - more prominent */}
+              <h3 className={cn(
+                "font-bold text-lg leading-tight line-clamp-2",
+                "group-hover:text-primary transition-colors duration-300",
+                "text-foreground"
+              )}>
+                {title}
+              </h3>
+              
+              {/* Excerpt */}
+              <p className="text-muted-foreground text-sm line-clamp-2 leading-relaxed">
+                {excerpt}
+              </p>
 
-            {/* Author info - fully visible */}
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <User className="h-4 w-4 shrink-0" />
-              <span className="font-medium">{author}</span>
-              <span className="text-muted-foreground/60">•</span>
-              <span>{timeAgo || publishedAt}</span>
-            </div>
+              {/* Separator line for better visual organization */}
+              <div className="w-full h-px bg-border/30 my-3" />
+
+              {/* Author info - fully visible */}
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="h-4 w-4 shrink-0" />
+                <span className="font-medium">{author}</span>
+                <span className="text-muted-foreground/60">•</span>
+                <span>{timeAgo || publishedAt}</span>
+              </div>
 
             {/* Interaction bar - ultra-compact spacing */}
             <div className="flex items-center justify-between pt-2">
@@ -385,7 +391,10 @@ export const OptimizedArticleCard: React.FC<OptimizedArticleCardProps> = ({
                   variant="ghost"
                   size="sm"
                   className="h-7 px-2 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 transition-all duration-200"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.location.href = `/post/${id}#comments`;
+                  }}
                 >
                   <MessageCircle className="h-3.5 w-3.5 mr-1" />
                   <span className="text-xs font-semibold">{formatNumber(commentsCount)}</span>
