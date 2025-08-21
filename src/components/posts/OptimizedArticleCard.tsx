@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { SmartImage } from '@/components/ui/smart-image';
 import { ContentPreview } from '@/components/posts/ContentPreview';
 import { SocialShareModal } from '@/components/posts/SocialShareModal';
-import { Heart, MessageCircle, Clock, Share2, Bookmark, User, Calendar, TrendingUp } from 'lucide-react';
+import { Heart, MessageCircle, Eye, Share2, Bookmark, User, Calendar, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { gsap } from 'gsap';
 import { usePostInteractions } from '@/hooks/use-post-interactions';
@@ -361,39 +361,39 @@ export const OptimizedArticleCard: React.FC<OptimizedArticleCardProps> = ({
 
             {/* Interaction bar - better organized */}
             <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-4">
-                {/* Like button */}
+              <div className="flex items-center gap-3">
+                {/* Like button - compact */}
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-8 px-3 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200",
+                    "h-8 px-2.5 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200",
                     isLiked ? "text-red-500 bg-red-50 dark:bg-red-950/30" : "hover:text-red-500"
                   )}
                   onClick={handleLike}
                   disabled={isLoading}
                 >
                   <Heart className={cn(
-                    "h-4 w-4 mr-2",
+                    "h-4 w-4 mr-1.5",
                     isLiked ? "fill-current" : ""
                   )} />
                   <span className="text-sm font-medium">{formatNumber(likesCount)}</span>
                 </Button>
                 
-                {/* Comments */}
+                {/* Comments - compact */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-3 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-500 transition-all duration-200"
+                  className="h-8 px-2.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-500 transition-all duration-200"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MessageCircle className="h-4 w-4 mr-2" />
+                  <MessageCircle className="h-4 w-4 mr-1.5" />
                   <span className="text-sm font-medium">{formatNumber(commentsCount)}</span>
                 </Button>
 
-                {/* Views with clock icon */}
-                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Clock className="h-4 w-4" />
+                {/* Views with eye icon - compact */}
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
+                  <Eye className="h-4 w-4" />
                   <span className="font-medium">{formatNumber(displayViews)}</span>
                 </div>
               </div>
