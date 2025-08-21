@@ -218,28 +218,11 @@ export function usePostInteractions(postId: string, initialState: Partial<PostIn
         title: "Segnalazione inviata",
         description: "Grazie per aver segnalato questo contenuto"
       });
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error reporting post:', error);
-      
-      // Enhanced error logging for 400 errors
-      let errorMessage = "Impossibile inviare la segnalazione";
-      if (error?.code) {
-        console.error(`Report error code: ${error.code}`);
-        console.error(`Report error message: ${error.message}`);
-        console.error(`Report error details:`, error.details);
-        
-        if (error.code === 'PGRST116') {
-          errorMessage = "Accesso negato - effettua il login per segnalare";
-        } else if (error.message?.includes('violates row-level security')) {
-          errorMessage = "Permessi insufficienti per segnalare questo contenuto";
-        } else if (error.message?.includes('duplicate key')) {
-          errorMessage = "Hai già segnalato questo contenuto";
-        }
-      }
-      
       toast({
-        title: "Errore nella segnalazione",
-        description: errorMessage,
+        title: "Errore",
+        description: "Impossibile inviare la segnalazione",
         variant: "destructive"
       });
     } finally {
