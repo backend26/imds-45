@@ -5,24 +5,28 @@ import { OptimizedArticleCard } from "@/components/posts/OptimizedArticleCard";
 import { UltraModernNewsCard } from "@/components/posts/UltraModernNewsCard";
 import { SportFilters } from "@/components/SportFilters";
 import { Badge } from "@/components/ui/badge";
-import { mockArticles } from "@/data/articles";
+import { useSportPosts, useFeaturedSportPosts, transformPostForCard } from "@/hooks/useSportPosts";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Calcio() {
   const [darkMode, setDarkMode] = useState(document.documentElement.classList.contains('dark'));
   const [selectedSport, setSelectedSport] = useState("calcio");
+
+  // Fetch real data from Supabase
+  const { data: posts, isLoading, error } = useSportPosts('calcio');
+  const { data: featuredPosts, isLoading: isFeaturedLoading } = useFeaturedSportPosts('calcio', 3);
 
   const toggleTheme = () => {
     setDarkMode(!darkMode);
     document.documentElement.classList.toggle("dark");
   };
 
-  // Filter articles for football/calcio
-  const calcioArticles = mockArticles.filter(article => 
-    article.category.toLowerCase() === 'calcio'
-  );
-
-  const featuredArticles = calcioArticles.slice(0, 3);
-  const otherArticles = calcioArticles.slice(3);
+  // Transform posts for card display
+  const transformedPosts = posts?.map(transformPostForCard) || [];
+  const transformedFeatured = featuredPosts?.map(transformPostForCard) || [];
+  
+  const featuredArticles = transformedFeatured.length > 0 ? transformedFeatured : transformedPosts.slice(0, 3);
+  const otherArticles = transformedFeatured.length > 0 ? transformedPosts : transformedPosts.slice(3);
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -52,35 +56,58 @@ export default function Calcio() {
         />
 
         {/* Featured Articles */}
-        {featuredArticles.length > 0 && (
+        {isLoading || isFeaturedLoading ? (
+          <section className="mb-12">
+            <h2 className="text-2xl font-bold text-foreground mb-6">Articoli in Evidenza</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-96 rounded-lg" />
+              ))}
+            </div>
+          </section>
+        ) : featuredArticles.length > 0 ? (
           <section className="mb-12">
             <h2 className="text-2xl font-bold text-foreground mb-6">Articoli in Evidenza</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredArticles.map((article, index) => (
-                <OptimizedArticleCard key={index} {...article} />
+                <OptimizedArticleCard key={article.id || index} {...article} />
               ))}
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* Other Articles */}
-        {otherArticles.length > 0 && (
+        {isLoading ? (
+          <section>
+            <h2 className="text-2xl font-bold text-foreground mb-6">Altri Articoli</h2>
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-32 rounded-lg" />
+              ))}
+            </div>
+          </section>
+        ) : error ? (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-destructive mb-4">
+              Errore nel caricamento
+            </h2>
+            <p className="text-muted-foreground">
+              Si è verificato un errore nel caricamento degli articoli. Riprova più tardi.
+            </p>
+          </div>
+        ) : otherArticles.length > 0 ? (
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-6">Altri Articoli</h2>
             <div className="space-y-4">
               {otherArticles.map((article, index) => (
                 <UltraModernNewsCard 
-                  key={index} 
+                  key={article.id || index}
                   {...article} 
-                  views={article.views || Math.floor(Math.random() * 1000) + 100}
                 />
               ))}
             </div>
           </section>
-        )}
-
-        {/* No articles message */}
-        {calcioArticles.length === 0 && (
+        ) : (
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-muted-foreground mb-4">
               Nessun articolo disponibile

@@ -359,42 +359,42 @@ export const OptimizedArticleCard: React.FC<OptimizedArticleCardProps> = ({
               <span>{timeAgo || publishedAt}</span>
             </div>
 
-            {/* Interaction bar - better organized */}
+            {/* Interaction bar - ultra-compact spacing */}
             <div className="flex items-center justify-between pt-2">
-              <div className="flex items-center gap-3">
-                {/* Like button - compact */}
+              <div className="flex items-center gap-1.5">
+                {/* Like button - optimized compact */}
                 <Button
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-8 px-2.5 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200",
-                    isLiked ? "text-red-500 bg-red-50 dark:bg-red-950/30" : "hover:text-red-500"
+                    "h-7 px-2 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all duration-200",
+                    isLiked ? "text-red-600 bg-red-50 dark:bg-red-950/30" : "hover:text-red-600"
                   )}
                   onClick={handleLike}
                   disabled={isLoading}
                 >
                   <Heart className={cn(
-                    "h-4 w-4 mr-1.5",
+                    "h-3.5 w-3.5 mr-1",
                     isLiked ? "fill-current" : ""
                   )} />
-                  <span className="text-sm font-medium">{formatNumber(likesCount)}</span>
+                  <span className="text-xs font-semibold">{formatNumber(likesCount)}</span>
                 </Button>
                 
-                {/* Comments - compact */}
+                {/* Comments - optimized compact */}
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2.5 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-500 transition-all duration-200"
+                  className="h-7 px-2 hover:bg-blue-50 dark:hover:bg-blue-950/30 hover:text-blue-600 transition-all duration-200"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  <MessageCircle className="h-4 w-4 mr-1.5" />
-                  <span className="text-sm font-medium">{formatNumber(commentsCount)}</span>
+                  <MessageCircle className="h-3.5 w-3.5 mr-1" />
+                  <span className="text-xs font-semibold">{formatNumber(commentsCount)}</span>
                 </Button>
 
-                {/* Views with eye icon - compact */}
-                <div className="flex items-center gap-1.5 text-sm text-muted-foreground px-2">
-                  <Eye className="h-4 w-4" />
-                  <span className="font-medium">{formatNumber(displayViews)}</span>
+                {/* Views with eye icon - optimized compact */}
+                <div className="flex items-center gap-1 text-xs text-muted-foreground px-1.5">
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="font-semibold">{formatNumber(displayViews)}</span>
                 </div>
               </div>
 
