@@ -7,24 +7,22 @@ interface CommentContentProps {
   isExpanded?: boolean;
   onToggleExpanded?: () => void;
   className?: string;
-  maxLength?: number;
 }
 
-const DEFAULT_MAX_PREVIEW_LENGTH = 300;
+const MAX_PREVIEW_LENGTH = 300;
 
 export const CommentContent = ({ 
   content, 
   isExpanded = true, 
   onToggleExpanded,
-  className = "",
-  maxLength = DEFAULT_MAX_PREVIEW_LENGTH
+  className = "" 
 }: CommentContentProps) => {
   const navigate = useNavigate();
   const { findProfileByUsername } = useRealProfiles();
   
-  const needsTruncation = content.length > maxLength;
+  const needsTruncation = content.length > MAX_PREVIEW_LENGTH;
   const displayContent = (!isExpanded && needsTruncation) 
-    ? content.substring(0, maxLength) + "..." 
+    ? content.substring(0, MAX_PREVIEW_LENGTH) + "..." 
     : content;
 
   // Parse mentions and hashtags
@@ -80,10 +78,7 @@ export const CommentContent = ({
 
   return (
     <div className={className}>
-      <div className={cn(
-        "text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere",
-        !isExpanded && needsTruncation && "overflow-hidden"
-      )}>
+      <div className="text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words overflow-wrap-anywhere">
         {parseContent(displayContent)}
       </div>
       
@@ -93,17 +88,9 @@ export const CommentContent = ({
             e.stopPropagation();
             onToggleExpanded();
           }}
-          className="text-primary text-xs font-medium hover:underline mt-2 inline-flex items-center gap-1 transition-colors"
+          className="text-primary text-sm font-medium hover:underline mt-1 inline-block"
         >
-          {isExpanded ? (
-            <>
-              <span>Mostra meno</span>
-            </>
-          ) : (
-            <>
-              <span>Leggi tutto</span>
-            </>
-          )}
+          {isExpanded ? 'Mostra meno' : 'Leggi tutto'}
         </button>
       )}
     </div>

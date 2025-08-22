@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Heart, Reply, MoreHorizontal, Trash2, Edit, ChevronDown, ChevronUp, CornerDownRight, Flag } from 'lucide-react';
+import { Heart, Reply, Flag, MoreHorizontal, Trash2, Edit, Send, ChevronDown, ChevronUp, CornerDownRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { formatTimeAgo } from '@/utils/timeFormat';
+import { formatDistanceToNow } from '@/utils/dateUtilsV3';
 import { CommentContent } from './CommentContent';
 import { CommentInput } from './CommentInput';
-import { CommentReportModal } from './CommentReportModal';
 import { cn } from '@/lib/utils';
 
 interface Comment {
@@ -27,37 +26,36 @@ interface Comment {
   depth?: number;
 }
 
-interface AdvancedCommentItemProps {
+interface EnhancedCommentItemProps {
   comment: Comment;
-  currentUser?: any;
-  isAdmin: boolean;
-  onLike: (commentId: string) => Promise<boolean>;
   onReply: (parentId: string, content: string) => Promise<boolean>;
+  onLike: (commentId: string) => Promise<boolean>;
   onEdit: (commentId: string, content: string) => Promise<boolean>;
   onDelete: (commentId: string) => Promise<boolean>;
+  onReport: (commentId: string) => void;
+  currentUserId?: string;
+  isEditor?: boolean;
   depth?: number;
-  replyingToAuthor?: string;
 }
 
-export const AdvancedCommentItem = ({ 
+export const EnhancedCommentItem = ({ 
   comment, 
-  currentUser, 
-  isAdmin,
-  onLike,
   onReply,
+  onLike,
   onEdit,
   onDelete,
-  depth = 0,
-  replyingToAuthor
-}: AdvancedCommentItemProps) => {
+  onReport,
+  currentUserId,
+  isEditor = false,
+  depth = 0
+}: EnhancedCommentItemProps) => {
   const [showReplies, setShowReplies] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [showReportModal, setShowReportModal] = useState(false);
   
-  const isOwner = currentUser?.id === comment.author_id;
-  const canModerate = isAdmin || isOwner;
+  const isOwner = currentUserId === comment.author_id;
+  const canModerate = isEditor || isOwner;
   
   // Limit nesting depth (TikTok-style)
   const maxDepth = 3;
@@ -80,21 +78,18 @@ export const AdvancedCommentItem = ({
   };
 
   const handleLike = async () => {
-    if (onLike) {
-      await onLike(comment.id);
-    }
+    await onLike(comment.id);
   };
 
   const handleDelete = async () => {
-    if (onDelete) {
-      await onDelete(comment.id);
-    }
+    await onDelete(comment.id);
   };
 
   return (
     <div className={cn(
       "space-y-3",
-      depth === 1 && "ml-6 border-l-2 border-l-muted/30 pl-4",
+      depth > 0 && "ml-8 border-l-2 border-l-muted pl-4",
+      depth > maxDepth && "ml-0 border-l-0 pl-0" // Reset nesting after max depth
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -105,21 +100,17 @@ export const AdvancedCommentItem = ({
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <div className="bg-card/50 rounded-lg border border-border/50 p-3 hover:bg-card transition-colors">
+          <div className="bg-card rounded-lg border p-3">
             {/* Header */}
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium text-foreground">
                   {comment.author.display_name}
                 </span>
-                {replyingToAuthor && (
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <CornerDownRight className="h-3 w-3" />
-                    <span className="text-xs">@{replyingToAuthor}</span>
-                  </div>
-                )}
                 <span className="text-muted-foreground text-xs">
-                  {formatTimeAgo(comment.created_at)}
+                  {formatDistanceToNow(new Date(comment.created_at), {
+                    addSuffix: true
+                  })}
                 </span>
                 {comment.updated_at !== comment.created_at && (
                   <span className="text-muted-foreground text-xs italic">
@@ -128,7 +119,7 @@ export const AdvancedCommentItem = ({
                 )}
               </div>
               
-              {currentUser && (
+              {currentUserId && (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -136,7 +127,7 @@ export const AdvancedCommentItem = ({
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    {isOwner && (
+                    {isOwner && canModerate && (
                       <DropdownMenuItem onClick={() => setIsEditing(true)}>
                         <Edit className="h-4 w-4 mr-2" />
                         Modifica
@@ -152,7 +143,7 @@ export const AdvancedCommentItem = ({
                       </DropdownMenuItem>
                     )}
                     {!isOwner && (
-                      <DropdownMenuItem onClick={() => setShowReportModal(true)}>
+                      <DropdownMenuItem onClick={() => onReport(comment.id)}>
                         <Flag className="h-4 w-4 mr-2" />
                         Segnala
                       </DropdownMenuItem>
@@ -168,7 +159,6 @@ export const AdvancedCommentItem = ({
                 onSubmit={handleEditSubmit}
                 placeholder="Modifica il tuo commento..."
                 onCancel={() => setIsEditing(false)}
-                initialValue={comment.content}
                 className="mt-2"
               />
             ) : (
@@ -187,8 +177,10 @@ export const AdvancedCommentItem = ({
                   variant="ghost"
                   size="sm"
                   className={cn(
-                    "h-7 px-2 text-xs hover:bg-muted",
-                    comment.user_has_liked && 'text-red-500'
+                    "h-7 px-2 text-xs",
+                    comment.user_has_liked 
+                      ? 'text-red-500 bg-red-50 hover:bg-red-100 dark:bg-red-950 dark:hover:bg-red-900' 
+                      : 'hover:bg-muted'
                   )}
                   onClick={handleLike}
                 >
@@ -201,7 +193,7 @@ export const AdvancedCommentItem = ({
                   {comment.likes_count}
                 </Button>
                 
-                {currentUser && !isMaxDepth && (
+                {currentUserId && !isMaxDepth && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -253,31 +245,23 @@ export const AdvancedCommentItem = ({
           {showReplies && comment.replies.length > 0 && (
             <div className="mt-4 space-y-4">
               {comment.replies.map(reply => (
-                <AdvancedCommentItem
+                <EnhancedCommentItem
                   key={reply.id}
                   comment={reply}
-                  currentUser={currentUser}
-                  isAdmin={isAdmin}
-                  onLike={onLike}
                   onReply={onReply}
+                  onLike={onLike}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  depth={1} // All replies at same indentation level
-                  replyingToAuthor={comment.author.display_name}
+                  onReport={onReport}
+                  currentUserId={currentUserId}
+                  isEditor={isEditor}
+                  depth={Math.min(depth + 1, maxDepth)} // Cap depth
                 />
               ))}
             </div>
           )}
         </div>
       </div>
-      
-      {/* Report Modal */}
-      {showReportModal && (
-        <CommentReportModal
-          commentId={comment.id}
-          onClose={() => setShowReportModal(false)}
-        />
-      )}
     </div>
   );
 };

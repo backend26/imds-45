@@ -356,43 +356,6 @@
     background-size: 200% 100%;
     animation: loading 1.5s infinite;
   }
-
-  /* Stili per sistema commenti migliorato */
-  .comment-container {
-    max-width: 100%;
-    overflow-x: hidden;
-  }
-
-  .comment-nested {
-    border-left: 2px solid hsl(var(--border));
-    margin-left: 1rem;
-    padding-left: 0.75rem;
-  }
-
-  .comment-content-truncated {
-    display: -webkit-box;
-    -webkit-line-clamp: 4;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .comment-expand-button {
-    background: none;
-    border: none;
-    color: hsl(var(--primary));
-    font-size: 0.75rem;
-    font-weight: 500;
-    cursor: pointer;
-    padding: 0.25rem 0;
-    margin-top: 0.5rem;
-    transition: all 0.2s ease;
-  }
-
-  .comment-expand-button:hover {
-    text-decoration: underline;
-    color: hsl(var(--primary) / 0.8);
-  }
 }
 
 @layer base {
