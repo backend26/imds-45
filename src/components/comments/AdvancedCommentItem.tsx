@@ -39,6 +39,9 @@ interface AdvancedCommentItemProps {
   replyingToAuthor?: string;
 }
 
+// Costanti per il sistema di espansione
+const MAX_COMMENT_LENGTH = 300; // Caratteri massimi prima di comprimere
+const MAX_VISIBLE_LINES = 4; // Righe massime visibili prima di comprimere
 export const AdvancedCommentItem = ({ 
   comment, 
   currentUser, 
@@ -53,15 +56,24 @@ export const AdvancedCommentItem = ({
   const [showReplies, setShowReplies] = useState(true);
   const [isReplying, setIsReplying] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(true);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [showReportModal, setShowReportModal] = useState(false);
   
   const isOwner = currentUser?.id === comment.author_id;
   const canModerate = isAdmin || isOwner;
   
-  // Limit nesting depth (TikTok-style)
+  // Limita la profondità di nesting e calcola indentazione uniforme
   const maxDepth = 3;
   const isMaxDepth = depth >= maxDepth;
+  
+  // Calcola se il commento è lungo e necessita espansione
+  const isLongComment = comment.content.length > MAX_COMMENT_LENGTH;
+  const shouldShowExpansion = isLongComment;
+  
+  // Inizializza lo stato di espansione basato sulla lunghezza
+  useState(() => {
+    setIsExpanded(!isLongComment);
+  });
   
   const handleReplySubmit = async (content: string) => {
     const success = await onReply(comment.id, content);
@@ -94,7 +106,9 @@ export const AdvancedCommentItem = ({
   return (
     <div className={cn(
       "space-y-3",
-      depth === 1 && "ml-6 border-l-2 border-l-muted/30 pl-4",
+      // Indentazione uniforme e controllata per tutti i livelli
+      depth > 0 && "ml-4 border-l-2 border-l-muted/30 pl-3",
+      depth >= maxDepth && "ml-4" // Mantieni indentazione minima anche al massimo livello
     )}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 flex-shrink-0">
@@ -172,12 +186,37 @@ export const AdvancedCommentItem = ({
                 className="mt-2"
               />
             ) : (
-              <CommentContent
-                content={comment.content}
-                isExpanded={isExpanded}
-                onToggleExpanded={() => setIsExpanded(!isExpanded)}
-                className="mb-3"
-              />
+              <div className="mb-3">
+                <div className={cn(
+                  "text-sm text-foreground leading-relaxed whitespace-pre-wrap break-words",
+                  !isExpanded && shouldShowExpansion && "line-clamp-4"
+                )}>
+                  {isExpanded || !shouldShowExpansion 
+                    ? comment.content 
+                    : comment.content.substring(0, MAX_COMMENT_LENGTH) + "..."
+                  }
+                </div>
+                
+                {/* Pulsante Leggi tutto / Mostra meno */}
+                {shouldShowExpansion && (
+                  <button
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="text-primary text-xs font-medium hover:underline mt-2 transition-colors"
+                  >
+                    {isExpanded ? (
+                      <>
+                        <ChevronUp className="h-3 w-3 inline mr-1" />
+                        Mostra meno
+                      </>
+                    ) : (
+                      <>
+                        <ChevronDown className="h-3 w-3 inline mr-1" />
+                        Leggi tutto
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
             )}
             
             {/* Actions */}
@@ -239,7 +278,7 @@ export const AdvancedCommentItem = ({
           
           {/* Reply Form */}
           {isReplying && (
-            <div className="mt-3">
+            <div className="mt-3 max-w-full">
               <CommentInput
                 onSubmit={handleReplySubmit}
                 placeholder={`Rispondi a ${comment.author.display_name}...`}
@@ -251,7 +290,7 @@ export const AdvancedCommentItem = ({
           
           {/* Replies */}
           {showReplies && comment.replies.length > 0 && (
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-4 max-w-full overflow-hidden">
               {comment.replies.map(reply => (
                 <AdvancedCommentItem
                   key={reply.id}
@@ -262,7 +301,7 @@ export const AdvancedCommentItem = ({
                   onReply={onReply}
                   onEdit={onEdit}
                   onDelete={onDelete}
-                  depth={1} // All replies at same indentation level
+                  depth={Math.min(depth + 1, maxDepth)} // Incrementa depth ma limita al massimo
                   replyingToAuthor={comment.author.display_name}
                 />
               ))}
