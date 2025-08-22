@@ -1154,14 +1154,6 @@ export type Database = {
         Args: { email_check: string }
         Returns: boolean
       }
-      check_login_rate_limit: {
-        Args: {
-          p_ip_address: unknown
-          p_max_attempts?: number
-          p_window_minutes?: number
-        }
-        Returns: boolean
-      }
       check_username_exists: {
         Args: { username_check: string }
         Returns: boolean
@@ -1177,14 +1169,6 @@ export type Database = {
           total_users: number
           users_last_month: number
           users_this_month: number
-        }[]
-      }
-      get_anonymized_user_metrics: {
-        Args: { time_period?: string }
-        Returns: {
-          active_users: number
-          engagement_rate: number
-          total_views: number
         }[]
       }
       get_author_stats: {
@@ -1279,10 +1263,6 @@ export type Database = {
       }
       promote_user_to_journalist: {
         Args: { user_uuid: string }
-        Returns: boolean
-      }
-      request_password_reset_secure: {
-        Args: { p_email: string; p_ip_address?: unknown }
         Returns: boolean
       }
       safe_purge_user_content: {
